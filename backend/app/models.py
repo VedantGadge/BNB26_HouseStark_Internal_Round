@@ -32,9 +32,10 @@ from app.features.assets.models import Asset  # noqa: E402
 from app.features.clip_generation.models import ClipCandidate  # noqa: E402
 from app.features.editing.models import EditRender, EditVersion  # noqa: E402
 from app.features.footage_analysis.models import TranscriptSegment, VisualObservation  # noqa: E402
+from app.features.platform_exports.models import PlatformExport  # noqa: E402
 from app.features.script_alignment.models import ScriptAlignment  # noqa: E402
 
 __all__ = [
-    "Asset", "Base", "ClipCandidate", "EditRender", "EditVersion", "Project", "ScriptAlignment",
-    "TranscriptSegment", "VisualObservation",
+    "Asset", "Base", "ClipCandidate", "EditRender", "EditVersion", "PlatformExport", "Project",
+    "ScriptAlignment", "TranscriptSegment", "VisualObservation",
 ]

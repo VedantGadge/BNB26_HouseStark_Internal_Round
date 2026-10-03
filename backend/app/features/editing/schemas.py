@@ -17,8 +17,10 @@ class OverlayPosition(StrEnum):
 
 
 class OutputCanvas(BaseModel):
-    width: int = Field(default=1080, ge=360, le=1080)
+    width: int = Field(default=1080, ge=360, le=1920)
     height: int = Field(default=1920, ge=360, le=1920)
+    safe_top_px: int = Field(default=80, ge=0, le=500)
+    safe_bottom_px: int = Field(default=150, ge=0, le=500)
 
 
 class CropPosition(BaseModel):

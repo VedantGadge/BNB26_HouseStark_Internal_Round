@@ -27,6 +27,7 @@ from app.features.editing.models import EditRender, EditVersion
 from app.features.footage_analysis.ingestion import ingest_uploaded_asset
 from app.features.footage_analysis.models import TranscriptSegment
 from app.features.footage_analysis.pipeline import analyze_ready_asset, build_groq_providers
+from app.features.platform_exports.models import PlatformExport
 from app.features.script_alignment.models import ScriptAlignment
 from app.main import create_app
 from app.models import Project
@@ -70,6 +71,9 @@ def main() -> int:
                 candidates, candidate_id = _generate_clip_candidates(client, owner_id, asset_id)
                 edit_version, render = _create_and_render_edit(client, owner_id, candidate_id)
                 public_ids.append(render["public_id"])
+                platform_exports = _create_platform_exports(
+                    client, owner_id, UUID(edit_version["id"]), public_ids
+                )
             analysis = _read_analysis(client, owner_id, asset_id)
             print("signed_upload=passed")
             print("completion_verification=passed")
@@ -91,6 +95,11 @@ def main() -> int:
                     "ffmpeg_edit_render=passed "
                     f"duration_ms={render['duration_ms']} "
                     f"resolution={render['width']}x{render['height']}"
+                )
+                print(
+                    "platform_exports=passed "
+                    f"records={len(platform_exports)} "
+                    f"variants={','.join(export['preset'] for export in platform_exports)}"
                 )
             print(f"analysis_api=passed status={analysis['processing_status']}")
             return 0
@@ -377,6 +386,62 @@ def _create_and_render_edit(
     ):
         raise RuntimeError("Edited recipe or FFmpeg render was not durably persisted.")
     return edit_version, render
+
+
+def _create_platform_exports(
+    client: TestClient, owner_id: str, edit_version_id: UUID, public_ids: list[str]
+) -> list[dict[str, object]]:
+    headers = {"X-Creator-ID": owner_id}
+    expected_duration_ms: int | None = None
+    created: list[dict[str, object]] = []
+    expected_variants = {
+        "instagram_feed": (1080, 1080),
+        "youtube_video": (1920, 1080),
+    }
+    for preset, (width, height) in expected_variants.items():
+        response = client.post(
+            f"/v1/edit-versions/{edit_version_id}/platform-exports",
+            headers=headers,
+            json={
+                "preset": preset,
+                "supporting_copy": "A verified CreatorAI platform export.",
+                "hashtags": ["creatorai", "writing"],
+            },
+        )
+        response.raise_for_status()
+        export = response.json()
+        public_ids.append(export["public_id"])
+        if expected_duration_ms is None:
+            expected_duration_ms = export["derived_recipe"]["source_end_ms"] - export[
+                "derived_recipe"
+            ]["source_start_ms"]
+        if not (
+            export["processing_status"] == "completed"
+            and export["width"] == width
+            and export["height"] == height
+            and export["duration_ms"]
+            and abs(export["duration_ms"] - expected_duration_ms) <= 1_500
+            and export["hashtags"] == ["creatorai", "writing"]
+        ):
+            raise RuntimeError(f"Platform export did not match the {preset} preset.")
+        loaded = client.get(f"/v1/platform-exports/{export['id']}", headers=headers)
+        loaded.raise_for_status()
+        if loaded.json()["public_id"] != export["public_id"]:
+            raise RuntimeError("Platform export lookup did not return the persisted artifact.")
+        created.append(export)
+    listed = client.get(f"/v1/edit-versions/{edit_version_id}/platform-exports", headers=headers)
+    listed.raise_for_status()
+    if {export["id"] for export in listed.json()} != {export["id"] for export in created}:
+        raise RuntimeError("Platform export list did not match the created exports.")
+    with get_session_factory()() as session:
+        persisted = (
+            session.query(PlatformExport)
+            .filter(PlatformExport.edit_version_id == edit_version_id)
+            .count()
+        )
+    if persisted != len(created):
+        raise RuntimeError("Platform exports were not durably persisted.")
+    return created
 
 
 def _cleanup(*, project_id: UUID, public_ids: list[str]) -> None:

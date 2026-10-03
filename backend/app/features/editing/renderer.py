@@ -96,6 +96,8 @@ def _build_video_filter(recipe: EditRecipePayload, *, text_directory: Path) -> s
                 position=recipe.title.position,
                 start_ms=recipe.title.start_ms,
                 end_ms=recipe.title.end_ms,
+                safe_top_px=recipe.output.safe_top_px,
+                safe_bottom_px=recipe.output.safe_bottom_px,
             )
         )
     if recipe.captions_enabled:
@@ -109,6 +111,8 @@ def _build_video_filter(recipe: EditRecipePayload, *, text_directory: Path) -> s
                     position=OverlayPosition.BOTTOM,
                     start_ms=caption.start_ms,
                     end_ms=caption.end_ms,
+                    safe_top_px=recipe.output.safe_top_px,
+                    safe_bottom_px=recipe.output.safe_bottom_px,
                 )
             )
     filters.append("setsar=1")
@@ -136,9 +140,15 @@ def _draw_text_filter(
     position: OverlayPosition,
     start_ms: int,
     end_ms: int,
+    safe_top_px: int,
+    safe_bottom_px: int,
 ) -> str:
     font_color, font_size, box_color = _draw_text_style(style)
-    y_position = "80" if position is OverlayPosition.TOP else "h-text_h-150"
+    y_position = (
+        str(safe_top_px)
+        if position is OverlayPosition.TOP
+        else f"h-text_h-{safe_bottom_px}"
+    )
     return (
         "drawtext="
         "fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:"

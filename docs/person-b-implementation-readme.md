@@ -29,7 +29,7 @@ The eight-feature product plan is in [creatorai-build-plan.md](./creatorai-build
 | 2. Script-to-video understanding | Complete | Groq timestamped transcription, bounded frame observations, persisted evidence, and source-grounded script alignment. |
 | 3. Automated clip generation | Complete | Ranked, duration-bounded, non-overlapping candidate ranges with transcript evidence, persisted in Neon and available through create/list APIs. |
 | 4. AI-assisted editable editing | Complete for the agreed backend scope | Immutable recipe versions, trim, normalized crop coordinates, three caption styles, timed hook title, up to two emphasis zooms, loudness normalization, audio fades, FFmpeg verification, and restricted Cloudinary render upload. |
-| 5. Multi-platform adaptation | Not started | This will create platform-specific variants from a selected immutable edit version. |
+| 5. Multi-platform adaptation | Complete for the agreed backend scope | Platform-safe immutable recipe snapshots, supporting copy/hashtag metadata, and verified Cloudinary MP4 exports for vertical, square, and landscape presets. |
 
 Feature 4 lives in `backend/app/features/editing/`. Its public backend contract is:
 
@@ -39,12 +39,22 @@ Feature 4 lives in `backend/app/features/editing/`. Its public backend contract 
 - `GET /v1/edit-versions/{version_id}` returns one immutable recipe.
 - `POST /v1/edit-versions/{version_id}/render` renders, probes, uploads, and persists
   one authenticated `1080×1920` MP4 artifact.
+- `POST /v1/edit-versions/{version_id}/platform-exports` derives, renders, and
+  persists one platform-specific export from the immutable version.
+- `GET /v1/edit-versions/{version_id}/platform-exports` lists a version's exports;
+  `GET /v1/platform-exports/{export_id}` loads one export for Person A's publishing flow.
 
 Real-video acceptance testing completed with the project MP4: a 3:59 `1280×720`
 source was transcribed into 70 segments, used to create a grounded candidate, saved
 as two immutable recipe revisions, and rendered as a verified 8-second
 `1080×1920` MP4. Temporary Neon records and both temporary Cloudinary videos were
 removed after the test.
+
+Platform-export acceptance testing then created and verified an `1080×1080`
+Instagram Feed export and a `1920×1080` YouTube landscape export from that same
+immutable edit version. Each variant retains its platform preset, derived recipe,
+supporting copy, hashtags, provider identity, and probed output metadata. Temporary
+Cloudinary and Neon data was removed after this second test as well.
 
 ### Person A dependency: durable jobs are currently a placeholder
 
@@ -128,9 +138,8 @@ Person B backend code is organized by business capability, not by technical type
 
 - `app/features/assets/` owns asset records, Cloudinary operations, upload APIs, and owner-scoped asset access.
 - `app/features/footage_analysis/` owns FFprobe inspection, ingestion, transcript/visual evidence models, provider contracts, persistence, and analysis APIs.
-- Implemented Person B capabilities use `app/features/clip_generation/` and
-  `app/features/editing/`; the future platform capability will use
-  `app/features/platform_exports/`.
+- Implemented Person B capabilities use `app/features/clip_generation/`,
+  `app/features/editing/`, and `app/features/platform_exports/`.
 - `app/database.py`, `app/config.py`, `app/dependencies.py`, `app/models.py`, and `app/schemas.py` remain shared compatibility/foundation modules. Do not move Person A's projects, auth, jobs, scripts, publications, or insights into Person B folders.
 - Legacy `app/routes/assets.py` and `app/services/*.py` are compatibility re-exports only. New Person B code must import from `app.features/...` directly.
 
