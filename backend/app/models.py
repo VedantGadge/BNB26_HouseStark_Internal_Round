@@ -30,5 +30,6 @@ class Project(Base):
 # owns its implementation model in a focused folder.
 from app.features.assets.models import Asset  # noqa: E402
 from app.features.footage_analysis.models import TranscriptSegment, VisualObservation  # noqa: E402
+from app.features.script_alignment.models import ScriptAlignment  # noqa: E402
 
-__all__ = ["Asset", "Base", "Project", "TranscriptSegment", "VisualObservation"]
+__all__ = ["Asset", "Base", "Project", "ScriptAlignment", "TranscriptSegment", "VisualObservation"]

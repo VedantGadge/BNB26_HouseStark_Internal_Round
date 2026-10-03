@@ -23,7 +23,9 @@ from app.database import get_session_factory
 from app.features.assets.models import Asset
 from app.features.assets.storage import CloudinaryStorage
 from app.features.footage_analysis.ingestion import ingest_uploaded_asset
+from app.features.footage_analysis.models import TranscriptSegment
 from app.features.footage_analysis.pipeline import analyze_ready_asset, build_groq_providers
+from app.features.script_alignment.models import ScriptAlignment
 from app.main import create_app
 from app.models import Project
 
@@ -62,6 +64,7 @@ def main() -> int:
             probe = _ingest_asset(asset_id, settings)
             if analyze_with_groq:
                 _analyze_asset_with_groq(asset_id, settings)
+                alignments = _align_transcript_as_script(client, owner_id, asset_id)
             analysis = _read_analysis(client, owner_id, asset_id)
             print("signed_upload=passed")
             print("completion_verification=passed")
@@ -76,6 +79,7 @@ def main() -> int:
                     f"transcript_segments={len(analysis['transcript_segments'])} "
                     f"visual_observations={len(analysis['visual_observations'])}"
                 )
+                print(f"script_alignment=passed records={alignments}")
             print(f"analysis_api=passed status={analysis['processing_status']}")
             return 0
     finally:
@@ -229,6 +233,37 @@ def _read_analysis(client: TestClient, owner_id: str, asset_id: UUID) -> dict[st
     )
     response.raise_for_status()
     return response.json()
+
+
+def _align_transcript_as_script(client: TestClient, owner_id: str, asset_id: UUID) -> int:
+    with get_session_factory()() as session:
+        segments = list(
+            session.query(TranscriptSegment)
+            .filter(TranscriptSegment.asset_id == asset_id)
+            .order_by(TranscriptSegment.source_start_ms)
+            .limit(3)
+        )
+    script_text = " ".join(segment.text for segment in segments)
+    if not script_text:
+        raise RuntimeError("Real transcription produced no script fixture for alignment.")
+    response = client.post(
+        f"/v1/assets/{asset_id}/script-alignments",
+        headers={"X-Creator-ID": owner_id},
+        json={"script_text": script_text},
+    )
+    response.raise_for_status()
+    records = response.json()
+    if not records:
+        raise RuntimeError("Script alignment returned no records for matching transcript evidence.")
+    with get_session_factory()() as session:
+        persisted = (
+            session.query(ScriptAlignment)
+            .filter(ScriptAlignment.asset_id == asset_id)
+            .count()
+        )
+    if persisted != len(records):
+        raise RuntimeError("Script alignment API response did not match persisted records.")
+    return persisted
 
 
 def _cleanup(*, project_id: UUID, public_id: str | None) -> None:
