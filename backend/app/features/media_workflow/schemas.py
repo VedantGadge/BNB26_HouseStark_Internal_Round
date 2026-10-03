@@ -13,14 +13,41 @@ class ClipRequest(BaseModel):
     max_candidates: int = Field(default=3, ge=1, le=10)
 
 
+class ManualClipRequest(BaseModel):
+    asset_id: UUID
+    source_start_ms: int = Field(ge=0)
+    source_end_ms: int = Field(gt=0)
+    title: str = Field(min_length=1, max_length=160)
+
+
 class ExportRequest(BaseModel):
     edit_version_id: UUID
-    preset: Literal["vertical", "square", "landscape"] = "vertical"
+    preset: Literal[
+        "vertical",
+        "square",
+        "landscape",
+        "instagram_reel",
+        "tiktok",
+        "youtube_short",
+        "instagram_feed",
+        "linkedin_feed",
+        "youtube_video",
+    ] = "vertical"
     platform: Platform = Platform.INSTAGRAM
     title: str = Field(min_length=1, max_length=160)
     caption: str = Field(min_length=1, max_length=2000)
     hashtags: list[str] = Field(default_factory=list, max_length=20)
     fit: Literal["crop", "pad"] = "crop"
+
+    @model_validator(mode="after")
+    def validate_platform_preset(self):
+        from app.features.platform_exports.presets import PRESETS
+        from app.features.platform_exports.schemas import PlatformExportPreset
+
+        if self.preset not in {"vertical", "square", "landscape"}:
+            if PRESETS[PlatformExportPreset(self.preset)].platform != self.platform:
+                raise ValueError("Choose the platform matching this named preset")
+        return self
 
 
 class ReviewRequest(BaseModel):

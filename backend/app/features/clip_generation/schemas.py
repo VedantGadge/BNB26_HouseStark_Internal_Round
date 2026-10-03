@@ -21,6 +21,7 @@ class ClipCandidateResponse(BaseModel):
     score: float = Field(ge=0, le=1)
     reasons: list[str]
     status: str
+    is_stale: bool = False
     created_at: datetime
 
     model_config = {"from_attributes": True}

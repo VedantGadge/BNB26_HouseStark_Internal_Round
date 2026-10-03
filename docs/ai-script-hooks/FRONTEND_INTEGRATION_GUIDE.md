@@ -129,6 +129,12 @@ Project navigation | Script title                 Version history
 
 ## Backend readiness gates discovered during planning
 
+These were historical planning gaps. The integrated backend now supports full
+script/supporting-copy patches, brand precedence, backend-allocated IDs, version
+timestamps/job references, suggestion approval association, and CORS PUT. The
+frontend implementation must still preserve drafts, explicit proposal approval
+and revision checks. Use the generated OpenAPI contract for the current shapes.
+
 These are implementation dependencies, not completed frontend capabilities:
 
 | Contract gap | Required frontend behavior until resolved |

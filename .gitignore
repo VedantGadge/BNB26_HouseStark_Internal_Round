@@ -1,6 +1,7 @@
 # JavaScript
 frontend/node_modules/
 frontend/.next/
+frontend/.next-qa/
 frontend/.vercel/
 frontend/.env.local
 
@@ -24,3 +25,5 @@ tmp/
 
 # Local operating-system files
 .DS_Store
+output/playwright/
+.playwright-cli/

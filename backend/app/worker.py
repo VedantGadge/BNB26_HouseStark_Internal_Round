@@ -25,6 +25,12 @@ async def run_worker() -> None:
 
     settings = get_settings()
     logger.info("CreatorAI worker started in %s", settings.environment)
+    # Concurrent-index migrations must run before the worker holds a claimed-job snapshot.
+    # Otherwise PostgreSQL waits for that snapshot while the worker waits for setup.
+    if settings.database_url:
+        connection_url = settings.database_url.replace("postgresql+psycopg://", "postgresql://", 1)
+        with PostgresSaver.from_conn_string(connection_url) as saver:
+            saver.setup()
     while True:
         if settings.database_url:
             with get_session_factory(settings)() as session:
@@ -48,8 +54,6 @@ async def run_worker() -> None:
                                 else nullcontext(None)
                             )
                             with checkpoint_context as saver:
-                                if saver is not None:
-                                    saver.setup()
                                 MediaWorkflowService(
                                     session, settings, get_storage(settings), saver
                                 ).execute(job)

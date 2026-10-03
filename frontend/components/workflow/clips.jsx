@@ -21,7 +21,8 @@ export function Clips({ projectId }) {
     <Job id={job} />
     {workflow.data?.jobs.filter((j) => j.type === "clip_generation" && j.id !== job).slice(0, 3).map((j) => <Job key={j.id} id={j.id} />)}
     <div className="rows">{clips.data?.map((clip) => <article key={clip.id} className="clip-row"><h2>{clip.hook}</h2>
-      <p>{time(clip.source_start_ms)}–{time(clip.source_end_ms)} · {Math.round(clip.score * 100)}% evidence overlap</p>
+      <p>{time(clip.source_start_ms)}–{time(clip.source_end_ms)} · {Math.round(clip.score * 100)}% match confidence</p>
+      <p className="muted">Source script version: {clip.script_version_id?.slice(0, 8) || "manual alignment"}</p>
       <p>{clip.transcript_text}</p><p className="muted">Evidence: {clip.reasons.join(", ")}. Ranking is a review heuristic.</p>
       <Link className="button" href={`/projects/${projectId}/clips/${clip.id}`}>Edit this clip</Link>
     </article>)}</div>
@@ -30,4 +31,3 @@ export function Clips({ projectId }) {
     {preview && <Media renderId={preview} />}
   </section>;
 }
-

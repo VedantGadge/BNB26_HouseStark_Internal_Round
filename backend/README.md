@@ -16,7 +16,10 @@ The container installs FFmpeg plus DejaVu fonts for caption rendering and starts
 
 Set the values from `.env.example` as Hugging Face Space secrets/variables. Keep `CLOUDINARY_API_SECRET`, database credentials, model credentials, and auth configuration server-side only. Set `CORS_ORIGINS` to the real Vercel production origin and the intended local/preview origins.
 
-Before deploying, generate and commit a dependency lockfile appropriate for the selected Python toolchain. The direct dependencies in `pyproject.toml` are pinned; a lockfile makes transitive dependencies reproducible too.
+Dependencies are pinned in `uv.lock`; `requirements.lock` is its hashed runtime
+export consumed by Docker. Use `uv sync --locked --extra dev` locally. After an
+intentional dependency change run `uv lock` and
+`uv export --frozen --no-dev --no-emit-project --output-file requirements.lock`.
 
 ## Local Swagger testing
 
@@ -37,9 +40,25 @@ and retrieve versions. Start the worker separately to process queued AI jobs:
 rtk proxy .venv/bin/python -m app.worker
 ```
 
-Feature persistence is isolated in `ai_script_*` PostgreSQL tables and uses its own
-`ai_script_alembic_version` table, so it does not share migration state with other features in the
-same database.
+Every feature uses the shared `projects` table and one linear Alembic history.
+The retained migration version table is `ai_script_alembic_version`. Run
+`uv run alembic upgrade head` explicitly before starting the application on an
+existing database; deployment and user-database migrations are not performed by QA.
+
+## Backend verification
+
+See [the audit](../docs/backend-verification.md). Dedicated local PostgreSQL tests:
+
+```bash
+rtk proxy docker compose -p creatorai-qa -f ../compose.test.yaml up -d --wait
+rtk proxy env CREATORAI_TEST_DATABASE_URL=postgresql://creatorai_test:local_test_only@127.0.0.1:55432/creatorai_test uv run --extra dev pytest -q
+```
+
+These tests refuse non-local databases and create/drop only random test-owned
+schemas. Real provider browser QA is explicitly enabled through
+`PYTHONPATH=.:tests CREATORAI_QA_FIXTURE=1 CREATORAI_QA_LIVE=1` with
+`uvicorn browser_fixture:build_app --factory --port 8011`. This entrypoint is
+test-only; it is never used for production authentication.
 
 ## AI script feature demo flow
 

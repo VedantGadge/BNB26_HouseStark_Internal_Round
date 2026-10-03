@@ -11,6 +11,21 @@ from app.models import Asset, EditRender, Job, Project, Publication, ScriptVersi
 STAGES = ("idea", "assets", "editing", "review", "approved", "exported", "published")
 
 
+def mark_inputs_changed(session, project):
+    """Require fresh review without rewriting an already published snapshot."""
+    if project.workflow_stage == "published" or any(
+        p.status == "published" for p in publications(session, project)
+    ):
+        return
+    if project.workflow_stage in ("review", "approved", "exported"):
+        data = deepcopy(project.workflow_data or {})
+        data.pop("approved_package", None)
+        data.update(review_status="changes_requested", editing_complete=False)
+        project.workflow_data = data
+        project.workflow_stage = "editing"
+        project.workflow_revision += 1
+
+
 def conflict(message: str):
     raise HTTPException(409, message)
 

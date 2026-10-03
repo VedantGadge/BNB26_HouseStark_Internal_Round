@@ -14,10 +14,76 @@ from app.auth import AuthenticatedCreator, get_current_creator
 from app.config import Settings, get_settings
 from app.database import get_db_session, get_session
 from app.features.assets.router import get_storage
+from app.features.clip_generation.models import ClipCandidate
+from app.features.editing.models import EditVersion
+from app.features.editing.schemas import CaptionItem, EditRecipePayload, TitleOverlay
 from app.features.media_workflow.service import MediaWorkflowService
+from app.features.platform_exports.presets import PRESETS
 from app.features.script_creation.jobs import JobRepository
 from app.main import create_app
 from app.models import Base, Project, ScriptAlignment, ScriptVersion
+
+
+@pytest.mark.parametrize("preset", list(PRESETS))
+def test_every_yash_preset_queues_and_renders_real_mp4(connected, preset):
+    client, session, storage, owner, execute = connected
+    project = create_project(client, session)
+    asset_id = upload(client, project)
+    execute()
+    candidate = ClipCandidate(
+        asset_id=uuid.UUID(asset_id),
+        source_start_ms=1000,
+        source_end_ms=3000,
+        hook="Camera guide",
+        transcript_text="Camera setup",
+        score=0.95,
+    )
+    session.add(candidate)
+    session.flush()
+    version = EditVersion(
+        candidate_id=candidate.id,
+        asset_id=candidate.asset_id,
+        revision=1,
+        author_type="creator",
+        recipe=EditRecipePayload(
+            source_start_ms=1000,
+            source_end_ms=3000,
+            title=TitleOverlay(text="A tested safe-zone title", end_ms=2000),
+            captions=[CaptionItem(start_ms=0, end_ms=1800, text="Caption with 100% literal text")],
+        ).model_dump(mode="json"),
+    )
+    session.add(version)
+    session.commit()
+    path = f"/v1/edit-versions/{version.id}/platform-exports"
+    payload = {
+        "preset": preset.value,
+        "title": "Independent title",
+        "supporting_copy": "Independent platform copy",
+        "hashtags": ["#camera"],
+        "fit": "pad",
+    }
+    result = client.post(path, json=payload, headers={"Idempotency-Key": "platform-export"})
+    assert result.status_code == 202, result.text
+    duplicate = client.post(path, json=payload, headers={"Idempotency-Key": "platform-export"})
+    assert duplicate.json()["id"] == result.json()["id"]
+    execute()
+    record = client.get(path).json()[0]
+    definition = PRESETS[preset]
+    assert (record["width"], record["height"]) == (definition.width, definition.height)
+    assert record["derived_recipe"]["output"]["safe_bottom_px"] == definition.safe_bottom_px
+    assert record["derived_recipe"]["output"]["fit"] == "pad"
+    assert record["supporting_copy"] == payload["supporting_copy"]
+    assert record["hashtags"] == ["camera"]
+    assert record["processing_status"] == "completed"
+    assert len(storage.uploads) == 1
+    probe = next(iter(storage.uploads.values()))["probe"]
+    assert probe.has_audio and abs(probe.duration_ms - 2000) < 200
+    render = client.get(f"/v1/projects/{project.id}/exports").json()[0]
+    assert record["id"] == render["id"]
+    assert render["supporting_copy"]["title"] == payload["title"]
+    assert client.get(f"/v1/exports/{record['id']}/delivery").status_code == 200
+    owner[0] = "another-creator"
+    assert client.get(f"/v1/platform-exports/{record['id']}").status_code == 404
 
 
 @pytest.fixture
@@ -316,3 +382,105 @@ def test_media_routes_never_trust_creator_header():
     settings.auth_required = False
     with TestClient(app) as client:
         assert client.get("/v1/projects").status_code == 401
+
+
+def test_creator_comparisons_span_owned_projects_only(connected):
+    from app.models import PerformanceSnapshot, Publication
+
+    client, session, storage, owner, execute = connected
+    now = datetime.now(UTC)
+    for creator, rate in [("creator-a", 10), ("creator-a", 20), ("other-owner", 99)]:
+        project = Project(
+            owner_id=creator,
+            name="Labelled comparison fixture",
+            brief="QA",
+            target_platforms=["instagram"],
+            workflow_stage="published",
+        )
+        session.add(project)
+        session.flush()
+        pub = Publication(
+            project_id=project.id,
+            platform="instagram",
+            status="published",
+            published_at=now - timedelta(days=8),
+            supporting_copy={"title": str(rate)},
+        )
+        session.add(pub)
+        session.flush()
+        session.add(
+            PerformanceSnapshot(
+                publication_id=pub.id,
+                observed_at=now - timedelta(days=1),
+                reporting_window_days=7,
+                source="Labelled manual fixture",
+                views=100,
+                likes=rate,
+                comments=0,
+                shares=0,
+            )
+        )
+    session.commit()
+    result = client.get("/v1/me/insights").json()
+    assert result["production"]["projects_completed"] == 2
+    assert len(result["performance"]) == 2
+    assert result["recommendations"][0]["sample_size"] == 2
+    assert "'20'" in result["recommendations"][0]["message"]
+
+
+def test_manual_source_selection_is_validated_and_editable(connected):
+    client, session, storage, owner, execute = connected
+    project = create_project(client, session)
+    asset_id = upload(client, project)
+    execute()
+    root = f"/v1/projects/{project.id}/clips/manual"
+    body = {
+        "asset_id": asset_id,
+        "source_start_ms": 1000,
+        "source_end_ms": 9000,
+        "title": "Creator selected take",
+    }
+    assert client.post(root, json={**body, "source_end_ms": 999999}).status_code == 422
+    response = client.post(root, json=body)
+    assert response.status_code == 201, response.text
+    candidate = response.json()
+    assert candidate["reasons"] == ["creator-selected-source-range"] and candidate["score"] == 0
+    version = client.get(f"/v1/clips/{candidate['id']}").json()["versions"][0]
+    assert version["recipe"]["source_end_ms"] == 9000 and version["author_type"] == "creator"
+    owner[0] = "another-creator"
+    assert client.post(root, json=body).status_code == 404
+
+
+def test_script_changes_flag_old_clips_and_require_fresh_review(connected):
+    client, session, storage, owner, execute = connected
+    p = create_project(client, session)
+    aid = upload(client, p)
+    execute()
+    old_script = p.current_script_version_id
+    session.add(
+        ClipCandidate(
+            asset_id=uuid.UUID(aid),
+            script_version_id=old_script,
+            source_start_ms=0,
+            source_end_ms=8000,
+            hook="Old hook",
+            transcript_text="QA",
+            score=1,
+        )
+    )
+    p.workflow_stage = "approved"
+    p.workflow_data = {
+        "approved_package": {"title": "Historical package"},
+        "editing_complete": True,
+    }
+    session.commit()
+    content = copy.deepcopy(SCRIPT)
+    content["sections"][0]["text"] = "Updated camera section"
+    response = client.post(
+        f"/v1/projects/{p.id}/scripts/versions", json={"base_version": 1, "content": content}
+    )
+    assert response.status_code == 201, response.text
+    workflow = client.get(f"/v1/projects/{p.id}/workflow").json()
+    assert workflow["stage"] == "editing" and workflow["approved_package"] is None
+    assert not workflow["checklist"]["editing_complete"]
+    assert client.get(f"/v1/projects/{p.id}/clips").json()[0]["is_stale"]

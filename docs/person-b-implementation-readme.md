@@ -29,7 +29,7 @@ The eight-feature product plan is in [creatorai-build-plan.md](./creatorai-build
 | 2. Script-to-video understanding | Complete | Groq timestamped transcription, bounded frame observations, persisted evidence, and source-grounded script alignment. |
 | 3. Automated clip generation | Complete | Ranked, duration-bounded, non-overlapping candidate ranges with transcript evidence, persisted in Neon and available through create/list APIs. |
 | 4. AI-assisted editable editing | Complete for the agreed backend scope | Immutable recipe versions, trim, normalized crop coordinates, three caption styles, timed hook title, up to two emphasis zooms, loudness normalization, audio fades, FFmpeg verification, and restricted Cloudinary render upload. |
-| 5. Multi-platform adaptation | Not started | This will create platform-specific variants from a selected immutable edit version. |
+| 5. Multi-platform adaptation | Complete for the agreed backend scope | Platform-safe immutable recipe snapshots, supporting copy/hashtag metadata, and verified Cloudinary MP4 exports for vertical, square, and landscape presets. |
 
 Feature 4 lives in `backend/app/features/editing/`. Its public backend contract is:
 
@@ -39,6 +39,10 @@ Feature 4 lives in `backend/app/features/editing/`. Its public backend contract 
 - `GET /v1/edit-versions/{version_id}` returns one immutable recipe.
 - `POST /v1/edit-versions/{version_id}/render` renders, probes, uploads, and persists
   one authenticated `1080×1920` MP4 artifact.
+- `POST /v1/edit-versions/{version_id}/platform-exports` derives, renders, and
+  persists one platform-specific export from the immutable version.
+- `GET /v1/edit-versions/{version_id}/platform-exports` lists a version's exports;
+  `GET /v1/platform-exports/{export_id}` loads one export for Person A's publishing flow.
 
 Real-video acceptance testing completed with the project MP4: a 3:59 `1280×720`
 source was transcribed into 70 segments, used to create a grounded candidate, saved
@@ -46,25 +50,30 @@ as two immutable recipe revisions, and rendered as a verified 8-second
 `1080×1920` MP4. Temporary Neon records and both temporary Cloudinary videos were
 removed after the test.
 
-### Person A dependency: durable jobs are currently a placeholder
+Platform-export acceptance testing then created and verified an `1080×1080`
+Instagram Feed export and a `1920×1080` YouTube landscape export from that same
+immutable edit version. Each variant retains its platform preset, derived recipe,
+supporting copy, hashtags, provider identity, and probed output metadata. Temporary
+Cloudinary and Neon data was removed after this second test as well.
 
-Person A owns durable job persistence, status, retries, and worker claiming. This
-repository currently contains only placeholders for that shared foundation:
+### Integrated durable execution on merged-1
 
-- `backend/app/routes/jobs.py` returns `501 Not Implemented` for job lookup.
-- `backend/app/worker.py` starts a polling loop but does not claim or execute a
-  persisted job.
+The shared PostgreSQL queue, worker, authenticated identity, and review/resume
+contracts are now implemented. Upload completion queues ingestion atomically;
+`POST /projects/{id}/clips/generate` returns `202` with a job `id`. Poll
+`GET /jobs/{id}` and use `POST /jobs/{id}/retry` for failures.
 
-Because that dependency is not available yet, Feature 4's render endpoint invokes
-`render_edit_version` synchronously and persists its own render status. This is a
-development bridge, not the final production execution model.
+Both `POST /clips/{id}/exports` and Yash's
+`POST /edit-versions/{id}/platform-exports` now require `Idempotency-Key` and return
+`202` JobResponse, not a synchronous export. On completion, `result.export_id`
+identifies both the verified EditRender and its PlatformExport record. They share
+one physical artifact, preserving Yash's dimensions, safe zones, and independent
+copy. All six named presets remain available. Generic aspect aliases are retained.
 
-When Person A implements the shared job foundation, they should provide an
-owner-scoped enqueue/claim/retry contract with `queued`, `running`, `completed`, and
-`failed` states. Person B will then change the render endpoint to return `202` and a
-shared `job_id`; Person A's worker will call the existing `render_edit_version`
-service. The recipe schema, FFmpeg command builder, Cloudinary upload, verification,
-and edit-version APIs remain unchanged.
+Legacy direct rendering remains a compatibility API; the frontend uses the
+durable export endpoints. FFmpeg, audio verification, versioned recipes and
+restricted Cloudinary delivery remain the render authority. See
+[backend-verification.md](backend-verification.md) for the integration audit.
 
 Person B does **not** own authentication, projects, script/hook generation, workflow/publishing states, job persistence/status/retry, or creator intelligence. Those are Person A's responsibility. Person B may add data and APIs needed by the media path, but must consume Person A's owner-scoped project, script-version, job, and authentication interfaces rather than reimplementing them.
 
@@ -128,9 +137,8 @@ Person B backend code is organized by business capability, not by technical type
 
 - `app/features/assets/` owns asset records, Cloudinary operations, upload APIs, and owner-scoped asset access.
 - `app/features/footage_analysis/` owns FFprobe inspection, ingestion, transcript/visual evidence models, provider contracts, persistence, and analysis APIs.
-- Implemented Person B capabilities use `app/features/clip_generation/` and
-  `app/features/editing/`; the future platform capability will use
-  `app/features/platform_exports/`.
+- Implemented Person B capabilities use `app/features/clip_generation/`,
+  `app/features/editing/`, and `app/features/platform_exports/`.
 - `app/database.py`, `app/config.py`, `app/dependencies.py`, `app/models.py`, and `app/schemas.py` remain shared compatibility/foundation modules. Do not move Person A's projects, auth, jobs, scripts, publications, or insights into Person B folders.
 - Legacy `app/routes/assets.py` and `app/services/*.py` are compatibility re-exports only. New Person B code must import from `app.features/...` directly.
 

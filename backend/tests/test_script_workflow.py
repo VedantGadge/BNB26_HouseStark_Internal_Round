@@ -253,3 +253,112 @@ def test_provider_fallback_only_retries_retryable_errors(monkeypatch: pytest.Mon
 
     assert result.payload == {"status": "ok"}
     assert requested_models == ["first:free", "second:free"]
+
+
+def test_provider_bounds_reasoning_and_explains_truncated_output(monkeypatch):
+    import io
+    import json
+
+    requests = []
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            self.close()
+
+    def reply(request, **kwargs):
+        requests.append(json.loads(request.data))
+        return Response(
+            json.dumps(
+                {
+                    "choices": [{"finish_reason": "length", "message": {"content": None}}],
+                    "usage": {
+                        "completion_tokens": 2000,
+                        "completion_tokens_details": {"reasoning_tokens": 2000},
+                    },
+                }
+            ).encode()
+        )
+
+    monkeypatch.setattr("app.features.script_creation.provider.urlopen", reply)
+    provider = OpenRouterProvider(Settings(_env_file=None, openrouter_api_key="test-key"))
+    with pytest.raises(ProviderError, match="exhausted its output budget") as error:
+        provider.generate_json(
+            system_prompt="s",
+            user_prompt="u",
+            schema_name="test",
+            schema={"type": "object"},
+            routing=routing_snapshot(),
+        )
+    assert error.value.category == "output_limit"
+    assert error.value.retryable
+    assert len(requests) == 1
+    assert requests[0]["reasoning"] == {"effort": "minimal", "exclude": True}
+
+
+def test_structured_output_repair_is_bounded(monkeypatch):
+    provider = OpenRouterProvider(Settings(_env_file=None, openrouter_api_key="test-key"))
+    calls = []
+
+    def invalid(**kwargs):
+        calls.append(kwargs)
+        return ProviderResult({"unsupported_id": "invented"}, "fake:free", None, None, None)
+
+    monkeypatch.setattr(provider, "_request_model", invalid)
+    with pytest.raises(ProviderError, match="schema"):
+        provider.generate_json(
+            system_prompt="s",
+            user_prompt="u",
+            schema_name="test",
+            schema={"type": "object", "required": ["matches"]},
+            routing=routing_snapshot(),
+        )
+    assert len(calls) == 2
+    assert "previous response was invalid" in calls[1]["user_prompt"]
+
+
+def test_insight_explanation_uses_frozen_facts_and_rejects_fake_evidence(session):
+    JobRepository(session).enqueue(
+        owner_id="creator-a",
+        project_id=None,
+        job_type=JobType.INSIGHT_SUMMARY,
+        idempotency_key="facts",
+        routing_snapshot=routing_snapshot(),
+        input_snapshot={
+            "facts": {
+                "performance": [{"snapshot_id": "known"}],
+                "production": {"clips_produced": 3},
+            }
+        },
+    )
+    claimed = JobRepository(session).claim_next(900)
+    ScriptCreationService(
+        session,
+        FakeProvider(
+            [
+                {
+                    "summary": "Limited entered evidence.",
+                    "evidence_snapshot_ids": ["invented"],
+                    "limitations": ["Small sample"],
+                }
+            ]
+        ),
+    ).execute_claimed_job(claimed)
+    assert claimed.status == "failed" and "unknown evidence" in claimed.error
+    claimed.status = "running"
+    ScriptCreationService(
+        session,
+        FakeProvider(
+            [
+                {
+                    "summary": "Three clips were produced.",
+                    "evidence_snapshot_ids": ["known"],
+                    "limitations": ["Small sample"],
+                }
+            ]
+        ),
+    ).execute_claimed_job(claimed)
+    assert claimed.status == "completed"
+    assert claimed.input_snapshot["result"]["evidence_snapshot_ids"] == ["known"]

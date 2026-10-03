@@ -1,407 +1,111 @@
-"""Run the real CreatorAI asset upload and ingestion path against configured providers.
+"""Real signed-upload smoke check through the durable worker.
 
-The script creates an isolated temporary Project, uploads a local MP4 through the
-same signed-session API used by clients, verifies completion, downloads the private
-source, probes it with FFprobe, reads the analysis API, and removes the temporary
-Neon and Cloudinary records in every outcome.
+Start tests/browser_fixture.py with CREATORAI_QA_LIVE=1 first. This script
+refuses ordinary app servers and never bypasses production authentication.
+QA records remain available until the isolated fixture server shuts down.
+Supply only media you are authorized to send to Cloudinary and Groq.
 """
 
-from __future__ import annotations
-
 import argparse
-import mimetypes
-import sys
+import time
 from pathlib import Path
-from uuid import UUID, uuid4
 
-import cloudinary.uploader
 import httpx
-from fastapi.testclient import TestClient
-
-from app.config import get_settings
-from app.database import get_session_factory
-from app.features.assets.models import Asset
-from app.features.assets.storage import CloudinaryStorage
-from app.features.clip_generation.models import ClipCandidate
-from app.features.editing.models import EditRender, EditVersion
-from app.features.footage_analysis.ingestion import ingest_uploaded_asset
-from app.features.footage_analysis.models import TranscriptSegment
-from app.features.footage_analysis.pipeline import analyze_ready_asset, build_groq_providers
-from app.features.script_alignment.models import ScriptAlignment
-from app.main import create_app
-from app.models import Project
-
-MAX_UPLOAD_BYTES = 100_000_000
 
 
-def main() -> int:
-    source_path, analyze_with_groq = _parse_arguments()
-    settings = get_settings()
-    _require_provider_settings(settings)
-    owner_id = settings.development_owner_id
-    project_id = uuid4()
-    asset_id: UUID | None = None
-    public_ids: list[str] = []
-
-    _create_temporary_project(project_id, owner_id)
-    print(f"temporary_project_created={project_id}")
-    try:
-        with TestClient(create_app()) as client:
-            upload_session = _create_upload_session(
-                client=client,
-                project_id=project_id,
-                owner_id=owner_id,
-                source_path=source_path,
-            )
-            asset_id = UUID(upload_session["asset_id"])
-            public_ids.append(str(upload_session["public_id"]))
-            provider_response = _upload_to_cloudinary(upload_session, source_path)
-            _complete_upload(
-                client=client,
-                owner_id=owner_id,
-                asset_id=asset_id,
-                provider_asset_id=provider_response["asset_id"],
-                provider_version=str(provider_response["version"]),
-            )
-            probe = _ingest_asset(asset_id, settings)
-            if analyze_with_groq:
-                _analyze_asset_with_groq(asset_id, settings)
-                alignments = _align_transcript_as_script(client, owner_id, asset_id)
-                candidates, candidate_id = _generate_clip_candidates(client, owner_id, asset_id)
-                edit_version, render = _create_and_render_edit(client, owner_id, candidate_id)
-                public_ids.append(render["public_id"])
-            analysis = _read_analysis(client, owner_id, asset_id)
-            print("signed_upload=passed")
-            print("completion_verification=passed")
-            print(
-                "ingestion=passed "
-                f"duration_ms={probe.duration_ms} resolution={probe.width}x{probe.height} "
-                f"video_codec={probe.video_codec} audio_codec={probe.audio_codec}"
-            )
-            if analyze_with_groq:
-                print(
-                    "groq_footage_analysis=passed "
-                    f"transcript_segments={len(analysis['transcript_segments'])} "
-                    f"visual_observations={len(analysis['visual_observations'])}"
-                )
-                print(f"script_alignment=passed records={alignments}")
-                print(f"clip_candidate_generation=passed records={candidates}")
-                print(f"editable_recipe=passed revision={edit_version['revision']}")
-                print(
-                    "ffmpeg_edit_render=passed "
-                    f"duration_ms={render['duration_ms']} "
-                    f"resolution={render['width']}x{render['height']}"
-                )
-            print(f"analysis_api=passed status={analysis['processing_status']}")
-            return 0
-    finally:
-        _cleanup(project_id=project_id, public_ids=public_ids)
-
-
-def _parse_arguments() -> tuple[Path, bool]:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("source", type=Path, help="Path to a local video under 100 MB")
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("source", type=Path)
+    parser.add_argument("--api-url", default="http://127.0.0.1:8011")
     parser.add_argument(
         "--analyze-with-groq",
         action="store_true",
-        help="Run timestamped Groq transcription and bounded Groq frame analysis after ingestion.",
+        help="Compatibility option; the video worker always analyzes with Groq.",
     )
-    arguments = parser.parse_args()
-    source_path = arguments.source.resolve()
-    if not source_path.is_file():
-        parser.error("source must be an existing regular file")
-    if source_path.stat().st_size > MAX_UPLOAD_BYTES:
-        parser.error("source exceeds the API's 100 MB upload limit")
-    if not mimetypes.guess_type(source_path.name)[0] or not source_path.suffix.lower() == ".mp4":
-        parser.error("this smoke test currently accepts MP4 sources only")
-    return source_path, arguments.analyze_with_groq
-
-
-def _require_provider_settings(settings: object) -> None:
-    for field_name in (
-        "cloudinary_cloud_name",
-        "cloudinary_api_key",
-        "cloudinary_api_secret",
-    ):
-        if not getattr(settings, field_name):
-            raise RuntimeError(f"{field_name.upper()} must be configured")
-
-
-def _create_temporary_project(project_id: UUID, owner_id: str) -> None:
-    with get_session_factory()() as session:
-        session.add(
-            Project(
-                id=project_id,
-                owner_id=owner_id,
-                name="CreatorAI real media smoke test",
-                brief="Temporary project created by the asset ingestion smoke test.",
-                target_platforms=["youtube_shorts"],
-            )
-        )
-        session.commit()
-
-
-def _create_upload_session(
-    *, client: TestClient, project_id: UUID, owner_id: str, source_path: Path
-) -> dict[str, object]:
-    response = client.post(
-        f"/v1/projects/{project_id}/assets/upload-session",
-        headers={"X-Creator-ID": owner_id},
-        json={
-            "filename": source_path.name,
-            "content_type": "video/mp4",
-            "byte_size": source_path.stat().st_size,
-            "kind": "video",
-            "tags": ["creatorai-test", "real-ingestion"],
-        },
-    )
-    response.raise_for_status()
-    return response.json()
-
-
-def _upload_to_cloudinary(
-    upload_session: dict[str, object], source_path: Path
-) -> dict[str, object]:
-    form_data = {
-        "api_key": str(upload_session["api_key"]),
-        "timestamp": str(upload_session["timestamp"]),
-        "signature": str(upload_session["signature"]),
-        "public_id": str(upload_session["public_id"]),
-        "type": str(upload_session["delivery_type"]),
-        "overwrite": str(upload_session["overwrite"]).lower(),
-    }
-    with source_path.open("rb") as source_file:
-        response = httpx.post(
-            str(upload_session["upload_url"]),
-            data=form_data,
-            files={"file": (source_path.name, source_file, "video/mp4")},
-            timeout=300,
-        )
-    try:
+    args = parser.parse_args()
+    source = args.source.resolve()
+    if not source.is_file() or source.suffix.lower() != ".mp4":
+        parser.error("source must be an existing authorized MP4 file")
+    if source.stat().st_size > 100_000_000:
+        parser.error("source exceeds the 100 MB upload limit")
+    with httpx.Client(base_url=args.api_url.rstrip("/"), timeout=300) as client:
+        response = client.get("/qa-info")
         response.raise_for_status()
-    except httpx.HTTPStatusError as error:
-        raise RuntimeError(f"Cloudinary upload rejected the request: {response.text}") from error
-    response_data = response.json()
-    if not all(response_data.get(key) for key in ("asset_id", "version", "public_id")):
-        raise RuntimeError("Cloudinary upload response was missing required asset identity.")
-    return response_data
-
-
-def _complete_upload(
-    *,
-    client: TestClient,
-    owner_id: str,
-    asset_id: UUID,
-    provider_asset_id: str,
-    provider_version: str,
-) -> None:
-    response = client.post(
-        f"/v1/assets/{asset_id}/complete",
-        headers={"X-Creator-ID": owner_id},
-        json={
-            "provider_asset_id": provider_asset_id,
-            "provider_version": provider_version,
-        },
-    )
-    response.raise_for_status()
-
-
-def _ingest_asset(asset_id: UUID, settings: object):
-    storage = CloudinaryStorage(
-        cloud_name=getattr(settings, "cloudinary_cloud_name"),
-        api_key=getattr(settings, "cloudinary_api_key"),
-        api_secret=getattr(settings, "cloudinary_api_secret"),
-    )
-    with get_session_factory()() as session:
-        asset = session.get(Asset, asset_id)
-        if asset is None:
-            raise RuntimeError("Completed asset was not persisted.")
-        return ingest_uploaded_asset(session, asset=asset, storage=storage)
-
-
-def _analyze_asset_with_groq(asset_id: UUID, settings: object) -> None:
-    storage = CloudinaryStorage(
-        cloud_name=getattr(settings, "cloudinary_cloud_name"),
-        api_key=getattr(settings, "cloudinary_api_key"),
-        api_secret=getattr(settings, "cloudinary_api_secret"),
-    )
-    transcription_provider, vision_provider = build_groq_providers(settings)
-    with get_session_factory()() as session:
-        asset = session.get(Asset, asset_id)
-        if asset is None:
-            raise RuntimeError("Ingested asset was not persisted.")
-        analyze_ready_asset(
-            session,
-            asset=asset,
-            storage=storage,
-            transcription_provider=transcription_provider,
-            vision_provider=vision_provider,
-        )
-
-
-def _read_analysis(client: TestClient, owner_id: str, asset_id: UUID) -> dict[str, object]:
-    response = client.get(
-        f"/v1/assets/{asset_id}/analysis", headers={"X-Creator-ID": owner_id}
-    )
-    response.raise_for_status()
-    return response.json()
-
-
-def _align_transcript_as_script(client: TestClient, owner_id: str, asset_id: UUID) -> int:
-    with get_session_factory()() as session:
-        segments = list(
-            session.query(TranscriptSegment)
-            .filter(TranscriptSegment.asset_id == asset_id)
-            .order_by(TranscriptSegment.source_start_ms)
-            .limit(3)
-        )
-    script_text = " ".join(segment.text for segment in segments)
-    if not script_text:
-        raise RuntimeError("Real transcription produced no script fixture for alignment.")
-    response = client.post(
-        f"/v1/assets/{asset_id}/script-alignments",
-        headers={"X-Creator-ID": owner_id},
-        json={"script_text": script_text},
-    )
-    response.raise_for_status()
-    records = response.json()
-    if not records:
-        raise RuntimeError("Script alignment returned no records for matching transcript evidence.")
-    with get_session_factory()() as session:
-        persisted = (
-            session.query(ScriptAlignment)
-            .filter(ScriptAlignment.asset_id == asset_id)
-            .count()
-        )
-    if persisted != len(records):
-        raise RuntimeError("Script alignment API response did not match persisted records.")
-    return persisted
-
-
-def _generate_clip_candidates(
-    client: TestClient, owner_id: str, asset_id: UUID
-) -> tuple[int, UUID]:
-    """Exercise both candidate endpoints and the durable candidate rows."""
-    response = client.post(
-        f"/v1/assets/{asset_id}/clip-candidates",
-        headers={"X-Creator-ID": owner_id},
-        json={
-            "max_candidates": 5,
-            "min_duration_ms": 8_000,
-            "max_duration_ms": 30_000,
-        },
-    )
-    response.raise_for_status()
-    records = response.json()
-    if not records:
-        raise RuntimeError("Clip generation returned no candidates from real aligned footage.")
-    for record in records:
-        duration_ms = record["source_end_ms"] - record["source_start_ms"]
-        if not (
-            record["source_start_ms"] >= 0
-            and record["source_end_ms"] > record["source_start_ms"]
-            and 8_000 <= duration_ms <= 30_000
-            and 0 <= record["score"] <= 1
-            and record["status"] == "suggested"
+        info = response.json()
+        if (
+            info.get("provider_data") != "LIVE PROVIDERS"
+            or info.get("database") != "ISOLATED POSTGRESQL SCHEMA"
         ):
-            raise RuntimeError("Clip generation returned an invalid real-video candidate.")
+            raise RuntimeError("Use the explicitly enabled isolated live-provider QA server")
 
-    listed = client.get(
-        f"/v1/assets/{asset_id}/clip-candidates", headers={"X-Creator-ID": owner_id}
-    )
-    listed.raise_for_status()
-    if [record["id"] for record in listed.json()] != [record["id"] for record in records]:
-        raise RuntimeError("Persisted clip candidates did not match the creation response.")
-    with get_session_factory()() as session:
-        persisted = (
-            session.query(ClipCandidate).filter(ClipCandidate.asset_id == asset_id).count()
+        def request(method, path, **kwargs):
+            response = client.request(method, "/v1" + path, **kwargs)
+            response.raise_for_status()
+            return response.json()
+
+        project = request(
+            "POST",
+            "/projects",
+            json={
+                "name": "[QA live] Signed ingestion smoke check",
+                "brief": "Labelled integration test, not real creator content.",
+                "target_platforms": ["instagram", "youtube"],
+            },
         )
-    if persisted != len(records):
-        raise RuntimeError("Clip candidate API response did not match persisted records.")
-    return persisted, UUID(records[0]["id"])
-
-
-def _create_and_render_edit(
-    client: TestClient, owner_id: str, candidate_id: UUID
-) -> tuple[dict[str, object], dict[str, object]]:
-    headers = {"X-Creator-ID": owner_id}
-    seeded = client.post(
-        f"/v1/clip-candidates/{candidate_id}/edit-versions", headers=headers, json={}
-    )
-    seeded.raise_for_status()
-    first_version = seeded.json()
-    if not first_version["recipe"]["captions"] or not first_version["recipe"]["title"]:
-        raise RuntimeError("Assistant edit recipe omitted captions or a title overlay.")
-
-    edited_recipe = first_version["recipe"]
-    edited_recipe["crop"]["center_x"] = 0.42
-    edited_recipe["caption_style"] = "bold"
-    edited_recipe["title"]["text"] = "A tested CreatorAI edit"
-    saved = client.post(
-        f"/v1/clip-candidates/{candidate_id}/edit-versions",
-        headers=headers,
-        json={"base_version_id": first_version["id"], "recipe": edited_recipe},
-    )
-    saved.raise_for_status()
-    edit_version = saved.json()
-    if edit_version["revision"] != 2 or edit_version["parent_version_id"] != first_version["id"]:
-        raise RuntimeError("Edited recipe did not create the expected immutable second version.")
-    versions = client.get(f"/v1/clip-candidates/{candidate_id}/edit-versions", headers=headers)
-    versions.raise_for_status()
-    if len(versions.json()) != 2:
-        raise RuntimeError("Edit-version list did not return both immutable recipe revisions.")
-
-    rendered = client.post(f"/v1/edit-versions/{edit_version['id']}/render", headers=headers)
-    rendered.raise_for_status()
-    render = rendered.json()
-    expected_duration_ms = (
-        edit_version["recipe"]["source_end_ms"] - edit_version["recipe"]["source_start_ms"]
-    )
-    if not (
-        render["processing_status"] == "completed"
-        and render["width"] == 1080
-        and render["height"] == 1920
-        and render["duration_ms"]
-        and abs(render["duration_ms"] - expected_duration_ms) <= 1_500
-    ):
-        raise RuntimeError("FFmpeg render did not match the saved edit recipe.")
-    with get_session_factory()() as session:
-        version_count = (
-            session.query(EditVersion).filter(EditVersion.candidate_id == candidate_id).count()
+        upload = request(
+            "POST",
+            f"/projects/{project['id']}/assets/upload-session",
+            json={
+                "filename": source.name,
+                "content_type": "video/mp4",
+                "kind": "video",
+                "byte_size": source.stat().st_size,
+                "tags": ["labelled-qa", "live-smoke"],
+            },
         )
-        persisted_render = session.get(EditRender, UUID(render["id"]))
-    if (
-        version_count != 2
-        or persisted_render is None
-        or persisted_render.processing_status != "completed"
-    ):
-        raise RuntimeError("Edited recipe or FFmpeg render was not durably persisted.")
-    return edit_version, render
-
-
-def _cleanup(*, project_id: UUID, public_ids: list[str]) -> None:
-    cleanup_failures: list[str] = []
-    for public_id in public_ids:
-        try:
-            cloudinary.uploader.destroy(
-                public_id,
-                resource_type="video",
-                type="authenticated",
-                invalidate=True,
+        form = {
+            key: str(upload[key]).lower() if isinstance(upload[key], bool) else str(upload[key])
+            for key in ("api_key", "timestamp", "signature", "public_id", "overwrite")
+        }
+        form["type"] = upload["delivery_type"]
+        with source.open("rb") as handle:
+            response = httpx.post(
+                upload["upload_url"],
+                data=form,
+                files={"file": (source.name, handle, "video/mp4")},
+                timeout=300,
             )
-        except Exception as error:  # pragma: no cover - only live provider failures
-            cleanup_failures.append(f"Cloudinary cleanup failed: {type(error).__name__}")
-    try:
-        with get_session_factory()() as session:
-            project = session.get(Project, project_id)
-            if project is not None:
-                session.delete(project)
-                session.commit()
-    except Exception as error:  # pragma: no cover - only live provider failures
-        cleanup_failures.append(f"Neon cleanup failed: {type(error).__name__}")
-    print("temporary_records_removed=" + ("false" if cleanup_failures else "true"))
-    for failure in cleanup_failures:
-        print(failure, file=sys.stderr)
+        response.raise_for_status()
+        provider = response.json()
+        request(
+            "POST",
+            f"/assets/{upload['asset_id']}/complete",
+            json={
+                "provider_asset_id": provider["asset_id"],
+                "provider_version": str(provider["version"]),
+            },
+        )
+        deadline = time.monotonic() + 900
+        while time.monotonic() < deadline:
+            workflow = request("GET", f"/projects/{project['id']}/workflow")
+            job = next(j for j in workflow["jobs"] if j["type"] == "asset_ingestion")
+            if job["status"] == "failed":
+                raise RuntimeError(job["error"])
+            if job["status"] == "completed":
+                break
+            time.sleep(2)
+        else:
+            raise TimeoutError("Durable ingestion did not finish within 15 minutes")
+        analysis = request("GET", f"/assets/{upload['asset_id']}/analysis")
+        assert analysis["processing_status"] == "ready"
+        assert analysis["visual_observations"]
+        print("signed_upload=passed completion_verification=passed durable_ingestion=passed")
+        print(
+            f"groq_transcript_segments={len(analysis['transcript_segments'])} "
+            f"groq_visual_observations={len(analysis['visual_observations'])}"
+        )
+        print(f"isolated_qa_project={project['id']}")
+    return 0
 
 
 if __name__ == "__main__":

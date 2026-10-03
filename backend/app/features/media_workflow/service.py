@@ -12,11 +12,12 @@ from app.features.assets.storage import CloudinaryStorage
 from app.features.clip_generation.service import generate_candidates
 from app.features.editing.models import EditRender, EditVersion
 from app.features.editing.render_service import render_edit_version
-from app.features.editing.schemas import EditRecipePayload, EditVersionCreate
+from app.features.editing.schemas import EditVersionCreate
 from app.features.editing.service import create_edit_version, get_owned_edit_version
 from app.features.footage_analysis.ingestion import ingest_uploaded_asset
 from app.features.footage_analysis.models import TranscriptSegment, VisualObservation
 from app.features.footage_analysis.pipeline import analyze_ready_asset, build_groq_providers
+from app.features.platform_exports.service import platform_recipe, record_verified_export
 from app.features.script_alignment.semantic import semantic_matches
 from app.features.script_alignment.service import replace_alignments
 from app.features.script_creation.provider import OpenRouterProvider
@@ -24,8 +25,6 @@ from app.features.script_creation.routing import routing_snapshot
 from app.graphs.repurpose import build_repurpose_graph
 from app.models import Job, LlmCall, ScriptVersion
 from app.schemas import JobType
-
-PRESETS = {"vertical": (1080, 1920), "square": (1080, 1080), "landscape": (1920, 1080)}
 
 
 class MediaWorkflowService:
@@ -140,6 +139,61 @@ class MediaWorkflowService:
             provider=self.alignment_provider or OpenRouterProvider(self.settings),
             routing=routing,
         )
+        weak = [m for m in matches.values() if m.status == "partial" and m.confidence < 0.5]
+        if (
+            weak or all(m.status == "unmatched" for m in matches.values())
+        ) and not job.input_snapshot.get("visual_refinement_done"):
+            self.stage(job, "inspecting_uncertain_source_frames")
+            _, vision = self.providers or build_groq_providers(self.settings)
+            if hasattr(vision, "inspect_at"):
+                from pathlib import Path
+                from tempfile import TemporaryDirectory
+
+                evidence = {str(e.id): e for e in [*transcript, *visuals]}
+                times = [
+                    (
+                        evidence[m.evidence_id].source_start_ms
+                        + evidence[m.evidence_id].source_end_ms
+                    )
+                    // 2
+                    for m in weak
+                    if m.evidence_id in evidence
+                ]
+                times = times or [asset.duration_ms // 4, 3 * asset.duration_ms // 4]
+                with TemporaryDirectory(prefix="creatorai-refine-") as directory:
+                    source = Path(directory) / f"source.{asset.format}"
+                    self.storage.download_original_to_path(
+                        public_id=asset.public_id,
+                        resource_type=asset.resource_type,
+                        asset_format=asset.format,
+                        destination=source,
+                    )
+                    observations = vision.inspect_at(source, times)
+                for observation in observations:
+                    self.session.add(
+                        VisualObservation(
+                            asset_id=asset.id,
+                            source_start_ms=observation.source_start_ms,
+                            source_end_ms=observation.source_end_ms,
+                            frame_references=observation.frame_references,
+                            description=observation.description,
+                            confidence=observation.confidence,
+                        )
+                    )
+                job.input_snapshot = {**job.input_snapshot, "visual_refinement_done": True}
+                self.session.commit()
+                visuals = list(
+                    self.session.scalars(
+                        select(VisualObservation).where(VisualObservation.asset_id == asset.id)
+                    )
+                )
+                matches, call = semantic_matches(
+                    sections=script.content["sections"],
+                    transcript_segments=transcript,
+                    visual_observations=visuals,
+                    provider=self.alignment_provider or OpenRouterProvider(self.settings),
+                    routing=routing,
+                )
         self.session.add(
             LlmCall(
                 job_id=job.id,
@@ -212,14 +266,20 @@ class MediaWorkflowService:
         graph = build_repurpose_graph(lambda state: self.propose(job, state), self.checkpointer)
         config = {"configurable": {"thread_id": job.graph_thread_id}}
         snapshot = graph.get_state(config)
-        if job.input_snapshot.get("review"):
+        if snapshot.values.get("selected_edit_version_id") and not snapshot.next:
+            # The graph can finish before the job transaction commits. Recover
+            # from the checkpoint without repeating a completed review.
+            result = snapshot.values
+        elif job.input_snapshot.get("review"):
             version = get_owned_edit_version(
                 self.session, UUID(job.input_snapshot["review"]["edit_version_id"]), job.owner_id
             )
             result = graph.invoke(Command(resume={"edit_version_id": str(version.id)}), config)
         else:
             result = graph.invoke(None if snapshot.values else job.input_snapshot, config)
-        if result.get("__interrupt__"):
+        # Root-dictionary graph results can retain old __interrupt__ metadata.
+        # Only the persisted pending interrupt establishes a real review pause.
+        if graph.get_state(config).interrupts:
             job.status, job.stage = "waiting_review", "creator_review"
             job.lease_expires_at = None
             self.session.commit()
@@ -239,9 +299,9 @@ class MediaWorkflowService:
             self.session, UUID(payload["edit_version_id"]), job.owner_id
         )
         asset = get_owned_asset(self.session, version.asset_id, job.owner_id)
-        recipe = EditRecipePayload.model_validate(version.recipe)
-        width, height = PRESETS[payload["preset"]]
-        recipe.output.width, recipe.output.height, recipe.output.fit = width, height, payload["fit"]
+        preset, recipe = platform_recipe(
+            version, preset=payload["preset"], platform=payload["platform"], fit=payload["fit"]
+        )
         self.stage(job, "rendering_and_verifying_export")
         render = render_edit_version(
             self.session,
@@ -255,6 +315,7 @@ class MediaWorkflowService:
             supporting_copy={k: payload[k] for k in ("title", "caption", "hashtags")},
             recipe_override=recipe,
         )
+        record_verified_export(self.session, render=render, preset=preset)
         job.input_snapshot = {**payload, "result": {"export_id": str(render.id)}}
 
 

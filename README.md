@@ -2,7 +2,7 @@
 
 CreatorAI is a creator workspace for moving from an idea and source footage to grounded short-form clips, platform exports, publication tracking, and performance insights.
 
-This repository is the initial scaffold for the approved architecture:
+This repository implements the connected workflow from the approved architecture:
 
 - `frontend/` — Next.js App Router workspace deployed to Vercel.
 - `backend/` — FastAPI API and a single persisted-job worker for a Hugging Face Docker Space.
@@ -28,13 +28,21 @@ npm --prefix frontend run dev
 backend/.venv/bin/uvicorn app.main:app --app-dir backend --reload --port 8000
 ```
 
+From `backend/`, run `uv run alembic upgrade head` before first use and start
+`uv run python -m app.worker` in a third terminal. API requests enqueue durable
+work; they do not start a worker automatically. This local task does not deploy
+the application or migrate your configured hosted database.
+
 The starter frontend is at `http://localhost:3000`; the API health check is at `http://localhost:8000/health`.
 
 ## Service configuration
 
 Do not commit real secrets. The backend owns Cloudinary credentials, Neon connection strings, model credentials, and JWT verification. The browser receives only `NEXT_PUBLIC_API_BASE_URL` plus narrowly scoped upload-session data returned by the API.
 
-Before a first deployment, select the independent auth provider, create a pinned dependency lockfile, set Cloudinary restricted delivery, configure a Neon database, and set the actual Vercel origin in `CORS_ORIGINS`.
+Before deployment, configure the independent JWT provider, Cloudinary restricted
+delivery, Neon and the actual Vercel CORS origin. Backend dependencies are locked
+in `backend/uv.lock` and `backend/requirements.lock`; frontend dependencies use
+`frontend/package-lock.json`. See [the backend audit](docs/backend-verification.md).
 
 ## Contract workflow
 

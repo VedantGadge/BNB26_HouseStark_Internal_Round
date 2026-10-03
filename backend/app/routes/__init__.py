@@ -7,6 +7,7 @@ from app.features.editing import router as editing
 from app.features.footage_analysis import router as footage_analysis
 from app.features.media_workflow.insights import router as insights_router
 from app.features.media_workflow.router import router as media_router
+from app.features.platform_exports import router as platform_exports
 from app.features.script_alignment import router as script_alignment
 from app.features.script_creation import router as script_router
 from app.features.script_creation import style_router
@@ -30,6 +31,12 @@ api_router.include_router(script_alignment.router, prefix="/assets", tags=["scri
 api_router.include_router(clip_generation.router, prefix="/assets", tags=["clip-generation"])
 api_router.include_router(editing.candidate_router, prefix="/clip-candidates", tags=["editing"])
 api_router.include_router(editing.router, prefix="/edit-versions", tags=["editing"])
+api_router.include_router(
+    platform_exports.version_router, prefix="/edit-versions", tags=["platform-exports"]
+)
+api_router.include_router(
+    platform_exports.router, prefix="/platform-exports", tags=["platform-exports"]
+)
 api_router.include_router(clips.router, prefix="/clips", tags=["clips"])
 api_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
 api_router.include_router(publications.router, prefix="/publications", tags=["publications"])

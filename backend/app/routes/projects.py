@@ -25,6 +25,9 @@ def update_project(
         raise HTTPException(409, "Published projects are preserved.")
     for key, value in payload.model_dump(exclude_unset=True, mode="json").items():
         setattr(project, key, value)
+    from app.features.content_workflow.service import mark_inputs_changed
+
+    mark_inputs_changed(session, project)
     session.commit()
     return project_summary(project)
 

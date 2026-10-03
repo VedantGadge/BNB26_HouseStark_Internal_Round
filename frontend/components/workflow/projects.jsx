@@ -27,9 +27,8 @@ export function Projects() {
       <Field label="Project name"><input name="name" required maxLength={120} /></Field>
       <Field label="Content idea / brief"><textarea name="brief" required maxLength={8000} /></Field>
       <div className="columns"><Field label="Audience"><input name="audience" /></Field><Field label="Tone"><input name="tone" /></Field></div>
-      <fieldset><legend>Platforms</legend>{["instagram", "tiktok", "youtube"].map((p) => <label key={p} className="check"><input type="checkbox" name="platform" value={p} defaultChecked={p === "instagram"} />{p}</label>)}</fieldset>
+      <fieldset><legend>Platforms</legend>{["instagram", "tiktok", "youtube", "linkedin"].map((p) => <label key={p} className="check"><input type="checkbox" name="platform" value={p} defaultChecked={p === "instagram"} />{p}</label>)}</fieldset>
       <button disabled={action.busy}>Create project</button>
     </form>
   </main>;
 }
-

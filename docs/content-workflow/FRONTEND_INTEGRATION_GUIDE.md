@@ -1,12 +1,13 @@
 # Content workflow frontend integration guide
 
-This guide is intentionally the frontend handoff for the workflow backend. No workflow UI is currently implemented in `frontend/`; the existing Projects, Overview, and Publish routes remain placeholders until the script, asset, editing, and export features have their final backend contracts.
+This guide is the frontend handoff for the integrated workflow backend. Projects,
+Overview and Publish now consume real project, job, edit and export records.
 
 ## Purpose
 
-The frontend should present the project workflow only after it can connect real upstream records. The current backend supports the hackathon manual-prototype policy as a fallback: a saved script plus creator-confirmed assets/editing and a clearly labelled prepared MP4 package.
-
-When real asset, edit, and export APIs are available, replace the manual checkpoint controls with derived backend fields. Do not infer completion from browser state or a successful upload request.
+Packages require completed, owned exports. There is no prepared-MP4 fallback.
+Keep explicit creator review/readiness checks, but never infer asset/export
+completion from browser state or a successful upload request.
 
 ## User journey
 
@@ -42,7 +43,8 @@ Attach the creator JWT as `Authorization: Bearer <token>`. The backend scopes ev
 | `GET /projects/{projectId}/workflow` | Authoritative stage, revision, prerequisites, package, jobs, and publications. |
 | `PATCH /projects/{projectId}/workflow` | Save creator-confirmed readiness or the current package. |
 | `POST /projects/{projectId}/workflow/transitions` | Move forward one stage or reopen editing. |
-| `GET /projects/{projectId}/workflow/media` | Owner-checked prepared demo MP4 for the manual prototype only. |
+| `GET /projects/{projectId}/workflow/media` | Owner-checked redirect to the package's first verified export. |
+| `GET /projects/{projectId}/package` | Approved immutable package and expiring export download URLs. |
 | `GET /projects/{projectId}/publications` | Refresh publication records independently when needed. |
 | `POST /projects/{projectId}/publications` | Create one manual publication record for a selected target platform. |
 | `PATCH /projects/{projectId}/publications/{publicationId}` | Save planned date/copy or confirm manual publication. |
@@ -51,7 +53,7 @@ Every write sends the latest `expected_revision` from `GET /workflow`. After eve
 
 ## Request examples
 
-Save manual readiness and a prepared package:
+Save readiness and a rendered package (use actual completed export IDs):
 
 ```json
 PATCH /v1/projects/{projectId}/workflow
@@ -62,6 +64,7 @@ PATCH /v1/projects/{projectId}/workflow
   "package": {
     "title": "3-step study reset",
     "caption": "A short, practical study reset.",
+    "render_ids": ["00000000-0000-0000-0000-000000000000"],
     "media_checked": true
   }
 }
@@ -108,13 +111,15 @@ PATCH /v1/projects/{projectId}/publications/{publicationId}
 
 Show the current `stage`, `next_action`, `blocking_reasons`, checklist, review status, stage timestamps, and up to ten recent jobs. Do not make a transition button active when `blocking_reasons` is non-empty.
 
-Use the returned package provenance. When it is `prepared_demo`, show that the media is prepared sample footage and was not generated from the project’s source assets.
+Use the returned `rendered_exports` provenance and immutable export metadata.
+The example UUID above is illustrative, not a usable artifact.
 
 ### Review and export
 
-Show editable title/caption and the prepared preview only for the manual prototype. Save package changes explicitly. A successful save while in review, approved, or exported returns the workflow to editing and clears `approved_package`; tell the creator why.
-
-The future integrated screen should use immutable `EditVersion` and `Export` records. It should not write an arbitrary media URL into this workflow API.
+Show editable package copy and actual completed export previews. Save explicitly.
+A change while in review, approved or exported returns to editing and clears
+approval. Script/brief changes also require fresh review; published snapshots
+remain immutable. Never write an arbitrary media URL into the workflow API.
 
 ### Publish
 
@@ -130,7 +135,7 @@ Keep **Save plan** separate from **Mark as published**. Confirmation requires an
 | `404` | Show a generic unavailable-project state. Do not reveal ownership information. |
 | `409` | Refetch workflow state and tell the creator it changed elsewhere or a transition is blocked. |
 | `422` | Keep form values and display field/API validation feedback. |
-| `503` from media | Show the prepared demo video as unavailable; do not claim the package is playable. |
+| Unavailable media | Refresh the signed playback link; do not claim a failed export is playable. |
 
 Job fields are status information only. A queued or failed job must never advance a workflow stage.
 

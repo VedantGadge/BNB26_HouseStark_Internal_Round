@@ -48,9 +48,10 @@ export function Editor({ projectId, clipId }) {
       edit_version_id: latest.id, preset: fields.get("preset"), platform: fields.get("platform"), fit: fields.get("fit"),
       title: fields.get("title"), caption: fields.get("caption"), hashtags: String(fields.get("hashtags") || "").split(/\s+/).filter(Boolean),
     }, true); setJob(queued.id); }); }}>
-      <div className="columns"><Field label="Aspect ratio"><select name="preset"><option value="vertical">Vertical · 9:16</option><option value="square">Square · 1:1</option><option value="landscape">Landscape · 16:9</option></select></Field>
-      <Field label="Platform"><select name="platform">{["instagram", "tiktok", "youtube"].map((p) => <option key={p}>{p}</option>)}</select></Field>
+      <div className="columns"><Field label="Platform preset"><select name="preset" onChange={(e) => { const platform = e.target.value.split("_")[0]; e.target.form.elements.platform.value = platform; }}><option value="instagram_reel">Instagram Reel · 9:16</option><option value="tiktok">TikTok · 9:16</option><option value="youtube_short">YouTube Short · 9:16</option><option value="instagram_feed">Instagram Feed · 1:1</option><option value="linkedin_feed">LinkedIn Feed · 1:1</option><option value="youtube_video">YouTube Video · 16:9</option></select></Field>
+      <Field label="Platform"><select name="platform">{["instagram", "tiktok", "youtube", "linkedin"].map((p) => <option key={p}>{p}</option>)}</select></Field>
       <Field label="Framing"><select name="fit"><option value="crop">Crop</option><option value="pad">Pad</option></select></Field></div>
+      <p className="muted">Each preset applies its own dimensions and caption/title safe zones. Exports preserve the saved edit.</p>
       <Field label="Platform title"><input name="title" defaultValue={clip.data.candidate.hook.slice(0, 160)} required maxLength={160} /></Field>
       <Field label="Platform caption"><textarea name="caption" required maxLength={2000} defaultValue={clip.data.candidate.transcript_text} /></Field>
       <Field label="Hashtags (space separated)"><input name="hashtags" /></Field><button disabled={action.busy}>Queue export</button>

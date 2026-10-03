@@ -30,7 +30,13 @@ class FakeVisionProvider:
         ]
 
 
-def test_analysis_pipeline_persists_provider_evidence() -> None:
+def test_analysis_pipeline_persists_provider_evidence(monkeypatch) -> None:
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(
+        "app.features.footage_analysis.pipeline.probe_media",
+        lambda path: SimpleNamespace(has_audio=True),
+    )
     engine = create_engine("sqlite+pysqlite:///:memory:")
     Base.metadata.create_all(engine)
     session: Session = sessionmaker(bind=engine, expire_on_commit=False)()
@@ -65,3 +71,43 @@ def test_analysis_pipeline_persists_provider_evidence() -> None:
     assert session.scalar(select(VisualObservation)).frame_references == ["source_frame_ms:500"]
     session.close()
     engine.dispose()
+
+
+def test_silent_video_keeps_visual_analysis_without_transcription(monkeypatch):
+    from types import SimpleNamespace
+
+    calls = []
+
+    class Transcriber:
+        def transcribe(self, path):
+            raise AssertionError("A silent source must not be sent to speech recognition")
+
+    monkeypatch.setattr(
+        "app.features.footage_analysis.pipeline.probe_media",
+        lambda path: SimpleNamespace(has_audio=False),
+    )
+    monkeypatch.setattr(
+        "app.features.footage_analysis.pipeline.replace_transcript_segments",
+        lambda *a, **kw: calls.append(kw["segments"]),
+    )
+    monkeypatch.setattr(
+        "app.features.footage_analysis.pipeline.replace_visual_observations",
+        lambda *a, **kw: calls.append(kw["observations"]),
+    )
+    session = SimpleNamespace(commit=lambda: None)
+    asset = SimpleNamespace(
+        id=uuid4(),
+        processing_status="ready",
+        format="mp4",
+        public_id="synthetic-silent",
+        resource_type="video",
+    )
+    analyze_ready_asset(
+        session,
+        asset=asset,
+        storage=FakeStorage(),
+        transcription_provider=Transcriber(),
+        vision_provider=FakeVisionProvider(),
+    )
+    assert calls[0] == [] and len(calls[1]) == 1
+    assert asset.processing_status == "ready"

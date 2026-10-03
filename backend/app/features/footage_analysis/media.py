@@ -44,12 +44,21 @@ def extract_audio_to_flac(source_path: Path, destination: Path) -> None:
 
 
 def sample_video_frames(
-    source_path: Path, destination_directory: Path, *, interval_seconds: int, max_frames: int
+    source_path: Path,
+    destination_directory: Path,
+    *,
+    interval_seconds: int,
+    max_frames: int,
+    source_timestamps_ms: list[int] | None = None,
 ) -> list[FrameSample]:
     probe = probe_media(source_path)
     if probe.duration_ms is None or probe.duration_ms <= 0:
         raise MediaExtractionError("Cannot sample video frames without a positive source duration.")
-    timestamps = _sample_timestamps(probe.duration_ms, interval_seconds * 1000, max_frames)
+    timestamps = (
+        sorted({t for t in source_timestamps_ms if 0 <= t < probe.duration_ms})[:max_frames]
+        if source_timestamps_ms is not None
+        else _sample_timestamps(probe.duration_ms, interval_seconds * 1000, max_frames)
+    )
     samples: list[FrameSample] = []
     for timestamp_ms in timestamps:
         frame_path = destination_directory / f"frame-{timestamp_ms:09d}.jpg"

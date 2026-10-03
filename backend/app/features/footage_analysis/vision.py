@@ -57,12 +57,16 @@ class GroqVisionProvider:
         self.max_completion_tokens = max_completion_tokens
 
     def inspect(self, source_path: Path) -> list[VisualObservationResult]:
+        return self.inspect_at(source_path, None)
+
+    def inspect_at(self, source_path: Path, timestamps: list[int] | None):
         with TemporaryDirectory(prefix="creatorai-frames-") as temporary_directory:
             samples = sample_video_frames(
                 source_path,
                 Path(temporary_directory),
                 interval_seconds=self.interval_seconds,
                 max_frames=self.max_frames,
+                source_timestamps_ms=timestamps,
             )
             return [self._describe_frame(sample) for sample in samples]
 

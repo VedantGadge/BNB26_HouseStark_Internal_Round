@@ -20,11 +20,15 @@ class OutputCanvas(BaseModel):
     width: int = Field(default=1080, ge=360, le=1920)
     height: int = Field(default=1920, ge=360, le=1920)
     fit: str = Field(default="crop", pattern="^(crop|pad)$")
+    safe_top_px: int = Field(default=80, ge=0, le=500)
+    safe_bottom_px: int = Field(default=150, ge=0, le=500)
 
     @model_validator(mode="after")
     def even_dimensions(self):
         if self.width % 2 or self.height % 2:
             raise ValueError("MP4 dimensions must be even numbers")
+        if self.safe_top_px + self.safe_bottom_px + 180 > self.height:
+            raise ValueError("Safe zones leave insufficient room for overlays")
         return self
 
 

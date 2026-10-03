@@ -12,6 +12,7 @@ from app.features.footage_analysis.persistence import (
     replace_transcript_segments,
     replace_visual_observations,
 )
+from app.features.footage_analysis.probe import probe_media
 from app.features.footage_analysis.transcription import TranscriptionProvider
 from app.features.footage_analysis.vision import VisionProvider
 
@@ -46,7 +47,11 @@ def analyze_ready_asset(
                 asset_format=asset.format,
                 destination=source_path,
             )
-            transcript_segments = transcription_provider.transcribe(source_path)
+            transcript_segments = (
+                transcription_provider.transcribe(source_path)
+                if probe_media(source_path).has_audio
+                else []
+            )
             visual_observations = vision_provider.inspect(source_path)
             replace_transcript_segments(session, asset=asset, segments=transcript_segments)
             replace_visual_observations(session, asset=asset, observations=visual_observations)

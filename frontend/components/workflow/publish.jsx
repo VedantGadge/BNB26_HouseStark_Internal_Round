@@ -56,10 +56,9 @@ export function Publish({ projectId }) {
         action.run(() => post(root + "/publications", { expected_revision: state.revision, platform: f.get("platform"),
           title: state.package?.title || state.name, caption: state.package?.caption || state.brief,
         })); }}>
-        <Field label="Platform"><select name="platform">{(state.target_platforms.length ? state.target_platforms : ["instagram", "tiktok", "youtube"]).map((p) => <option key={p}>{p}</option>)}</select></Field><button disabled={action.busy}>Create publication plan</button>
+        <Field label="Platform"><select name="platform">{(state.target_platforms.length ? state.target_platforms : ["instagram", "tiktok", "youtube", "linkedin"]).map((p) => <option key={p}>{p}</option>)}</select></Field><button disabled={action.busy}>Create publication plan</button>
       </form>
       {state.publications.map((record) => <Publication key={record.id} record={record} root={root} revision={state.revision} action={action} />)}
     </>}
   </section>;
 }
-

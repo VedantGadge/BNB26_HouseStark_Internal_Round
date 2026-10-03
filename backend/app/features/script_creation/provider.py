@@ -8,6 +8,8 @@ from typing import Any, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from jsonschema import Draft202012Validator
+
 from app.config import Settings
 
 
@@ -62,9 +64,14 @@ class OpenRouterProvider:
             raise ProviderError("configuration", "Free-only routing requires :free model IDs")
 
         last_error: ProviderError | None = None
-        for index, model in enumerate(models[: routing["max_calls"]]):
+        calls = 0
+        repaired = False
+        pending = list(models)
+        while pending and calls < routing["max_calls"]:
+            model = pending.pop(0)
+            calls += 1
             try:
-                return self._request_model(
+                result = self._request_model(
                     model=model,
                     system_prompt=system_prompt,
                     user_prompt=user_prompt,
@@ -73,10 +80,26 @@ class OpenRouterProvider:
                     timeout_seconds=routing["timeout_seconds"],
                     max_output_tokens=routing["max_output_tokens"],
                     require_structured_output=routing["require_structured_output"],
+                    reasoning_effort=routing.get("reasoning_effort", "minimal"),
                 )
+                invalid = next(Draft202012Validator(schema).iter_errors(result.payload), None)
+                if invalid is not None:
+                    raise ProviderError("invalid_response", "Model output did not match the schema")
+                return result
             except ProviderError as error:
                 last_error = error
-                if not error.retryable or index == len(models) - 1:
+                if (
+                    error.category == "invalid_response"
+                    and not repaired
+                    and calls < routing["max_calls"]
+                ):
+                    repaired = True
+                    pending.insert(0, model)
+                    user_prompt += (
+                        "\nYour previous response was invalid. Return one JSON object matching "
+                        "the schema exactly, with no commentary and only supplied identifiers."
+                    )
+                elif not error.retryable or not pending:
                     raise
         raise last_error or ProviderError("unavailable", "No configured model was attempted", True)
 
@@ -91,10 +114,12 @@ class OpenRouterProvider:
         timeout_seconds: float,
         max_output_tokens: int,
         require_structured_output: bool,
+        reasoning_effort: str = "minimal",
     ) -> ProviderResult:
         payload: dict[str, Any] = {
             "model": model,
             "max_tokens": max_output_tokens,
+            "reasoning": {"effort": reasoning_effort, "exclude": True},
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
@@ -131,6 +156,13 @@ class OpenRouterProvider:
         except json.JSONDecodeError as error:
             raise ProviderError("invalid_response", "OpenRouter returned invalid JSON") from error
 
+        if (body.get("choices") or [{}])[0].get("finish_reason") == "length":
+            raise ProviderError(
+                "output_limit",
+                "The model exhausted its output budget. Increase OPENROUTER_MAX_OUTPUT_TOKENS "
+                "or configure a fallback model with a smaller reasoning budget.",
+                retryable=True,
+            )
         try:
             content = body["choices"][0]["message"]["content"]
             output = json.loads(content) if isinstance(content, str) else content

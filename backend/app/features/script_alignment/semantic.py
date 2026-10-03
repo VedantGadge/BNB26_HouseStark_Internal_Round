@@ -22,14 +22,32 @@ class AlignmentProposal(BaseModel):
 
 
 def semantic_matches(*, sections, transcript_segments, visual_observations, provider, routing):
+    # Short operation-local identifiers reduce UUID copying errors. The worker
+    # resolves them back to persisted evidence; the model still supplies no times.
+    references = {
+        **{f"speech_{index}": item for index, item in enumerate(transcript_segments, 1)},
+        **{f"visual_{index}": item for index, item in enumerate(visual_observations, 1)},
+    }
     evidence = [
-        {"id": str(item.id), "kind": "speech", "text": item.text} for item in transcript_segments
-    ] + [
-        {"id": str(item.id), "kind": "visual", "text": item.description}
-        for item in visual_observations
+        {
+            "id": key,
+            "kind": "speech" if key.startswith("speech_") else "visual",
+            "text": getattr(item, "text", None) or item.description,
+        }
+        for key, item in references.items()
     ]
     if not evidence:
         raise ValueError("Analyze source footage before semantic alignment.")
+    schema = AlignmentProposal.model_json_schema()
+    properties = schema["$defs"]["EvidenceMatch"]["properties"]
+    properties["section_id"] = {"type": "string", "enum": [s["id"] for s in sections]}
+    properties["evidence_id"] = {
+        "anyOf": [
+            {"type": "string", "enum": list(references)},
+            {"type": "null"},
+        ]
+    }
+    schema["properties"]["matches"].update(minItems=len(sections), maxItems=len(sections))
     result = provider.generate_json(
         system_prompt=(
             "Match each script section to the single strongest supplied source evidence. "
@@ -41,7 +59,7 @@ def semantic_matches(*, sections, transcript_segments, visual_observations, prov
         ),
         user_prompt=json.dumps({"sections": sections, "evidence": evidence}),
         schema_name="source_alignment",
-        schema=AlignmentProposal.model_json_schema(),
+        schema=schema,
         routing=routing,
     )
     proposal = AlignmentProposal.model_validate(result.payload)
@@ -56,4 +74,6 @@ def semantic_matches(*, sections, transcript_segments, visual_observations, prov
                 raise ProviderError("invalid_response", "Unmatched sections cannot claim evidence")
         elif match.evidence_id not in known or match.confidence <= 0:
             raise ProviderError("invalid_response", "Alignment referenced missing source evidence")
+        else:
+            match.evidence_id = str(references[match.evidence_id].id)
     return {match.section_id: match for match in proposal.matches}, result

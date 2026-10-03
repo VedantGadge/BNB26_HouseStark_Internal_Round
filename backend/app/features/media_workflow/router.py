@@ -16,7 +16,12 @@ from app.features.content_workflow.service import owned_project
 from app.features.editing.models import EditRender, EditVersion
 from app.features.editing.schemas import EditRenderResponse
 from app.features.editing.service import get_owned_candidate, get_owned_edit_version
-from app.features.media_workflow.schemas import ClipRequest, ExportRequest, ReviewRequest
+from app.features.media_workflow.schemas import (
+    ClipRequest,
+    ExportRequest,
+    ManualClipRequest,
+    ReviewRequest,
+)
 from app.features.media_workflow.service import owned_render
 from app.features.script_creation.jobs import IdempotencyConflictError, JobRepository, job_response
 from app.features.script_creation.routing import routing_snapshot
@@ -25,6 +30,68 @@ from app.schemas import JobResponse, JobType
 
 router = APIRouter()
 Key = Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=200)]
+
+
+@router.post("/projects/{project_id}/clips/manual", status_code=201)
+def select_manual_clip(
+    project_id: UUID,
+    payload: ManualClipRequest,
+    creator: AuthenticatedCreator = Depends(get_current_creator),
+    session: Session = Depends(get_session),
+):
+    from app.features.clip_generation.models import ClipCandidate
+    from app.features.clip_generation.schemas import ClipCandidateResponse
+    from app.features.editing.schemas import EditRecipePayload, EditVersionCreate
+    from app.features.editing.service import (
+        build_assisted_recipe,
+        create_edit_version,
+        validate_recipe_for_asset,
+    )
+    from app.features.footage_analysis.models import TranscriptSegment
+
+    project = owned_project(session, creator.id, project_id)
+    asset = get_owned_asset(session, payload.asset_id, creator.id)
+    if asset.project_id != project.id:
+        raise HTTPException(404, "Asset not found in this project.")
+    try:
+        validate_recipe_for_asset(
+            EditRecipePayload(
+                source_start_ms=payload.source_start_ms, source_end_ms=payload.source_end_ms
+            ),
+            asset=asset,
+        )
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    evidence = list(
+        session.scalars(
+            select(TranscriptSegment)
+            .where(
+                TranscriptSegment.asset_id == asset.id,
+                TranscriptSegment.source_end_ms > payload.source_start_ms,
+                TranscriptSegment.source_start_ms < payload.source_end_ms,
+            )
+            .order_by(TranscriptSegment.source_start_ms)
+        )
+    )
+    candidate = ClipCandidate(
+        asset_id=asset.id,
+        script_version_id=project.current_script_version_id,
+        source_start_ms=payload.source_start_ms,
+        source_end_ms=payload.source_end_ms,
+        hook=payload.title,
+        transcript_text=" ".join(t.text for t in evidence),
+        score=0,
+        reasons=["creator-selected-source-range"],
+    )
+    session.add(candidate)
+    session.flush()
+    create_edit_version(
+        session,
+        candidate=candidate,
+        asset=asset,
+        payload=EditVersionCreate(recipe=build_assisted_recipe(session, candidate=candidate)),
+    )
+    return ClipCandidateResponse.model_validate(candidate)
 
 
 def enqueue(session, creator, project_id, kind, key, payload, routing=None):
@@ -84,7 +151,7 @@ def clips(
     from app.features.clip_generation.models import ClipCandidate
     from app.features.clip_generation.schemas import ClipCandidateResponse
 
-    owned_project(session, creator.id, project_id)
+    project = owned_project(session, creator.id, project_id)
     records = session.scalars(
         select(ClipCandidate)
         .join(Asset)
@@ -92,7 +159,14 @@ def clips(
         .order_by(ClipCandidate.score.desc())
     )
     return [
-        ClipCandidateResponse.model_validate(record).model_dump(mode="json") for record in records
+        {
+            **ClipCandidateResponse.model_validate(record).model_dump(mode="json"),
+            "is_stale": bool(
+                record.script_version_id
+                and record.script_version_id != project.current_script_version_id
+            ),
+        }
+        for record in records
     ]
 
 

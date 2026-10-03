@@ -13,7 +13,10 @@ def build_repurpose_graph(propose, checkpointer):
                 "preview_render_id": state.get("preview_render_id"),
             }
         )
-        return {**state, "selected_edit_version_id": selected["edit_version_id"]}
+        return {
+            **{key: value for key, value in state.items() if key != "__interrupt__"},
+            "selected_edit_version_id": selected["edit_version_id"],
+        }
 
     graph = StateGraph(dict)
     graph.add_node("propose", propose)

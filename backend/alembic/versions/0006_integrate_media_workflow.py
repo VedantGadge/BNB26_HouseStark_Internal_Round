@@ -5,12 +5,17 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "0006_media_workflow"
-down_revision = "0005_edit_versions_renders"
+down_revision = "0006_platform_exports"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
+    op.add_column("platform_exports", sa.Column("render_id", sa.Uuid(), nullable=True))
+    op.create_foreign_key(
+        "fk_platform_render", "platform_exports", "edit_renders", ["render_id"], ["id"]
+    )
+    op.create_unique_constraint("uq_platform_render", "platform_exports", ["render_id"])
     op.add_column("clip_candidates", sa.Column("script_version_id", sa.Uuid(), nullable=True))
     op.create_foreign_key(
         "fk_candidate_script",
@@ -79,6 +84,9 @@ def upgrade():
 
 
 def downgrade():
+    op.drop_constraint("fk_platform_render", "platform_exports", type_="foreignkey")
+    op.drop_constraint("uq_platform_render", "platform_exports", type_="unique")
+    op.drop_column("platform_exports", "render_id")
     op.drop_constraint("fk_candidate_script", "clip_candidates", type_="foreignkey")
     op.drop_column("clip_candidates", "script_version_id")
     op.drop_table("performance_snapshots")

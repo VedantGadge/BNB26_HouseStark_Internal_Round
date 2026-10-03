@@ -21,5 +21,6 @@ def routing_snapshot(settings: Settings) -> dict:
         "require_structured_output": settings.openrouter_require_structured_output,
         "timeout_seconds": settings.openrouter_timeout_seconds,
         "max_output_tokens": settings.openrouter_max_output_tokens,
+        "reasoning_effort": settings.openrouter_reasoning_effort,
         "max_calls": settings.openrouter_max_calls_per_operation,
     }

@@ -9,13 +9,17 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.auth import AuthenticatedCreator, get_current_creator
+from app.config import Settings, get_settings
 from app.database import get_session
 from app.features.assets.models import Asset
 from app.features.clip_generation.models import ClipCandidate
 from app.features.content_workflow.service import owned_project
 from app.features.editing.models import EditRender, EditVersion
+from app.features.media_workflow.router import Key, enqueue
 from app.features.media_workflow.schemas import PerformanceInput
+from app.features.script_creation.routing import require_openrouter_configuration, routing_snapshot
 from app.models import PerformanceSnapshot, Project, Publication
+from app.schemas import JobResponse, JobType
 
 router = APIRouter()
 
@@ -58,30 +62,73 @@ def insights(
     creator: AuthenticatedCreator = Depends(get_current_creator),
     session: Session = Depends(get_session),
 ):
-    project = owned_project(session, creator.id, project_id)
-    assets = list(session.scalars(select(Asset).where(Asset.project_id == project.id)))
+    owned_project(session, creator.id, project_id)
+    return compute_insights(session, creator.id, project_id)
+
+
+@router.get("/me/insights")
+def creator_insights(
+    creator: AuthenticatedCreator = Depends(get_current_creator),
+    session: Session = Depends(get_session),
+):
+    return compute_insights(session, creator.id)
+
+
+@router.post(
+    "/projects/{project_id}/insights/summarize", response_model=JobResponse, status_code=202
+)
+def summarize_insights(
+    project_id: UUID,
+    idempotency_key: Key,
+    creator: AuthenticatedCreator = Depends(get_current_creator),
+    session: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+):
+    owned_project(session, creator.id, project_id)
+    require_openrouter_configuration(settings)
+    return enqueue(
+        session,
+        creator,
+        project_id,
+        JobType.INSIGHT_SUMMARY,
+        idempotency_key,
+        {"facts": compute_insights(session, creator.id, project_id)},
+        routing_snapshot(settings),
+    )
+
+
+def compute_insights(session, owner_id, project_id=None):
+    projects = list(session.scalars(select(Project).where(Project.owner_id == owner_id)))
+    if project_id is not None:
+        projects = [p for p in projects if p.id == project_id]
+    project_ids = [p.id for p in projects]
+    assets = list(session.scalars(select(Asset).where(Asset.project_id.in_(project_ids))))
     candidates = list(
-        session.scalars(select(ClipCandidate).join(Asset).where(Asset.project_id == project.id))
+        session.scalars(select(ClipCandidate).join(Asset).where(Asset.project_id.in_(project_ids)))
     )
     versions = list(
-        session.scalars(select(EditVersion).join(Asset).where(Asset.project_id == project.id))
+        session.scalars(select(EditVersion).join(Asset).where(Asset.project_id.in_(project_ids)))
     )
     exports = list(
         session.scalars(
             select(EditRender)
             .join(Asset)
-            .where(Asset.project_id == project.id, EditRender.processing_status == "completed")
+            .where(
+                Asset.project_id.in_(project_ids),
+                EditRender.processing_status == "completed",
+                EditRender.platform.is_not(None),
+            )
         )
     )
     publications = list(
-        session.scalars(select(Publication).where(Publication.project_id == project.id))
+        session.scalars(select(Publication).where(Publication.project_id.in_(project_ids)))
     )
     pub_by_id = {p.id: p for p in publications}
     observations = list(
         session.scalars(
             select(PerformanceSnapshot)
             .join(Publication)
-            .where(Publication.project_id == project.id)
+            .where(Publication.project_id.in_(project_ids))
             .order_by(PerformanceSnapshot.observed_at.desc())
         )
     )
@@ -105,6 +152,7 @@ def insights(
         )
         row = {
             "publication_id": str(pub.id),
+            "project_id": str(pub.project_id),
             "snapshot_id": str(observation.id),
             "platform": pub.platform,
             "reporting_window_days": observation.reporting_window_days,
@@ -143,15 +191,18 @@ def insights(
         for r in exports
     ]
     return {
-        "project_id": str(project.id),
+        "project_id": str(project_id) if project_id else None,
+        "scope": "project" if project_id else "creator",
         "production": {
-            "projects_completed": int(project.workflow_stage == "published"),
+            "projects_completed": sum(p.workflow_stage == "published" for p in projects),
             "source_minutes_processed": sum(
                 (a.duration_ms or 0) / 60000 for a in assets if a.processing_status == "ready"
             ),
             "clips_produced": len(candidates),
             "exports_completed": len(exports),
-            "clips_per_source": len(candidates) / len(assets) if assets else None,
+            "clips_per_source": len(candidates) / len(videos)
+            if (videos := [a for a in assets if a.kind == "video"])
+            else None,
             "revision_count": sum(v.revision > 1 for v in versions),
             "median_upload_to_export_seconds": median(elapsed) if elapsed else None,
         },

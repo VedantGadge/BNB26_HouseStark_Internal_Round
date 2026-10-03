@@ -184,6 +184,9 @@ def save_creator_edit(
     session.add(saved)
     session.flush()
     project.current_script_version_id = saved.id
+    from app.features.content_workflow.service import mark_inputs_changed
+
+    mark_inputs_changed(session, project)
     session.commit()
     return script_version_response(saved)
 
@@ -255,6 +258,9 @@ def apply_revision_proposal(
     session.add(saved)
     session.flush()
     project.current_script_version_id = saved.id
+    from app.features.content_workflow.service import mark_inputs_changed
+
+    mark_inputs_changed(session, project)
     proposal.status = "applied"
     session.commit()
     return script_version_response(saved)
