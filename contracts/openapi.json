@@ -354,6 +354,274 @@
         }
       }
     },
+    "/v1/assets/{asset_id}/script-alignments": {
+      "post": {
+        "tags": [
+          "script-alignment"
+        ],
+        "summary": "Create Script Alignments",
+        "operationId": "create_script_alignments_v1_assets__asset_id__script_alignments_post",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScriptAlignmentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScriptAlignmentResponse"
+                  },
+                  "title": "Response Create Script Alignments V1 Assets  Asset Id  Script Alignments Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "script-alignment"
+        ],
+        "summary": "List Script Alignments",
+        "operationId": "list_script_alignments_v1_assets__asset_id__script_alignments_get",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScriptAlignmentResponse"
+                  },
+                  "title": "Response List Script Alignments V1 Assets  Asset Id  Script Alignments Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/assets/{asset_id}/clip-candidates": {
+      "post": {
+        "tags": [
+          "clip-generation"
+        ],
+        "summary": "Create Clip Candidates",
+        "operationId": "create_clip_candidates_v1_assets__asset_id__clip_candidates_post",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClipGenerationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClipCandidateResponse"
+                  },
+                  "title": "Response Create Clip Candidates V1 Assets  Asset Id  Clip Candidates Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "clip-generation"
+        ],
+        "summary": "List Clip Candidates",
+        "operationId": "list_clip_candidates_v1_assets__asset_id__clip_candidates_get",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClipCandidateResponse"
+                  },
+                  "title": "Response List Clip Candidates V1 Assets  Asset Id  Clip Candidates Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/jobs/{job_id}": {
       "get": {
         "tags": [
@@ -752,6 +1020,99 @@
         ],
         "title": "AssetUploadSessionCreate"
       },
+      "ClipCandidateResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "source_start_ms": {
+            "type": "integer",
+            "title": "Source Start Ms"
+          },
+          "source_end_ms": {
+            "type": "integer",
+            "title": "Source End Ms"
+          },
+          "hook": {
+            "type": "string",
+            "title": "Hook"
+          },
+          "transcript_text": {
+            "type": "string",
+            "title": "Transcript Text"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "asset_id",
+          "source_start_ms",
+          "source_end_ms",
+          "hook",
+          "transcript_text",
+          "score",
+          "reasons",
+          "status",
+          "created_at"
+        ],
+        "title": "ClipCandidateResponse"
+      },
+      "ClipGenerationCreate": {
+        "properties": {
+          "max_candidates": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Max Candidates",
+            "default": 10
+          },
+          "min_duration_ms": {
+            "type": "integer",
+            "maximum": 120000.0,
+            "minimum": 1000.0,
+            "title": "Min Duration Ms",
+            "default": 8000
+          },
+          "max_duration_ms": {
+            "type": "integer",
+            "maximum": 180000.0,
+            "minimum": 5000.0,
+            "title": "Max Duration Ms",
+            "default": 60000
+          }
+        },
+        "type": "object",
+        "title": "ClipGenerationCreate"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -894,6 +1255,74 @@
           "workflow_stage"
         ],
         "title": "ProjectSummary"
+      },
+      "ScriptAlignmentCreate": {
+        "properties": {
+          "script_text": {
+            "type": "string",
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Script Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "script_text"
+        ],
+        "title": "ScriptAlignmentCreate"
+      },
+      "ScriptAlignmentResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "source_start_ms": {
+            "type": "integer",
+            "title": "Source Start Ms"
+          },
+          "source_end_ms": {
+            "type": "integer",
+            "title": "Source End Ms"
+          },
+          "script_beat": {
+            "type": "string",
+            "title": "Script Beat"
+          },
+          "evidence_text": {
+            "type": "string",
+            "title": "Evidence Text"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "asset_id",
+          "source_start_ms",
+          "source_end_ms",
+          "script_beat",
+          "evidence_text",
+          "confidence",
+          "created_at"
+        ],
+        "title": "ScriptAlignmentResponse"
       },
       "TranscriptSegmentResponse": {
         "properties": {

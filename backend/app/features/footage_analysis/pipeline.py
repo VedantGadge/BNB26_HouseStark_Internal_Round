@@ -81,5 +81,6 @@ def build_groq_providers(settings: object) -> tuple[TranscriptionProvider, Visio
             model=getattr(settings, "groq_vision_model"),
             interval_seconds=getattr(settings, "groq_vision_sample_interval_seconds"),
             max_frames=getattr(settings, "groq_vision_max_frames"),
+            max_completion_tokens=getattr(settings, "groq_vision_max_completion_tokens"),
         ),
     )

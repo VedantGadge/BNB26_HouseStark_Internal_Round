@@ -40,13 +40,21 @@ class GroqVisionProvider:
     """Bounded single-frame Llama Vision analysis with stable source-time references."""
 
     def __init__(
-        self, *, api_key: str, base_url: str, model: str, interval_seconds: int, max_frames: int
+        self,
+        *,
+        api_key: str,
+        base_url: str,
+        model: str,
+        interval_seconds: int,
+        max_frames: int,
+        max_completion_tokens: int,
     ) -> None:
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.interval_seconds = interval_seconds
         self.max_frames = max_frames
+        self.max_completion_tokens = max_completion_tokens
 
     def inspect(self, source_path: Path) -> list[VisualObservationResult]:
         with TemporaryDirectory(prefix="creatorai-frames-") as temporary_directory:
@@ -66,6 +74,7 @@ class GroqVisionProvider:
             json={
                 "model": self.model,
                 "temperature": 0,
+                "max_completion_tokens": self.max_completion_tokens,
                 "response_format": {"type": "json_object"},
                 "messages": [
                     {

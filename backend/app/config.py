@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     # Two 720p frames stay within Groq's entry-tier input-token limit. Raise this
     # per environment when the account's vision throughput permits it.
     groq_vision_max_frames: int = Field(default=2, ge=1, le=20)
+    # Groq's entry tier is limited to 1,000 output tokens per minute. Frame
+    # descriptions are deliberately short, so reserve a small, explicit budget
+    # instead of allowing the model's near-1,000-token default per frame.
+    groq_vision_max_completion_tokens: int = Field(default=256, ge=32, le=1_024)
     development_owner_id: str = "local-creator"
     auth_jwks_url: str | None = None
     auth_audience: str | None = None

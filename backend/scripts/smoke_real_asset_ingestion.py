@@ -22,6 +22,7 @@ from app.config import get_settings
 from app.database import get_session_factory
 from app.features.assets.models import Asset
 from app.features.assets.storage import CloudinaryStorage
+from app.features.clip_generation.models import ClipCandidate
 from app.features.footage_analysis.ingestion import ingest_uploaded_asset
 from app.features.footage_analysis.models import TranscriptSegment
 from app.features.footage_analysis.pipeline import analyze_ready_asset, build_groq_providers
@@ -65,6 +66,7 @@ def main() -> int:
             if analyze_with_groq:
                 _analyze_asset_with_groq(asset_id, settings)
                 alignments = _align_transcript_as_script(client, owner_id, asset_id)
+                candidates = _generate_clip_candidates(client, owner_id, asset_id)
             analysis = _read_analysis(client, owner_id, asset_id)
             print("signed_upload=passed")
             print("completion_verification=passed")
@@ -80,6 +82,7 @@ def main() -> int:
                     f"visual_observations={len(analysis['visual_observations'])}"
                 )
                 print(f"script_alignment=passed records={alignments}")
+                print(f"clip_candidate_generation=passed records={candidates}")
             print(f"analysis_api=passed status={analysis['processing_status']}")
             return 0
     finally:
@@ -263,6 +266,47 @@ def _align_transcript_as_script(client: TestClient, owner_id: str, asset_id: UUI
         )
     if persisted != len(records):
         raise RuntimeError("Script alignment API response did not match persisted records.")
+    return persisted
+
+
+def _generate_clip_candidates(client: TestClient, owner_id: str, asset_id: UUID) -> int:
+    """Exercise both candidate endpoints and the durable candidate rows."""
+    response = client.post(
+        f"/v1/assets/{asset_id}/clip-candidates",
+        headers={"X-Creator-ID": owner_id},
+        json={
+            "max_candidates": 5,
+            "min_duration_ms": 8_000,
+            "max_duration_ms": 30_000,
+        },
+    )
+    response.raise_for_status()
+    records = response.json()
+    if not records:
+        raise RuntimeError("Clip generation returned no candidates from real aligned footage.")
+    for record in records:
+        duration_ms = record["source_end_ms"] - record["source_start_ms"]
+        if not (
+            record["source_start_ms"] >= 0
+            and record["source_end_ms"] > record["source_start_ms"]
+            and 8_000 <= duration_ms <= 30_000
+            and 0 <= record["score"] <= 1
+            and record["status"] == "suggested"
+        ):
+            raise RuntimeError("Clip generation returned an invalid real-video candidate.")
+
+    listed = client.get(
+        f"/v1/assets/{asset_id}/clip-candidates", headers={"X-Creator-ID": owner_id}
+    )
+    listed.raise_for_status()
+    if [record["id"] for record in listed.json()] != [record["id"] for record in records]:
+        raise RuntimeError("Persisted clip candidates did not match the creation response.")
+    with get_session_factory()() as session:
+        persisted = (
+            session.query(ClipCandidate).filter(ClipCandidate.asset_id == asset_id).count()
+        )
+    if persisted != len(records):
+        raise RuntimeError("Clip candidate API response did not match persisted records.")
     return persisted
 
 

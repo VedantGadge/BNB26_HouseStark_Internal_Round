@@ -29,7 +29,11 @@ class Project(Base):
 # Compatibility exports let shared code import one domain module while each feature
 # owns its implementation model in a focused folder.
 from app.features.assets.models import Asset  # noqa: E402
+from app.features.clip_generation.models import ClipCandidate  # noqa: E402
 from app.features.footage_analysis.models import TranscriptSegment, VisualObservation  # noqa: E402
 from app.features.script_alignment.models import ScriptAlignment  # noqa: E402
 
-__all__ = ["Asset", "Base", "Project", "ScriptAlignment", "TranscriptSegment", "VisualObservation"]
+__all__ = [
+    "Asset", "Base", "ClipCandidate", "Project", "ScriptAlignment",
+    "TranscriptSegment", "VisualObservation",
+]
