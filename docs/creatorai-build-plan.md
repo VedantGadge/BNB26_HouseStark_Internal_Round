@@ -48,27 +48,48 @@ Use a Neon direct PostgreSQL connection for the long-running backend/checkpointe
 
 Authentication is independent of Cloudinary and the hosted SQL database. Preserve the authenticated creator session and FastAPI ownership checks; the auth/session provider remains a separate implementation choice.
 
-## Small repository layout
+## Repository directory layout
+
+The repository is organized into a deployable frontend, a deployable backend, and shared API contracts. Keep frontend-only code under `frontend/`, backend-only code under `backend/`, and any interface consumed by both sides under `contracts/`.
 
 ```text
 creatorai/
-  frontend/
-    app/                     # projects and project tabs
-    components/              # uploads, script, clip cards, editor, insights
-    lib/api.ts               # typed FastAPI client
-    lib/auth.ts              # creator session
+  compose.yaml               # local multi-service development entry point
+  README.md                  # repository setup and demo instructions
+  docs/
+    creatorai-build-plan.md  # this implementation plan
+  frontend/                  # Next.js application deployed to Vercel
+    app/                     # routes: projects, script, assets, clips, publish, insights
+    components/              # workspace shell, UI, uploads, editor, and insights views
+    lib/                     # FastAPI client and creator-session helpers
+    public/                  # static browser assets, when needed
+    package.json             # frontend scripts and dependencies
+    next.config.js           # Next.js configuration
   backend/
-    app/main.py              # FastAPI, CORS, health
-    app/routes/              # project, asset, script, clip, job, insight APIs
-    app/schemas.py           # request/response and edit recipe contracts
-    app/models.py            # small SQLAlchemy domain model
-    app/graphs/              # script graph and repurposing graph
-    app/services/            # storage, STT, vision, alignment, FFmpeg, metrics
-    app/worker.py            # persisted job loop; one concurrent render
-    Dockerfile
-    README.md                # HF Space YAML
-  contracts/                 # shared OpenAPI snapshot and response fixtures
+    app/
+      main.py                # FastAPI app, CORS, router registration, and health endpoint
+      config.py              # environment-backed application settings
+      models.py              # SQLAlchemy domain model
+      schemas.py             # request/response and edit-recipe contracts
+      worker.py              # persisted job loop; one concurrent render
+      routes/                # project, asset, script, clip, job, publication, and insight APIs
+      graphs/                # LangGraph script and repurposing workflows
+      services/              # Cloudinary, transcription, vision, rendering, and metrics adapters
+    alembic/                 # database migration environment and revisions
+    tests/                   # backend API and service tests
+    scripts/                 # maintenance utilities, including OpenAPI export
+    docker/start.sh          # API/worker container startup command
+    Dockerfile               # Hugging Face Docker Space image
+    pyproject.toml           # Python dependencies and tooling configuration
+    alembic.ini              # Alembic configuration
+    README.md                # backend and Hugging Face Space instructions
+  contracts/                 # shared, generated API contract artifacts
+    openapi.json             # FastAPI OpenAPI snapshot used by the frontend
+    fixtures/                # representative project, job, and edit-recipe payloads
+    README.md                # contract generation and consumption notes
 ```
+
+Generated outputs, local media scratch files, dependency directories, credentials, and environment files are intentionally excluded from this layout. The backend uses temporary local storage only while rendering; durable media remains in Cloudinary and durable records remain in Neon PostgreSQL.
 
 ## Goal
 
