@@ -12,17 +12,17 @@ depends_on = None
 
 def upgrade() -> None:
     op.add_column(
-        "ai_script_projects",
+        "projects",
         sa.Column("workflow_revision", sa.Integer(), nullable=False, server_default="1"),
     )
     op.add_column(
-        "ai_script_projects",
+        "projects",
         sa.Column("workflow_data", sa.JSON(), nullable=False, server_default=sa.text("'{}'")),
     )
     op.create_table(
         "content_publications",
         sa.Column("id", sa.Uuid(), primary_key=True),
-        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("ai_script_projects.id"), nullable=False),
+        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("projects.id"), nullable=False),
         sa.Column("platform", sa.String(32), nullable=False),
         sa.Column("status", sa.String(32), nullable=False),
         sa.Column("planned_at", sa.DateTime(timezone=True)),
@@ -39,5 +39,5 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table("content_publications")
-    op.drop_column("ai_script_projects", "workflow_data")
-    op.drop_column("ai_script_projects", "workflow_revision")
+    op.drop_column("projects", "workflow_data")
+    op.drop_column("projects", "workflow_revision")

@@ -14,7 +14,7 @@ class Asset(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     project_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("ai_script_projects.id", ondelete="CASCADE"), index=True
+        Uuid, ForeignKey("projects.id", ondelete="CASCADE"), index=True
     )
     owner_id: Mapped[str] = mapped_column(String(255), index=True)
     kind: Mapped[str] = mapped_column(String(16))

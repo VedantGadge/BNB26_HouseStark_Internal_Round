@@ -25,7 +25,7 @@ class TimestampedModel:
 
 
 class Project(TimestampedModel, Base):
-    __tablename__ = "ai_script_projects"
+    __tablename__ = "projects"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     owner_id: Mapped[str] = mapped_column(String(255), index=True)
@@ -45,7 +45,7 @@ class Publication(TimestampedModel, Base):
     __table_args__ = (UniqueConstraint("project_id", "platform", name="uq_publication_platform"),)
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ai_script_projects.id"), index=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"), index=True)
     platform: Mapped[str] = mapped_column(String(32))
     status: Mapped[str] = mapped_column(String(32), default="draft")
     planned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -75,7 +75,7 @@ class CampaignBriefRevision(TimestampedModel, Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ai_script_projects.id"), index=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"), index=True)
     revision: Mapped[int] = mapped_column(Integer)
     content_mode: Mapped[str] = mapped_column(String(32))
     brand_brief: Mapped[dict | None] = mapped_column(JSON, nullable=True)
@@ -95,7 +95,7 @@ class Job(TimestampedModel, Base):
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     owner_id: Mapped[str] = mapped_column(String(255), index=True)
     project_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("ai_script_projects.id"), nullable=True, index=True
+        ForeignKey("projects.id"), nullable=True, index=True
     )
     type: Mapped[str] = mapped_column(String(64), index=True)
     idempotency_key: Mapped[str] = mapped_column(String(200))
@@ -130,7 +130,7 @@ class ScriptVersion(TimestampedModel, Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ai_script_projects.id"), index=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"), index=True)
     version: Mapped[int] = mapped_column(Integer)
     parent_version_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("ai_script_versions.id"), nullable=True
@@ -150,7 +150,7 @@ class AssistantConversation(TimestampedModel, Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     owner_id: Mapped[str] = mapped_column(String(255), index=True)
-    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ai_script_projects.id"), index=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"), index=True)
 
 
 class AssistantMessage(TimestampedModel, Base):
@@ -172,7 +172,7 @@ class RevisionProposal(TimestampedModel, Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     owner_id: Mapped[str] = mapped_column(String(255), index=True)
-    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ai_script_projects.id"), index=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("projects.id"), index=True)
     conversation_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("ai_script_assistant_conversations.id"), index=True
     )

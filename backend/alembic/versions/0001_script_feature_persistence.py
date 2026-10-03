@@ -26,7 +26,7 @@ def timestamps() -> list[sa.Column]:
 
 def upgrade() -> None:
     op.create_table(
-        "ai_script_projects",
+        "projects",
         sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column("owner_id", sa.String(length=255), nullable=False),
         sa.Column("name", sa.String(length=120), nullable=False),
@@ -38,10 +38,10 @@ def upgrade() -> None:
         sa.Column("current_script_version_id", sa.Uuid()),
         *timestamps(),
     )
-    op.create_index("ix_ai_script_projects_owner_id", "ai_script_projects", ["owner_id"])
+    op.create_index("ix_projects_owner_id", "projects", ["owner_id"])
     op.create_index(
-        "ix_ai_script_projects_workflow_stage",
-        "ai_script_projects",
+        "ix_projects_workflow_stage",
+        "projects",
         ["workflow_stage"],
     )
 
@@ -49,7 +49,7 @@ def upgrade() -> None:
         "ai_script_jobs",
         sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column("owner_id", sa.String(length=255), nullable=False),
-        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("ai_script_projects.id")),
+        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("projects.id")),
         sa.Column("type", sa.String(length=64), nullable=False),
         sa.Column("idempotency_key", sa.String(length=200), nullable=False),
         sa.Column("payload_hash", sa.String(length=64), nullable=False),
@@ -98,7 +98,7 @@ def upgrade() -> None:
     op.create_table(
         "ai_script_campaign_brief_revisions",
         sa.Column("id", sa.Uuid(), primary_key=True),
-        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("ai_script_projects.id"), nullable=False),
+        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("projects.id"), nullable=False),
         sa.Column("revision", sa.Integer(), nullable=False),
         sa.Column("content_mode", sa.String(length=32), nullable=False),
         sa.Column("brand_brief", sa.JSON()),
@@ -139,7 +139,7 @@ def upgrade() -> None:
     op.create_table(
         "ai_script_versions",
         sa.Column("id", sa.Uuid(), primary_key=True),
-        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("ai_script_projects.id"), nullable=False),
+        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("projects.id"), nullable=False),
         sa.Column("version", sa.Integer(), nullable=False),
         sa.Column("parent_version_id", sa.Uuid(), sa.ForeignKey("ai_script_versions.id")),
         sa.Column("job_id", sa.Uuid(), sa.ForeignKey("ai_script_jobs.id"), unique=True),
@@ -157,7 +157,7 @@ def upgrade() -> None:
         "ai_script_assistant_conversations",
         sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column("owner_id", sa.String(length=255), nullable=False),
-        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("ai_script_projects.id"), nullable=False),
+        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("projects.id"), nullable=False),
         *timestamps(),
     )
     op.create_index(
@@ -197,7 +197,7 @@ def upgrade() -> None:
         "ai_script_revision_proposals",
         sa.Column("id", sa.Uuid(), primary_key=True),
         sa.Column("owner_id", sa.String(length=255), nullable=False),
-        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("ai_script_projects.id"), nullable=False),
+        sa.Column("project_id", sa.Uuid(), sa.ForeignKey("projects.id"), nullable=False),
         sa.Column(
             "conversation_id",
             sa.Uuid(),
@@ -277,4 +277,4 @@ def downgrade() -> None:
     op.drop_table("ai_script_campaign_brief_revisions")
     op.drop_table("ai_script_style_profile_revisions")
     op.drop_table("ai_script_jobs")
-    op.drop_table("ai_script_projects")
+    op.drop_table("projects")
