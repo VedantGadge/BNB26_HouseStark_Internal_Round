@@ -1,5 +1,6 @@
-import { WorkspacePlaceholder } from "@/components/workspace-placeholder";
+import { Clips } from "@/components/workflow/clips";
 
-export default function ClipsPage() {
-  return <WorkspacePlaceholder title="Clips" description="Grounded clip proposals, evidence, playback, and generation status." />;
+export default async function Page({ params }) {
+  const { projectId } = await params;
+  return <Clips projectId={projectId} />;
 }

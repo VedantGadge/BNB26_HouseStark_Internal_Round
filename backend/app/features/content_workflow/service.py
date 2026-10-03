@@ -1,16 +1,14 @@
 import uuid
 from copy import deepcopy
 from datetime import UTC, datetime
-from pathlib import Path
 
 from fastapi import HTTPException
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from app.models import Job, Project, Publication, ScriptVersion
+from app.models import Asset, EditRender, Job, Project, Publication, ScriptVersion
 
 STAGES = ("idea", "assets", "editing", "review", "approved", "exported", "published")
-DEMO_MEDIA = Path(__file__).resolve().parents[3] / "demo" / "workflow-demo.mp4"
 
 
 def conflict(message: str):
@@ -71,12 +69,21 @@ def blockers(session: Session, project: Project, data: dict, target: str) -> lis
         reasons.append("Save a script in the Script screen first.")
     if target in STAGES[2:] and not data.get("assets_ready"):
         reasons.append("Confirm that your footage/assets are ready.")
+    if target in STAGES[2:] and not session.scalar(
+        select(Asset.id).where(
+            Asset.project_id == project.id,
+            Asset.processing_status == "ready",
+        )
+    ):
+        reasons.append("Upload and process a real source asset first.")
     if target in STAGES[3:] and not data.get("editing_complete"):
         reasons.append("Confirm that editing is complete.")
     if target in STAGES[3:]:
         package = data.get("package")
-        if not package or not package.get("media_checked") or not DEMO_MEDIA.is_file():
-            reasons.append("Save a package and confirm you played the prepared demo video.")
+        if not package or not package.get("media_checked"):
+            reasons.append("Save a rendered package and confirm you played its video.")
+        elif not valid_package(session, project, package):
+            reasons.append("Select completed exports belonging to this project.")
     if target in ("exported", "published") and not data.get("approved_package"):
         reasons.append("Review and explicitly approve the package first.")
     if target == "published":
@@ -86,6 +93,27 @@ def blockers(session: Session, project: Project, data: dict, target: str) -> lis
         if not records or published != required:
             reasons.append("Confirm manual publication for every planned platform in Publish.")
     return reasons
+
+
+def valid_package(session: Session, project: Project, package: dict) -> bool:
+    import uuid
+
+    ids = [uuid.UUID(value) for value in package.get("render_ids", [])]
+    if not ids:
+        return False
+    renders = list(
+        session.scalars(
+            select(EditRender)
+            .join(Asset)
+            .where(
+                EditRender.id.in_(ids),
+                Asset.project_id == project.id,
+                Asset.owner_id == project.owner_id,
+                EditRender.processing_status == "completed",
+            )
+        )
+    )
+    return len(renders) == len(set(ids))
 
 
 def response(session: Session, project: Project) -> dict:
@@ -176,10 +204,15 @@ def patch_workflow(session: Session, project: Project, payload) -> dict:
     if "package" in payload.model_fields_set:
         if payload.package is None:
             raise HTTPException(422, "Package cannot be null.")
+        package = payload.package.model_dump(mode="json")
+        if not valid_package(session, project, package):
+            raise HTTPException(
+                409, "The package must contain completed exports from this project."
+            )
         data["package"] = {
-            **payload.package.model_dump(),
+            **package,
             "revision": payload.expected_revision + 1,
-            "provenance": "prepared_demo",
+            "provenance": "rendered_exports",
             "media_path": f"/projects/{project.id}/workflow/media",
         }
     stage = project.workflow_stage

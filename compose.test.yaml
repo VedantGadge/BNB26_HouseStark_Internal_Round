@@ -1,0 +1,19 @@
+# Isolated, local-only database for migrations and durable-checkpoint tests.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: creatorai_test
+      POSTGRES_USER: creatorai_test
+      POSTGRES_PASSWORD: local_test_only
+    ports:
+      - "127.0.0.1:55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U creatorai_test -d creatorai_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - test_database:/var/lib/postgresql/data
+volumes:
+  test_database:

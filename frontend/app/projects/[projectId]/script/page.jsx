@@ -1,5 +1,6 @@
-import { WorkspacePlaceholder } from "@/components/workspace-placeholder";
+import { Script } from "@/components/workflow/script";
 
-export default function ScriptPage() {
-  return <WorkspacePlaceholder title="Script" description="Brief, hooks, structured script versions, and supporting copy." />;
+export default async function Page({ params }) {
+  const { projectId } = await params;
+  return <Script projectId={projectId} />;
 }

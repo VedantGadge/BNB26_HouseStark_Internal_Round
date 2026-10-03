@@ -1,10 +1,6 @@
-import { WorkspacePlaceholder } from "@/components/workspace-placeholder";
+import { Editor } from "@/components/workflow/editor";
 
-export default function ClipEditorPage() {
-  return (
-    <WorkspacePlaceholder
-      title="Clip editor"
-      description="Source trims, captions, crop position, versioning, platform presets, and rendering."
-    />
-  );
+export default async function Page({ params }) {
+  const { projectId, clipId } = await params;
+  return <Editor projectId={projectId} clipId={clipId} />;
 }

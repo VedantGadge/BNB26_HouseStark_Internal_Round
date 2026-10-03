@@ -68,6 +68,31 @@ class StyleProfileRevision(TimestampedModel, Base):
     suggestion_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True)
 
 
+class PerformanceSnapshot(Base):
+    __tablename__ = "performance_snapshots"
+    __table_args__ = (
+        UniqueConstraint(
+            "publication_id",
+            "observed_at",
+            "reporting_window_days",
+            name="uq_performance_observation",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    publication_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("content_publications.id"), index=True
+    )
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    reporting_window_days: Mapped[int] = mapped_column(Integer)
+    views: Mapped[int] = mapped_column(Integer)
+    likes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    comments: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    shares: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    retention: Mapped[float | None] = mapped_column(nullable=True)
+    source: Mapped[str] = mapped_column(String(200))
+
+
 class CampaignBriefRevision(TimestampedModel, Base):
     __tablename__ = "ai_script_campaign_brief_revisions"
     __table_args__ = (
@@ -201,6 +226,7 @@ class LlmCall(TimestampedModel, Base):
     outcome: Mapped[str] = mapped_column(String(64))
     error_category: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
+
 # Compatibility exports let shared code import one domain module while each feature
 # owns its implementation model in a focused folder.
 from app.features.assets.models import Asset  # noqa: E402
@@ -210,8 +236,23 @@ from app.features.footage_analysis.models import TranscriptSegment, VisualObserv
 from app.features.script_alignment.models import ScriptAlignment  # noqa: E402
 
 __all__ = [
-    "Asset", "AssistantConversation", "AssistantMessage", "Base", "CampaignBriefRevision",
-    "ClipCandidate", "EditRender", "EditVersion", "Job", "LlmCall", "Project", "Publication",
-    "RevisionProposal", "ScriptAlignment", "ScriptVersion", "StyleProfileRevision",
-    "StyleProfileSuggestion", "TranscriptSegment", "VisualObservation",
+    "Asset",
+    "AssistantConversation",
+    "AssistantMessage",
+    "Base",
+    "CampaignBriefRevision",
+    "ClipCandidate",
+    "EditRender",
+    "EditVersion",
+    "Job",
+    "LlmCall",
+    "Project",
+    "Publication",
+    "RevisionProposal",
+    "ScriptAlignment",
+    "ScriptVersion",
+    "StyleProfileRevision",
+    "StyleProfileSuggestion",
+    "TranscriptSegment",
+    "VisualObservation",
 ]

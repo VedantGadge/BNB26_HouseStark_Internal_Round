@@ -17,5 +17,9 @@ class ScriptAlignmentResponse(BaseModel):
     evidence_text: str
     confidence: float = Field(ge=0, le=1)
     created_at: datetime
+    script_version_id: UUID | None
+    section_id: str | None
+    match_status: str
+    visual_evidence: list[dict]
 
     model_config = {"from_attributes": True}

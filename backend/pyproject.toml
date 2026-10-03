@@ -13,6 +13,7 @@ dependencies = [
   "cloudinary==1.44.1",
   "fastapi==0.142.2",
   "httpx==0.28.1",
+  "imageio-ffmpeg==0.6.0",
   "langgraph==1.2.12",
   "langgraph-checkpoint-postgres==3.1.2",
   "PyJWT[crypto]==2.10.1",

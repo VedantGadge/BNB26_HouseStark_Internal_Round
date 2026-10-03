@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
+from app.auth import AuthenticatedCreator, get_current_creator
 from app.config import Settings, get_settings
 
 
@@ -27,14 +28,17 @@ def get_session_factory(settings: Settings) -> sessionmaker[Session]:
     return sessionmaker(bind=get_engine(database_url), autoflush=False, expire_on_commit=False)
 
 
-def get_session(settings: Settings = Depends(get_settings)) -> Generator[Session, None, None]:
+def get_session(
+    creator: AuthenticatedCreator = Depends(get_current_creator),
+    settings: Settings = Depends(get_settings),
+) -> Generator[Session, None, None]:
     """FastAPI dependency that owns session cleanup for a single request."""
 
     with get_session_factory(settings)() as session:
         yield session
 
 
-def get_db_session(settings: Settings = Depends(get_settings)) -> Generator[Session, None, None]:
+def get_db_session(session: Session = Depends(get_session)) -> Generator[Session, None, None]:
     """Compatibility dependency for independently owned media feature routes."""
 
-    yield from get_session(settings)
+    yield session

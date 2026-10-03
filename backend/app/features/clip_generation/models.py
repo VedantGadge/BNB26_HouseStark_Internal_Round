@@ -14,6 +14,9 @@ class ClipCandidate(Base):
     asset_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("assets.id", ondelete="CASCADE"), index=True
     )
+    script_version_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("ai_script_versions.id"), nullable=True
+    )
     source_start_ms: Mapped[int] = mapped_column(BigInteger)
     source_end_ms: Mapped[int] = mapped_column(BigInteger)
     hook: Mapped[str] = mapped_column(Text)

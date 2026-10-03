@@ -17,8 +17,15 @@ class OverlayPosition(StrEnum):
 
 
 class OutputCanvas(BaseModel):
-    width: int = Field(default=1080, ge=360, le=1080)
+    width: int = Field(default=1080, ge=360, le=1920)
     height: int = Field(default=1920, ge=360, le=1920)
+    fit: str = Field(default="crop", pattern="^(crop|pad)$")
+
+    @model_validator(mode="after")
+    def even_dimensions(self):
+        if self.width % 2 or self.height % 2:
+            raise ValueError("MP4 dimensions must be even numbers")
+        return self
 
 
 class CropPosition(BaseModel):
@@ -128,5 +135,9 @@ class EditRenderResponse(BaseModel):
     processing_error: str | None
     created_at: datetime
     updated_at: datetime
+    preset_name: str
+    platform: str | None
+    supporting_copy: dict
+    recipe_snapshot: dict
 
     model_config = {"from_attributes": True}

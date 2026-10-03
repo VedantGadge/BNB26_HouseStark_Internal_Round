@@ -9,9 +9,9 @@ from sqlalchemy.pool import StaticPool
 
 from app.auth import AuthenticatedCreator, get_current_creator
 from app.database import get_session
-from app.features.content_workflow import service
+from app.features.assets.router import get_storage
 from app.main import create_app
-from app.models import Base, Project, ScriptVersion
+from app.models import Asset, Base, ClipCandidate, EditRender, EditVersion, Project, ScriptVersion
 
 
 @pytest.fixture
@@ -50,6 +50,49 @@ def api():
             session.flush()
             project.current_script_version_id = version.id
             session.commit()
+            asset = Asset(
+                project_id=project.id,
+                owner_id=project.owner_id,
+                kind="video",
+                public_id="source",
+                resource_type="video",
+                processing_status="ready",
+                duration_ms=10000,
+                format="mp4",
+            )
+            session.add(asset)
+            session.flush()
+            candidate = ClipCandidate(
+                asset_id=asset.id,
+                source_start_ms=0,
+                source_end_ms=8000,
+                hook="Hook",
+                transcript_text="Evidence",
+                score=0.8,
+            )
+            session.add(candidate)
+            session.flush()
+            edit = EditVersion(candidate_id=candidate.id, asset_id=asset.id, revision=1, recipe={})
+            session.add(edit)
+            session.flush()
+            for platform in project.target_platforms:
+                session.add(
+                    EditRender(
+                        edit_version_id=edit.id,
+                        asset_id=asset.id,
+                        public_id=f"render-{platform}",
+                        platform=platform,
+                        processing_status="completed",
+                        format="mp4",
+                    )
+                )
+            session.commit()
+
+            class Storage:
+                def delivery_url(self, **kwargs):
+                    return "https://example.test/render.mp4"
+
+            app.dependency_overrides[get_storage] = lambda: Storage()
             yield client, session, f"/v1/projects/{project_id}"
     engine.dispose()
 
@@ -74,7 +117,12 @@ def package_ready(client, root):
             "expected_revision": state(client, root)["revision"],
             "assets_ready": True,
             "editing_complete": True,
-            "package": {"title": "Original", "caption": "Demo copy", "media_checked": True},
+            "package": {
+                "title": "Original",
+                "caption": "Demo copy",
+                "media_checked": True,
+                "render_ids": [r["id"] for r in client.get(root + "/exports").json()],
+            },
         },
     )
     assert result.status_code == 200, result.text
@@ -159,7 +207,12 @@ def test_changes_clear_approval_and_stale_writes_do_not_overwrite(api):
         root + "/workflow",
         json={
             "expected_revision": old["revision"],
-            "package": {"title": "Changed", "caption": "New copy", "media_checked": True},
+            "package": {
+                "title": "Changed",
+                "caption": "New copy",
+                "media_checked": True,
+                "render_ids": old["package"]["render_ids"],
+            },
         },
     )
     assert result.status_code == 200
@@ -248,18 +301,20 @@ def test_empty_updates_are_rejected_without_consuming_a_revision(api):
     assert state(client, root)["revision"] == before
 
 
-def test_owner_scope_missing_media_and_safe_delivery(api, monkeypatch, tmp_path):
-    client, _, root = api
-    media = client.get(root + "/workflow/media")
-    assert media.status_code == 200
-    assert media.headers["content-type"] == "video/mp4"
-    assert b"ftyp" in media.content[:32]
-    monkeypatch.setattr(service, "DEMO_MEDIA", tmp_path / "missing.mp4")
+def test_owner_scope_missing_media_and_safe_delivery(api):
+    client, session, root = api
+    assert client.get(root + "/workflow/media").status_code == 409
     package_ready(client, root)
+    media = client.get(root + "/workflow/media", follow_redirects=False)
+    assert media.status_code == 307
+    assert media.headers["location"] == "https://example.test/render.mp4"
+    for render in session.query(EditRender).all():
+        render.processing_status = "failed"
+    session.commit()
     for stage in ("assets", "editing"):
         assert move(client, root, stage).status_code == 200
     assert move(client, root, "review").status_code == 409
-    assert client.get(root + "/workflow/media").status_code == 503
+    assert client.get(root + "/workflow/media").status_code == 409
     client.app.dependency_overrides[get_current_creator] = lambda: AuthenticatedCreator("creator-b")
     for suffix in ("", "/workflow", "/publications", "/workflow/media"):
         assert client.get(root + suffix).status_code == 404

@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.auth import AuthenticatedCreator, get_current_creator
 from app.database import get_db_session
 from app.main import app
 from app.models import Base, Project
@@ -71,6 +72,7 @@ def asset_client() -> Generator[tuple[TestClient, UUID], None, None]:
             yield session
 
     app.dependency_overrides[get_db_session] = override_session
+    app.dependency_overrides[get_current_creator] = lambda: AuthenticatedCreator(owner_id)
     app.dependency_overrides[get_storage] = lambda: FakeStorage()
     with TestClient(app) as client:
         yield client, project_id

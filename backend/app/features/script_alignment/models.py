@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, Float, ForeignKey, Text, Uuid, func
+from sqlalchemy import JSON, BigInteger, DateTime, Float, ForeignKey, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -9,6 +9,13 @@ from app.database import Base
 
 class ScriptAlignment(Base):
     __tablename__ = "script_alignments"
+
+    script_version_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("ai_script_versions.id"), nullable=True
+    )
+    section_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    match_status: Mapped[str] = mapped_column(String(32), default="matched")
+    visual_evidence: Mapped[list[dict]] = mapped_column(JSON, default=list)
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     asset_id: Mapped[uuid.UUID] = mapped_column(

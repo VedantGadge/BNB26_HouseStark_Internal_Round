@@ -1,6 +1,7 @@
 """Controlled FFmpeg compilation for immutable short-form edit recipes."""
 
 import subprocess
+import textwrap
 from pathlib import Path
 
 from app.features.editing.schemas import CaptionStyle, EditRecipePayload, OverlayPosition
@@ -17,15 +18,16 @@ def render_recipe_to_mp4(
     recipe: EditRecipePayload,
     has_audio: bool,
     timeout_seconds: int,
+    ffmpeg_binary: str = "ffmpeg",
 ) -> None:
     """Render one source segment without ever accepting executable user input."""
 
     text_directory = destination.parent / "overlay-text"
-    text_directory.mkdir()
+    text_directory.mkdir(exist_ok=True)
     video_filter = _build_video_filter(recipe, text_directory=text_directory)
     duration_seconds = _seconds(recipe.source_end_ms - recipe.source_start_ms)
     command = [
-        "ffmpeg",
+        ffmpeg_binary,
         "-y",
         "-ss",
         _seconds(recipe.source_start_ms),
@@ -69,6 +71,11 @@ def render_recipe_to_mp4(
     except subprocess.TimeoutExpired as error:
         raise RenderCompilationError("FFmpeg timed out while rendering this edit.") from error
     if result.returncode != 0 or not destination.is_file() or destination.stat().st_size == 0:
+        if "No such filter: 'drawtext'" in result.stderr:
+            raise RenderCompilationError(
+                "This FFmpeg build lacks drawtext. Install a build with FreeType and "
+                "HarfBuzz support, then set FFMPEG_BINARY to that executable."
+            )
         detail = result.stderr.strip()[-2_000:] if result.stderr else "FFmpeg produced no MP4."
         raise RenderCompilationError(detail)
 
@@ -76,19 +83,31 @@ def render_recipe_to_mp4(
 def _build_video_filter(recipe: EditRecipePayload, *, text_directory: Path) -> str:
     width = recipe.output.width
     height = recipe.output.height
-    filters = [
-        "fps=30",
-        f"scale={width}:{height}:force_original_aspect_ratio=increase",
-        (
-            f"crop={width}:{height}:x=(iw-ow)*{recipe.crop.center_x:.4f}:"
-            f"y=(ih-oh)*{recipe.crop.center_y:.4f}"
-        ),
-    ]
+    filters = ["setpts=PTS-STARTPTS", "fps=30"]
+    if recipe.output.fit == "pad":
+        filters.extend(
+            [
+                f"scale={width}:{height}:force_original_aspect_ratio=decrease",
+                f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:color=black",
+            ]
+        )
+    else:
+        filters.extend(
+            [
+                f"scale={width}:{height}:force_original_aspect_ratio=increase",
+                (
+                    f"crop={width}:{height}:x=(iw-ow)*{recipe.crop.center_x:.4f}:"
+                    f"y=(ih-oh)*{recipe.crop.center_y:.4f}"
+                ),
+            ]
+        )
     if recipe.emphasis_zooms:
         filters.append(_zoom_filter(recipe, width=width, height=height))
     if recipe.title is not None:
         title_path = text_directory / "title.txt"
-        title_path.write_text(recipe.title.text, encoding="utf-8")
+        title_path.write_text(
+            textwrap.fill(recipe.title.text, max(12, width // 34)), encoding="utf-8"
+        )
         filters.append(
             _draw_text_filter(
                 text_path=title_path,
@@ -101,7 +120,9 @@ def _build_video_filter(recipe: EditRecipePayload, *, text_directory: Path) -> s
     if recipe.captions_enabled:
         for index, caption in enumerate(recipe.captions):
             caption_path = text_directory / f"caption-{index}.txt"
-            caption_path.write_text(caption.text, encoding="utf-8")
+            caption_path.write_text(
+                textwrap.fill(caption.text, max(12, width // 34)), encoding="utf-8"
+            )
             filters.append(
                 _draw_text_filter(
                     text_path=caption_path,
@@ -139,10 +160,12 @@ def _draw_text_filter(
 ) -> str:
     font_color, font_size, box_color = _draw_text_style(style)
     y_position = "80" if position is OverlayPosition.TOP else "h-text_h-150"
+    font_path = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+    font = f"fontfile={font_path}:" if font_path.is_file() else "font=Arial:"
     return (
         "drawtext="
-        "fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:"
-        f"textfile={text_path}:fontcolor={font_color}:fontsize={font_size}:"
+        f"{font}textfile={text_path}:expansion=none:"
+        f"fontcolor={font_color}:fontsize={font_size}:"
         "x=(w-text_w)/2:"
         f"y={y_position}:box=1:boxcolor={box_color}:boxborderw=18:"
         f"enable='between(t\\,{_seconds(start_ms)}\\,{_seconds(end_ms)})'"
@@ -160,7 +183,7 @@ def _draw_text_style(style: str) -> tuple[str, int, str]:
 
 
 def _build_audio_filter(recipe: EditRecipePayload, *, duration_ms: int) -> str | None:
-    filters: list[str] = []
+    filters: list[str] = ["asetpts=PTS-STARTPTS"]
     if recipe.audio.normalize:
         filters.append("loudnorm=I=-16:LRA=11:TP=-1.5")
     if recipe.audio.fade_in_ms:

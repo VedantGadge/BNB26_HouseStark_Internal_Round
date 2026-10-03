@@ -64,7 +64,7 @@ def get_current_creator(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     settings: Settings = Depends(get_settings),
 ) -> AuthenticatedCreator:
-    if not settings.auth_required:
+    if not settings.auth_required and settings.environment != "production":
         return AuthenticatedCreator(id="demo-creator")
     if credentials is None:
         raise HTTPException(

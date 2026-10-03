@@ -76,18 +76,24 @@ class CloudinaryStorage:
     ) -> None:
         """Download one authorized original into worker-local disposable storage."""
 
-        download_url = cloudinary.utils.private_download_url(
-            public_id,
-            asset_format,
-            resource_type=resource_type,
-            type="authenticated",
-            attachment=False,
+        download_url = self.delivery_url(
+            public_id=public_id, resource_type=resource_type, asset_format=asset_format
         )
         with httpx.stream("GET", download_url, follow_redirects=True, timeout=60) as response:
             response.raise_for_status()
             with destination.open("wb") as output:
                 for chunk in response.iter_bytes():
                     output.write(chunk)
+
+    def delivery_url(self, *, public_id: str, resource_type: str, asset_format: str) -> str:
+        return cloudinary.utils.private_download_url(
+            public_id,
+            asset_format,
+            resource_type=resource_type,
+            type="authenticated",
+            attachment=False,
+            expires_at=int(time.time()) + 300,
+        )
 
     def upload_authenticated_video_from_path(
         self, *, source_path: Path, public_id: str

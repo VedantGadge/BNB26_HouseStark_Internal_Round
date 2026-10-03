@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from imageio_ffmpeg import get_ffmpeg_exe
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -35,6 +36,7 @@ class Settings(BaseSettings):
     # instead of allowing the model's near-1,000-token default per frame.
     groq_vision_max_completion_tokens: int = Field(default=256, ge=32, le=1_024)
     edit_render_timeout_seconds: int = Field(default=300, ge=30, le=900)
+    ffmpeg_binary: str = Field(default_factory=get_ffmpeg_exe)
     development_owner_id: str = "local-creator"
     auth_jwks_url: str | None = None
     auth_audience: str | None = None

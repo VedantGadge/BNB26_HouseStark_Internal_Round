@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from sqlalchemy import delete
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.features.assets.models import Asset
@@ -19,9 +19,13 @@ def generate_candidates(
 ) -> list[ClipCandidate]:
     if min_duration_ms > max_duration_ms:
         raise ValueError("min_duration_ms must not exceed max_duration_ms.")
+    if asset.processing_status != "ready" or not asset.duration_ms or asset.duration_ms < 2_000:
+        raise ValueError("Clip generation requires a ready video at least two seconds long.")
+    if asset.kind != "video":
+        raise ValueError("Clip generation requires a video asset.")
+    alignments = [a for a in alignments if a.confidence > 0 and a.match_status != "unmatched"]
     if not alignments:
         raise ValueError("Generate script alignments before generating clip candidates.")
-    session.execute(delete(ClipCandidate).where(ClipCandidate.asset_id == asset.id))
     ranked = sorted(alignments, key=lambda alignment: alignment.confidence, reverse=True)
     candidates: list[ClipCandidate] = []
     for alignment in ranked:
@@ -37,15 +41,27 @@ def generate_candidates(
             for item in candidates
         ):
             continue
+        existing = session.scalar(
+            select(ClipCandidate).where(
+                ClipCandidate.asset_id == asset.id,
+                ClipCandidate.source_start_ms == start_ms,
+                ClipCandidate.source_end_ms == end_ms,
+                ClipCandidate.hook == alignment.script_beat,
+                ClipCandidate.script_version_id == alignment.script_version_id,
+            )
+        )
         candidates.append(
-            ClipCandidate(
+            existing
+            or ClipCandidate(
                 asset_id=asset.id,
+                script_version_id=alignment.script_version_id,
                 source_start_ms=start_ms,
                 source_end_ms=end_ms,
                 hook=alignment.script_beat,
                 transcript_text=alignment.evidence_text,
                 score=alignment.confidence,
-                reasons=["script-alignment", "timestamped-transcript-evidence"],
+                reasons=["script-alignment", "source-evidence"]
+                + (["timestamped-visual-evidence"] if alignment.visual_evidence else []),
             )
         )
         if len(candidates) >= max_candidates:

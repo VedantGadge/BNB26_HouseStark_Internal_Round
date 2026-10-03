@@ -1,10 +1,6 @@
-import { WorkspacePlaceholder } from "@/components/workspace-placeholder";
+import { Overview } from "@/components/workflow/overview";
 
-export default function ProjectOverviewPage() {
-  return (
-    <WorkspacePlaceholder
-      title="Overview"
-      description="Brief summary, workflow checklist, next action, and active jobs belong here."
-    />
-  );
+export default async function Page({ params }) {
+  const { projectId } = await params;
+  return <Overview projectId={projectId} />;
 }

@@ -2,7 +2,8 @@ FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=7860
+    PORT=7860 \
+    IMAGEIO_FFMPEG_EXE=/usr/bin/ffmpeg
 
 WORKDIR /app
 

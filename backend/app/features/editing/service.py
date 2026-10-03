@@ -4,6 +4,7 @@ from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.features.assets.models import Asset
@@ -52,9 +53,7 @@ def get_owned_edit_version(session: Session, version_id: UUID, owner_id: str) ->
     return version
 
 
-def list_edit_versions(
-    session: Session, *, candidate_id: UUID, owner_id: str
-) -> list[EditVersion]:
+def list_edit_versions(session: Session, *, candidate_id: UUID, owner_id: str) -> list[EditVersion]:
     get_owned_candidate(session, candidate_id, owner_id)
     return list(
         session.scalars(
@@ -96,7 +95,13 @@ def create_edit_version(
         recipe=recipe.model_dump(mode="json"),
     )
     session.add(version)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError as error:
+        session.rollback()
+        raise EditConflictError(
+            "The edit changed while saving. Reload the latest version."
+        ) from error
     session.refresh(version)
     return version
 

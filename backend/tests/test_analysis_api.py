@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.auth import AuthenticatedCreator, get_current_creator
 from app.database import get_db_session
 from app.features.assets.models import Asset
 from app.features.footage_analysis.models import TranscriptSegment, VisualObservation
@@ -75,6 +76,7 @@ def analysis_client() -> Generator[tuple[TestClient, UUID], None, None]:
             yield session
 
     app.dependency_overrides[get_db_session] = override_session
+    app.dependency_overrides[get_current_creator] = lambda: AuthenticatedCreator(owner_id)
     with TestClient(app) as client:
         yield client, asset_id
     app.dependency_overrides.clear()
@@ -103,6 +105,9 @@ def test_asset_analysis_hides_another_owners_asset(
     analysis_client: tuple[TestClient, UUID],
 ) -> None:
     client, asset_id = analysis_client
+    client.app.dependency_overrides[get_current_creator] = lambda: AuthenticatedCreator(
+        "another-owner"
+    )
 
     response = client.get(
         f"/v1/assets/{asset_id}/analysis",

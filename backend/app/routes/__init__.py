@@ -5,12 +5,16 @@ from app.features.clip_generation import router as clip_generation
 from app.features.content_workflow import router as workflow_router
 from app.features.editing import router as editing
 from app.features.footage_analysis import router as footage_analysis
+from app.features.media_workflow.insights import router as insights_router
+from app.features.media_workflow.router import router as media_router
 from app.features.script_alignment import router as script_alignment
 from app.features.script_creation import router as script_router
 from app.features.script_creation import style_router
 from app.routes import clips, insights, jobs, projects, publications
 
 api_router = APIRouter()
+api_router.include_router(media_router, tags=["media-workflow"])
+api_router.include_router(insights_router, tags=["insights"])
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
 api_router.include_router(workflow_router.router, prefix="/projects", tags=["content-workflow"])
 api_router.include_router(

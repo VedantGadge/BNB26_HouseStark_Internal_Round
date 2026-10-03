@@ -26,6 +26,9 @@ class JobStatus(StrEnum):
 
 
 class JobType(StrEnum):
+    ASSET_INGESTION = "asset_ingestion"
+    CLIP_GENERATION = "clip_generation"
+    MEDIA_EXPORT = "media_export"
     SCRIPT_GENERATION = "script_generation"
     ASSISTANT_REVISION = "assistant_revision"
     STYLE_PROFILE_SUGGESTION = "style_profile_suggestion"
@@ -107,12 +110,30 @@ class ProjectSummary(SchemaModel):
     workflow_stage: str
 
 
+class ProjectPatch(SchemaModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    brief: str | None = Field(default=None, min_length=1, max_length=8000)
+    audience: str | None = Field(default=None, max_length=500)
+    tone: str | None = Field(default=None, max_length=120)
+    target_platforms: list[Platform] | None = None
+
+    @model_validator(mode="after")
+    def has_change(self):
+        if not self.model_fields_set:
+            raise ValueError("Provide project details to update")
+        for key in ("name", "brief", "target_platforms"):
+            if key in self.model_fields_set and getattr(self, key) is None:
+                raise ValueError(f"{key} cannot be null")
+        return self
+
+
 class JobResponse(SchemaModel):
     id: str
     status: JobStatus
     stage: str
     error: str | None = None
     conversation_id: str | None = None
+    result: dict = Field(default_factory=dict)
 
 
 class SignatureLine(SchemaModel):

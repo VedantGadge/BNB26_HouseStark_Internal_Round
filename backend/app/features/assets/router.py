@@ -20,6 +20,8 @@ from app.features.assets.schemas import (
     AssetUploadSessionCreate,
 )
 from app.features.assets.storage import CloudinaryStorage
+from app.features.script_creation.jobs import JobRepository
+from app.schemas import JobType
 
 router = APIRouter()
 project_router = APIRouter()
@@ -124,9 +126,34 @@ def complete_upload(
         round(float(duration_seconds) * 1000) if duration_seconds is not None else None
     )
     asset.processing_status = AssetProcessingStatus.UPLOADED.value
-    session.commit()
+    JobRepository(session).enqueue(
+        owner_id=owner_id,
+        project_id=asset.project_id,
+        job_type=JobType.ASSET_INGESTION,
+        idempotency_key=f"ingest:{asset.id}",
+        input_snapshot={"asset_id": str(asset.id)},
+        routing_snapshot={},
+    )
     session.refresh(asset)
     return asset
+
+
+@router.get("/{asset_id}/delivery")
+def asset_delivery(
+    asset_id: UUID,
+    session: Session = Depends(get_db_session),
+    owner_id: str = Depends(get_current_owner_id),
+    storage: CloudinaryStorage = Depends(get_storage),
+) -> dict:
+    asset = get_owned_asset(session, asset_id, owner_id)
+    if not asset.format or asset.processing_status == "uploading":
+        raise HTTPException(409, "Finish uploading this asset before playback.")
+    return {
+        "url": storage.delivery_url(
+            public_id=asset.public_id, resource_type=asset.resource_type, asset_format=asset.format
+        ),
+        "expires_in": 300,
+    }
 
 
 @project_router.get("/{project_id}/assets", response_model=list[AssetResponse])

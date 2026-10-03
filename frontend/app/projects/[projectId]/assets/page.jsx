@@ -1,5 +1,6 @@
-import { WorkspacePlaceholder } from "@/components/workspace-placeholder";
+import { Assets } from "@/components/workflow/assets";
 
-export default function AssetsPage() {
-  return <WorkspacePlaceholder title="Assets" description="Upload queue, asset library, transcript, and script-to-footage evidence." />;
+export default async function Page({ params }) {
+  const { projectId } = await params;
+  return <Assets projectId={projectId} />;
 }

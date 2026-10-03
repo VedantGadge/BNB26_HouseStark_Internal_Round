@@ -1,5 +1,6 @@
-import { WorkspacePlaceholder } from "@/components/workspace-placeholder";
+import { Insights } from "@/components/workflow/insights";
 
-export default function InsightsPage() {
-  return <WorkspacePlaceholder title="Insights" description="Production metrics, entered performance, comparisons, and evidence-backed recommendations." />;
+export default async function Page({ params }) {
+  const { projectId } = await params;
+  return <Insights projectId={projectId} />;
 }

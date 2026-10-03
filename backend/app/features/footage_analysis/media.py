@@ -4,6 +4,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from app.config import get_settings
 from app.features.footage_analysis.probe import probe_media
 
 
@@ -86,6 +87,7 @@ def _sample_timestamps(duration_ms: int, interval_ms: int, max_frames: int) -> l
 
 
 def _run_ffmpeg(command: list[str]) -> None:
+    command[0] = get_settings().ffmpeg_binary
     try:
         result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=120)
     except FileNotFoundError as error:

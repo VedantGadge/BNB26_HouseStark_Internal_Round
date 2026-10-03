@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 from typing import Literal
+from uuid import UUID
 
 from pydantic import AwareDatetime, Field, HttpUrl, model_validator
 
@@ -12,6 +13,7 @@ class PackageInput(SchemaModel):
     title: str = Field(min_length=1, max_length=160)
     caption: str = Field(min_length=1, max_length=2000)
     media_checked: bool = False
+    render_ids: list[UUID] = Field(min_length=1, max_length=20)
 
 
 class WorkflowPatch(SchemaModel):

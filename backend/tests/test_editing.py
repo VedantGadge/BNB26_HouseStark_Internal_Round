@@ -82,8 +82,8 @@ def test_renderer_uses_text_files_not_untrusted_overlay_text(monkeypatch, tmp_pa
     assert "libx264" in captured_command
     assert captured_command[captured_command.index("-movflags") + 1] == "+faststart"
     assert (
-        "loudnorm=I=-16:LRA=11:TP=-1.5,afade=t=in:st=0:d=0.120,afade=t=out:st=7.820:d=0.180"
-        in captured_command
+        "asetpts=PTS-STARTPTS,loudnorm=I=-16:LRA=11:TP=-1.5,"
+        "afade=t=in:st=0:d=0.120,afade=t=out:st=7.820:d=0.180" in captured_command
     )
 
 

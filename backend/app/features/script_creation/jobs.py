@@ -68,7 +68,7 @@ class JobRepository:
         if job is None:
             return None
         if job.type not in {job_type.value for job_type in JobType}:
-            raise ValueError("This job type cannot be retried by the script worker")
+            raise ValueError("This job type cannot be retried by the worker")
         if job.status != JobStatus.FAILED.value:
             raise ValueError("Only failed jobs can be retried")
         job.status = JobStatus.QUEUED.value
@@ -150,4 +150,5 @@ def job_response(job: Job) -> JobResponse:
         stage=job.stage,
         error=job.error,
         conversation_id=job.input_snapshot.get("conversation_id"),
+        result=job.input_snapshot.get("result", {}),
     )

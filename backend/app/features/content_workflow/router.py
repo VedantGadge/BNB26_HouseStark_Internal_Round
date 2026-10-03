@@ -3,11 +3,13 @@ from copy import deepcopy
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.auth import AuthenticatedCreator, get_current_creator
 from app.database import get_session
+from app.features.assets.router import get_storage
+from app.features.assets.storage import CloudinaryStorage
 from app.features.content_workflow import service
 from app.features.content_workflow.schemas import (
     PublicationInput,
@@ -17,6 +19,7 @@ from app.features.content_workflow.schemas import (
     WorkflowPatch,
     WorkflowResponse,
 )
+from app.features.media_workflow.service import owned_render
 from app.models import Publication
 
 router = APIRouter()
@@ -33,6 +36,11 @@ def get_project(
         "id": str(project.id),
         "name": project.name,
         "brief": project.brief,
+        "audience": project.audience,
+        "tone": project.tone,
+        "current_script_version_id": str(project.current_script_version_id)
+        if project.current_script_version_id
+        else None,
         "target_platforms": project.target_platforms,
         "workflow_stage": project.workflow_stage,
     }
@@ -76,14 +84,21 @@ def get_media(
     project_id: uuid.UUID,
     creator: AuthenticatedCreator = Depends(get_current_creator),
     session: Session = Depends(get_session),
+    storage: CloudinaryStorage = Depends(get_storage),
 ):
-    service.owned_project(session, creator.id, project_id)
-    if not service.DEMO_MEDIA.is_file():
-        raise HTTPException(503, "Prepared demo video is unavailable.")
-    return FileResponse(
-        service.DEMO_MEDIA,
-        media_type="video/mp4",
-        filename="prepared-demo.mp4",
+    project = service.owned_project(session, creator.id, project_id)
+    package = (project.workflow_data or {}).get("approved_package") or (
+        project.workflow_data or {}
+    ).get("package")
+    if not package or not service.valid_package(session, project, package):
+        raise HTTPException(409, "No completed rendered package is available.")
+    render = owned_render(session, creator.id, uuid.UUID(package["render_ids"][0]))
+    return RedirectResponse(
+        storage.delivery_url(
+            public_id=render.public_id,
+            resource_type="video",
+            asset_format="mp4",
+        ),
         headers={"Cache-Control": "private, no-store"},
     )
 
@@ -169,10 +184,17 @@ def patch_publication(
         reasons = service.blockers(session, project, data, "exported")
         if reasons:
             service.conflict(" ".join(reasons))
+        render_ids = data["approved_package"]["render_ids"]
+        selected = [owned_render(session, creator.id, uuid.UUID(value)) for value in render_ids]
+        selected = [render for render in selected if render.platform == record.platform]
+        if not selected:
+            service.conflict("The approved package has no completed export for this platform.")
         record.status = "published"
         record.published_at = payload.published_at.astimezone(UTC)
         record.external_url = str(payload.external_url)
         record.package_snapshot = deepcopy(data["approved_package"])
+        record.package_snapshot["export_id"] = str(selected[0].id)
+        record.package_snapshot["edit_version_id"] = str(selected[0].edit_version_id)
         record.package_snapshot.update(record.supporting_copy)
         # Avoid flushing publication changes before acquiring the project revision.
         with session.no_autoflush:
