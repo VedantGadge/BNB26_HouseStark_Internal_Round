@@ -94,6 +94,266 @@
         }
       }
     },
+    "/v1/projects/{project_id}/assets/upload-session": {
+      "post": {
+        "tags": [
+          "assets"
+        ],
+        "summary": "Create Upload Session",
+        "operationId": "create_upload_session_v1_projects__project_id__assets_upload_session_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetUploadSessionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetUploadSession"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/projects/{project_id}/assets": {
+      "get": {
+        "tags": [
+          "assets"
+        ],
+        "summary": "List Assets",
+        "operationId": "list_assets_v1_projects__project_id__assets_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetResponse"
+                  },
+                  "title": "Response List Assets V1 Projects  Project Id  Assets Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/assets/{asset_id}/complete": {
+      "post": {
+        "tags": [
+          "assets"
+        ],
+        "summary": "Complete Upload",
+        "operationId": "complete_upload_v1_assets__asset_id__complete_post",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetUploadComplete"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/assets/{asset_id}/analysis": {
+      "get": {
+        "tags": [
+          "footage-analysis"
+        ],
+        "summary": "Get Asset Analysis",
+        "operationId": "get_asset_analysis_v1_assets__asset_id__analysis_get",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetAnalysisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/jobs/{job_id}": {
       "get": {
         "tags": [
@@ -139,6 +399,359 @@
   },
   "components": {
     "schemas": {
+      "AssetAnalysisResponse": {
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "processing_status": {
+            "$ref": "#/components/schemas/AssetProcessingStatus"
+          },
+          "processing_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processing Error"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "transcript_segments": {
+            "items": {
+              "$ref": "#/components/schemas/TranscriptSegmentResponse"
+            },
+            "type": "array",
+            "title": "Transcript Segments"
+          },
+          "visual_observations": {
+            "items": {
+              "$ref": "#/components/schemas/VisualObservationResponse"
+            },
+            "type": "array",
+            "title": "Visual Observations"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "asset_id",
+          "processing_status",
+          "processing_error",
+          "duration_ms",
+          "transcript_segments",
+          "visual_observations",
+          "updated_at"
+        ],
+        "title": "AssetAnalysisResponse"
+      },
+      "AssetKind": {
+        "type": "string",
+        "enum": [
+          "video",
+          "image",
+          "audio"
+        ],
+        "title": "AssetKind"
+      },
+      "AssetProcessingStatus": {
+        "type": "string",
+        "enum": [
+          "uploading",
+          "uploaded",
+          "processing",
+          "ready",
+          "failed"
+        ],
+        "title": "AssetProcessingStatus"
+      },
+      "AssetResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Project Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AssetKind"
+          },
+          "public_id": {
+            "type": "string",
+            "title": "Public Id"
+          },
+          "resource_type": {
+            "type": "string",
+            "title": "Resource Type"
+          },
+          "delivery_type": {
+            "type": "string",
+            "title": "Delivery Type"
+          },
+          "provider_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Version"
+          },
+          "format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format"
+          },
+          "byte_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Byte Size"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "processing_status": {
+            "$ref": "#/components/schemas/AssetProcessingStatus"
+          },
+          "processing_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processing Error"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "project_id",
+          "kind",
+          "public_id",
+          "resource_type",
+          "delivery_type",
+          "provider_version",
+          "format",
+          "byte_size",
+          "width",
+          "height",
+          "duration_ms",
+          "tags",
+          "processing_status",
+          "processing_error",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AssetResponse"
+      },
+      "AssetUploadComplete": {
+        "properties": {
+          "provider_asset_id": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Provider Asset Id"
+          },
+          "provider_version": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Provider Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider_asset_id",
+          "provider_version"
+        ],
+        "title": "AssetUploadComplete"
+      },
+      "AssetUploadSession": {
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "cloud_name": {
+            "type": "string",
+            "title": "Cloud Name"
+          },
+          "api_key": {
+            "type": "string",
+            "title": "Api Key"
+          },
+          "resource_type": {
+            "type": "string",
+            "title": "Resource Type"
+          },
+          "upload_url": {
+            "type": "string",
+            "title": "Upload Url"
+          },
+          "public_id": {
+            "type": "string",
+            "title": "Public Id"
+          },
+          "delivery_type": {
+            "type": "string",
+            "title": "Delivery Type"
+          },
+          "overwrite": {
+            "type": "boolean",
+            "title": "Overwrite"
+          },
+          "timestamp": {
+            "type": "integer",
+            "title": "Timestamp"
+          },
+          "signature": {
+            "type": "string",
+            "title": "Signature"
+          }
+        },
+        "type": "object",
+        "required": [
+          "asset_id",
+          "cloud_name",
+          "api_key",
+          "resource_type",
+          "upload_url",
+          "public_id",
+          "delivery_type",
+          "overwrite",
+          "timestamp",
+          "signature"
+        ],
+        "title": "AssetUploadSession"
+      },
+      "AssetUploadSessionCreate": {
+        "properties": {
+          "filename": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Filename"
+          },
+          "content_type": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Content Type"
+          },
+          "byte_size": {
+            "type": "integer",
+            "maximum": 100000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Byte Size"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AssetKind"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filename",
+          "content_type",
+          "byte_size",
+          "kind"
+        ],
+        "title": "AssetUploadSessionCreate"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -282,6 +895,51 @@
         ],
         "title": "ProjectSummary"
       },
+      "TranscriptSegmentResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "source_start_ms": {
+            "type": "integer",
+            "title": "Source Start Ms"
+          },
+          "source_end_ms": {
+            "type": "integer",
+            "title": "Source End Ms"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "word_timings": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Word Timings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source_start_ms",
+          "source_end_ms",
+          "text",
+          "word_timings"
+        ],
+        "title": "TranscriptSegmentResponse"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -321,6 +979,56 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VisualObservationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "source_start_ms": {
+            "type": "integer",
+            "title": "Source Start Ms"
+          },
+          "source_end_ms": {
+            "type": "integer",
+            "title": "Source End Ms"
+          },
+          "frame_references": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Frame References"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source_start_ms",
+          "source_end_ms",
+          "frame_references",
+          "description"
+        ],
+        "title": "VisualObservationResponse"
       }
     }
   }

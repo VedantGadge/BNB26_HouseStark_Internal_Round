@@ -1,10 +1,14 @@
 from fastapi import APIRouter
 
-from app.routes import assets, clips, insights, jobs, projects, publications, scripts
+from app.features.assets import router as assets
+from app.features.footage_analysis import router as footage_analysis
+from app.routes import clips, insights, jobs, projects, publications, scripts
 
 api_router = APIRouter()
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
+api_router.include_router(assets.project_router, prefix="/projects", tags=["assets"])
 api_router.include_router(assets.router, prefix="/assets", tags=["assets"])
+api_router.include_router(footage_analysis.router, prefix="/assets", tags=["footage-analysis"])
 api_router.include_router(scripts.router, prefix="/scripts", tags=["scripts"])
 api_router.include_router(clips.router, prefix="/clips", tags=["clips"])
 api_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])

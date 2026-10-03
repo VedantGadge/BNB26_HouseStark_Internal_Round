@@ -2,11 +2,9 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import JSON, DateTime, String, Text, Uuid, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
-
-class Base(DeclarativeBase):
-    pass
+from app.database import Base
 
 
 class Project(Base):
@@ -26,3 +24,11 @@ class Project(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+# Compatibility exports let shared code import one domain module while each feature
+# owns its implementation model in a focused folder.
+from app.features.assets.models import Asset  # noqa: E402
+from app.features.footage_analysis.models import TranscriptSegment, VisualObservation  # noqa: E402
+
+__all__ = ["Asset", "Base", "Project", "TranscriptSegment", "VisualObservation"]
