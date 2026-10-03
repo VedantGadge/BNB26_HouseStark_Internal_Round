@@ -5,6 +5,7 @@ from typing import Any
 
 import cloudinary
 import cloudinary.api
+import cloudinary.uploader
 import cloudinary.utils
 import httpx
 
@@ -87,3 +88,24 @@ class CloudinaryStorage:
             with destination.open("wb") as output:
                 for chunk in response.iter_bytes():
                     output.write(chunk)
+
+    def upload_authenticated_video_from_path(
+        self, *, source_path: Path, public_id: str
+    ) -> UploadedAssetReference:
+        """Upload a verified derived MP4 with the same restricted delivery policy."""
+
+        response = cloudinary.uploader.upload(
+            str(source_path),
+            resource_type="video",
+            type="authenticated",
+            public_id=public_id,
+            overwrite=False,
+        )
+        if not all(response.get(key) for key in ("asset_id", "public_id", "version")):
+            raise RuntimeError("Cloudinary did not return a complete derived-video identity.")
+        return UploadedAssetReference(
+            asset_id=response["asset_id"],
+            public_id=response["public_id"],
+            resource_type="video",
+            version=str(response["version"]),
+        )

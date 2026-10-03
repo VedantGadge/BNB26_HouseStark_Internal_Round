@@ -622,6 +622,254 @@
         }
       }
     },
+    "/v1/clip-candidates/{candidate_id}/edit-versions": {
+      "post": {
+        "tags": [
+          "editing"
+        ],
+        "summary": "Create Version",
+        "operationId": "create_version_v1_clip_candidates__candidate_id__edit_versions_post",
+        "parameters": [
+          {
+            "name": "candidate_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Candidate Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditVersionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditVersionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "editing"
+        ],
+        "summary": "Get Versions",
+        "operationId": "get_versions_v1_clip_candidates__candidate_id__edit_versions_get",
+        "parameters": [
+          {
+            "name": "candidate_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Candidate Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EditVersionResponse"
+                  },
+                  "title": "Response Get Versions V1 Clip Candidates  Candidate Id  Edit Versions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/edit-versions/{version_id}": {
+      "get": {
+        "tags": [
+          "editing"
+        ],
+        "summary": "Get Version",
+        "operationId": "get_version_v1_edit_versions__version_id__get",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Version Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditVersionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/edit-versions/{version_id}/render": {
+      "post": {
+        "tags": [
+          "editing"
+        ],
+        "summary": "Render Version",
+        "operationId": "render_version_v1_edit_versions__version_id__render_post",
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Version Id"
+            }
+          },
+          {
+            "name": "x-creator-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Creator-Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditRenderResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/jobs/{job_id}": {
       "get": {
         "tags": [
@@ -1020,6 +1268,67 @@
         ],
         "title": "AssetUploadSessionCreate"
       },
+      "AudioPolish": {
+        "properties": {
+          "normalize": {
+            "type": "boolean",
+            "title": "Normalize",
+            "default": true
+          },
+          "fade_in_ms": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Fade In Ms",
+            "default": 120
+          },
+          "fade_out_ms": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Fade Out Ms",
+            "default": 180
+          }
+        },
+        "type": "object",
+        "title": "AudioPolish"
+      },
+      "CaptionItem": {
+        "properties": {
+          "start_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Ms"
+          },
+          "end_ms": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "End Ms"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start_ms",
+          "end_ms",
+          "text"
+        ],
+        "title": "CaptionItem"
+      },
+      "CaptionStyle": {
+        "type": "string",
+        "enum": [
+          "clean",
+          "bold",
+          "bold_highlight"
+        ],
+        "title": "CaptionStyle"
+      },
       "ClipCandidateResponse": {
         "properties": {
           "id": {
@@ -1113,6 +1422,326 @@
         "type": "object",
         "title": "ClipGenerationCreate"
       },
+      "CropPosition": {
+        "properties": {
+          "center_x": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Center X",
+            "default": 0.5
+          },
+          "center_y": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Center Y",
+            "default": 0.5
+          }
+        },
+        "type": "object",
+        "title": "CropPosition"
+      },
+      "EditRecipePayload": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "maximum": 1.0,
+            "minimum": 1.0,
+            "title": "Schema Version",
+            "default": 1
+          },
+          "source_start_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Source Start Ms"
+          },
+          "source_end_ms": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Source End Ms"
+          },
+          "output": {
+            "$ref": "#/components/schemas/OutputCanvas"
+          },
+          "crop": {
+            "$ref": "#/components/schemas/CropPosition"
+          },
+          "captions_enabled": {
+            "type": "boolean",
+            "title": "Captions Enabled",
+            "default": true
+          },
+          "caption_style": {
+            "$ref": "#/components/schemas/CaptionStyle",
+            "default": "bold_highlight"
+          },
+          "captions": {
+            "items": {
+              "$ref": "#/components/schemas/CaptionItem"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Captions"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TitleOverlay"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "emphasis_zooms": {
+            "items": {
+              "$ref": "#/components/schemas/EmphasisZoom"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "title": "Emphasis Zooms"
+          },
+          "audio": {
+            "$ref": "#/components/schemas/AudioPolish"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_start_ms",
+          "source_end_ms"
+        ],
+        "title": "EditRecipePayload",
+        "description": "Single-source, short-form recipe. All overlay timings use output time."
+      },
+      "EditRenderResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "edit_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Edit Version Id"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "public_id": {
+            "type": "string",
+            "title": "Public Id"
+          },
+          "provider_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Version"
+          },
+          "format": {
+            "type": "string",
+            "title": "Format"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "processing_status": {
+            "type": "string",
+            "title": "Processing Status"
+          },
+          "processing_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processing Error"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "edit_version_id",
+          "asset_id",
+          "public_id",
+          "provider_version",
+          "format",
+          "width",
+          "height",
+          "duration_ms",
+          "processing_status",
+          "processing_error",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "EditRenderResponse"
+      },
+      "EditVersionCreate": {
+        "properties": {
+          "base_version_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Version Id"
+          },
+          "recipe": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EditRecipePayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "EditVersionCreate",
+        "description": "Omit recipe only for an initial assistant-seeded version."
+      },
+      "EditVersionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "candidate_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Candidate Id"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "parent_version_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Version Id"
+          },
+          "author_type": {
+            "type": "string",
+            "title": "Author Type"
+          },
+          "recipe": {
+            "$ref": "#/components/schemas/EditRecipePayload"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "candidate_id",
+          "asset_id",
+          "revision",
+          "parent_version_id",
+          "author_type",
+          "recipe",
+          "created_at"
+        ],
+        "title": "EditVersionResponse"
+      },
+      "EmphasisZoom": {
+        "properties": {
+          "start_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Ms"
+          },
+          "end_ms": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "End Ms"
+          },
+          "scale": {
+            "type": "number",
+            "maximum": 1.2,
+            "minimum": 1.02,
+            "title": "Scale",
+            "default": 1.08
+          }
+        },
+        "type": "object",
+        "required": [
+          "start_ms",
+          "end_ms"
+        ],
+        "title": "EmphasisZoom"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1170,6 +1799,34 @@
           "cancelled"
         ],
         "title": "JobStatus"
+      },
+      "OutputCanvas": {
+        "properties": {
+          "width": {
+            "type": "integer",
+            "maximum": 1080.0,
+            "minimum": 360.0,
+            "title": "Width",
+            "default": 1080
+          },
+          "height": {
+            "type": "integer",
+            "maximum": 1920.0,
+            "minimum": 360.0,
+            "title": "Height",
+            "default": 1920
+          }
+        },
+        "type": "object",
+        "title": "OutputCanvas"
+      },
+      "OverlayPosition": {
+        "type": "string",
+        "enum": [
+          "top",
+          "bottom"
+        ],
+        "title": "OverlayPosition"
       },
       "Platform": {
         "type": "string",
@@ -1323,6 +1980,37 @@
           "created_at"
         ],
         "title": "ScriptAlignmentResponse"
+      },
+      "TitleOverlay": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 140,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "start_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Ms",
+            "default": 0
+          },
+          "end_ms": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "End Ms",
+            "default": 3000
+          },
+          "position": {
+            "$ref": "#/components/schemas/OverlayPosition",
+            "default": "top"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "TitleOverlay"
       },
       "TranscriptSegmentResponse": {
         "properties": {

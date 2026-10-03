@@ -21,6 +21,51 @@ The eight-feature product plan is in [creatorai-build-plan.md](./creatorai-build
 4. AI-assisted editable editing
 5. Multi-platform adaptation
 
+### Current backend implementation status
+
+| Person B feature | Status | What is implemented and verified |
+|---|---|---|
+| 1. Asset management | Complete | Owner-scoped signed Cloudinary uploads, provider-side completion verification, Neon asset records, private downloads, and FFprobe ingestion. |
+| 2. Script-to-video understanding | Complete | Groq timestamped transcription, bounded frame observations, persisted evidence, and source-grounded script alignment. |
+| 3. Automated clip generation | Complete | Ranked, duration-bounded, non-overlapping candidate ranges with transcript evidence, persisted in Neon and available through create/list APIs. |
+| 4. AI-assisted editable editing | Complete for the agreed backend scope | Immutable recipe versions, trim, normalized crop coordinates, three caption styles, timed hook title, up to two emphasis zooms, loudness normalization, audio fades, FFmpeg verification, and restricted Cloudinary render upload. |
+| 5. Multi-platform adaptation | Not started | This will create platform-specific variants from a selected immutable edit version. |
+
+Feature 4 lives in `backend/app/features/editing/`. Its public backend contract is:
+
+- `POST /v1/clip-candidates/{candidate_id}/edit-versions` creates an assistant-seeded
+  first version or a creator-edited immutable successor.
+- `GET /v1/clip-candidates/{candidate_id}/edit-versions` lists version history.
+- `GET /v1/edit-versions/{version_id}` returns one immutable recipe.
+- `POST /v1/edit-versions/{version_id}/render` renders, probes, uploads, and persists
+  one authenticated `1080×1920` MP4 artifact.
+
+Real-video acceptance testing completed with the project MP4: a 3:59 `1280×720`
+source was transcribed into 70 segments, used to create a grounded candidate, saved
+as two immutable recipe revisions, and rendered as a verified 8-second
+`1080×1920` MP4. Temporary Neon records and both temporary Cloudinary videos were
+removed after the test.
+
+### Person A dependency: durable jobs are currently a placeholder
+
+Person A owns durable job persistence, status, retries, and worker claiming. This
+repository currently contains only placeholders for that shared foundation:
+
+- `backend/app/routes/jobs.py` returns `501 Not Implemented` for job lookup.
+- `backend/app/worker.py` starts a polling loop but does not claim or execute a
+  persisted job.
+
+Because that dependency is not available yet, Feature 4's render endpoint invokes
+`render_edit_version` synchronously and persists its own render status. This is a
+development bridge, not the final production execution model.
+
+When Person A implements the shared job foundation, they should provide an
+owner-scoped enqueue/claim/retry contract with `queued`, `running`, `completed`, and
+`failed` states. Person B will then change the render endpoint to return `202` and a
+shared `job_id`; Person A's worker will call the existing `render_edit_version`
+service. The recipe schema, FFmpeg command builder, Cloudinary upload, verification,
+and edit-version APIs remain unchanged.
+
 Person B does **not** own authentication, projects, script/hook generation, workflow/publishing states, job persistence/status/retry, or creator intelligence. Those are Person A's responsibility. Person B may add data and APIs needed by the media path, but must consume Person A's owner-scoped project, script-version, job, and authentication interfaces rather than reimplementing them.
 
 ## Demo definition of done
@@ -83,7 +128,9 @@ Person B backend code is organized by business capability, not by technical type
 
 - `app/features/assets/` owns asset records, Cloudinary operations, upload APIs, and owner-scoped asset access.
 - `app/features/footage_analysis/` owns FFprobe inspection, ingestion, transcript/visual evidence models, provider contracts, persistence, and analysis APIs.
-- Future Person B capabilities use `app/features/clip_generation/`, `app/features/editing/`, and `app/features/platform_exports/`.
+- Implemented Person B capabilities use `app/features/clip_generation/` and
+  `app/features/editing/`; the future platform capability will use
+  `app/features/platform_exports/`.
 - `app/database.py`, `app/config.py`, `app/dependencies.py`, `app/models.py`, and `app/schemas.py` remain shared compatibility/foundation modules. Do not move Person A's projects, auth, jobs, scripts, publications, or insights into Person B folders.
 - Legacy `app/routes/assets.py` and `app/services/*.py` are compatibility re-exports only. New Person B code must import from `app.features/...` directly.
 

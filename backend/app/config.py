@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     # descriptions are deliberately short, so reserve a small, explicit budget
     # instead of allowing the model's near-1,000-token default per frame.
     groq_vision_max_completion_tokens: int = Field(default=256, ge=32, le=1_024)
+    edit_render_timeout_seconds: int = Field(default=300, ge=30, le=900)
     development_owner_id: str = "local-creator"
     auth_jwks_url: str | None = None
     auth_audience: str | None = None

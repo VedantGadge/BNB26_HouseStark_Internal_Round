@@ -23,6 +23,7 @@ from app.database import get_session_factory
 from app.features.assets.models import Asset
 from app.features.assets.storage import CloudinaryStorage
 from app.features.clip_generation.models import ClipCandidate
+from app.features.editing.models import EditRender, EditVersion
 from app.features.footage_analysis.ingestion import ingest_uploaded_asset
 from app.features.footage_analysis.models import TranscriptSegment
 from app.features.footage_analysis.pipeline import analyze_ready_asset, build_groq_providers
@@ -40,7 +41,7 @@ def main() -> int:
     owner_id = settings.development_owner_id
     project_id = uuid4()
     asset_id: UUID | None = None
-    public_id: str | None = None
+    public_ids: list[str] = []
 
     _create_temporary_project(project_id, owner_id)
     print(f"temporary_project_created={project_id}")
@@ -53,7 +54,7 @@ def main() -> int:
                 source_path=source_path,
             )
             asset_id = UUID(upload_session["asset_id"])
-            public_id = upload_session["public_id"]
+            public_ids.append(str(upload_session["public_id"]))
             provider_response = _upload_to_cloudinary(upload_session, source_path)
             _complete_upload(
                 client=client,
@@ -66,7 +67,9 @@ def main() -> int:
             if analyze_with_groq:
                 _analyze_asset_with_groq(asset_id, settings)
                 alignments = _align_transcript_as_script(client, owner_id, asset_id)
-                candidates = _generate_clip_candidates(client, owner_id, asset_id)
+                candidates, candidate_id = _generate_clip_candidates(client, owner_id, asset_id)
+                edit_version, render = _create_and_render_edit(client, owner_id, candidate_id)
+                public_ids.append(render["public_id"])
             analysis = _read_analysis(client, owner_id, asset_id)
             print("signed_upload=passed")
             print("completion_verification=passed")
@@ -83,10 +86,16 @@ def main() -> int:
                 )
                 print(f"script_alignment=passed records={alignments}")
                 print(f"clip_candidate_generation=passed records={candidates}")
+                print(f"editable_recipe=passed revision={edit_version['revision']}")
+                print(
+                    "ffmpeg_edit_render=passed "
+                    f"duration_ms={render['duration_ms']} "
+                    f"resolution={render['width']}x{render['height']}"
+                )
             print(f"analysis_api=passed status={analysis['processing_status']}")
             return 0
     finally:
-        _cleanup(project_id=project_id, public_id=public_id)
+        _cleanup(project_id=project_id, public_ids=public_ids)
 
 
 def _parse_arguments() -> tuple[Path, bool]:
@@ -269,7 +278,9 @@ def _align_transcript_as_script(client: TestClient, owner_id: str, asset_id: UUI
     return persisted
 
 
-def _generate_clip_candidates(client: TestClient, owner_id: str, asset_id: UUID) -> int:
+def _generate_clip_candidates(
+    client: TestClient, owner_id: str, asset_id: UUID
+) -> tuple[int, UUID]:
     """Exercise both candidate endpoints and the durable candidate rows."""
     response = client.post(
         f"/v1/assets/{asset_id}/clip-candidates",
@@ -307,12 +318,70 @@ def _generate_clip_candidates(client: TestClient, owner_id: str, asset_id: UUID)
         )
     if persisted != len(records):
         raise RuntimeError("Clip candidate API response did not match persisted records.")
-    return persisted
+    return persisted, UUID(records[0]["id"])
 
 
-def _cleanup(*, project_id: UUID, public_id: str | None) -> None:
+def _create_and_render_edit(
+    client: TestClient, owner_id: str, candidate_id: UUID
+) -> tuple[dict[str, object], dict[str, object]]:
+    headers = {"X-Creator-ID": owner_id}
+    seeded = client.post(
+        f"/v1/clip-candidates/{candidate_id}/edit-versions", headers=headers, json={}
+    )
+    seeded.raise_for_status()
+    first_version = seeded.json()
+    if not first_version["recipe"]["captions"] or not first_version["recipe"]["title"]:
+        raise RuntimeError("Assistant edit recipe omitted captions or a title overlay.")
+
+    edited_recipe = first_version["recipe"]
+    edited_recipe["crop"]["center_x"] = 0.42
+    edited_recipe["caption_style"] = "bold"
+    edited_recipe["title"]["text"] = "A tested CreatorAI edit"
+    saved = client.post(
+        f"/v1/clip-candidates/{candidate_id}/edit-versions",
+        headers=headers,
+        json={"base_version_id": first_version["id"], "recipe": edited_recipe},
+    )
+    saved.raise_for_status()
+    edit_version = saved.json()
+    if edit_version["revision"] != 2 or edit_version["parent_version_id"] != first_version["id"]:
+        raise RuntimeError("Edited recipe did not create the expected immutable second version.")
+    versions = client.get(f"/v1/clip-candidates/{candidate_id}/edit-versions", headers=headers)
+    versions.raise_for_status()
+    if len(versions.json()) != 2:
+        raise RuntimeError("Edit-version list did not return both immutable recipe revisions.")
+
+    rendered = client.post(f"/v1/edit-versions/{edit_version['id']}/render", headers=headers)
+    rendered.raise_for_status()
+    render = rendered.json()
+    expected_duration_ms = (
+        edit_version["recipe"]["source_end_ms"] - edit_version["recipe"]["source_start_ms"]
+    )
+    if not (
+        render["processing_status"] == "completed"
+        and render["width"] == 1080
+        and render["height"] == 1920
+        and render["duration_ms"]
+        and abs(render["duration_ms"] - expected_duration_ms) <= 1_500
+    ):
+        raise RuntimeError("FFmpeg render did not match the saved edit recipe.")
+    with get_session_factory()() as session:
+        version_count = (
+            session.query(EditVersion).filter(EditVersion.candidate_id == candidate_id).count()
+        )
+        persisted_render = session.get(EditRender, UUID(render["id"]))
+    if (
+        version_count != 2
+        or persisted_render is None
+        or persisted_render.processing_status != "completed"
+    ):
+        raise RuntimeError("Edited recipe or FFmpeg render was not durably persisted.")
+    return edit_version, render
+
+
+def _cleanup(*, project_id: UUID, public_ids: list[str]) -> None:
     cleanup_failures: list[str] = []
-    if public_id:
+    for public_id in public_ids:
         try:
             cloudinary.uploader.destroy(
                 public_id,
