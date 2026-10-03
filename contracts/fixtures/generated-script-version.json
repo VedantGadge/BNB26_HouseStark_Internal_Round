@@ -1,0 +1,31 @@
+{
+  "id": "7f8f2679-00e1-4d31-8d9c-1e2a3b4c5d6e",
+  "version": 1,
+  "origin": "generated",
+  "created_at": "2026-10-03T10:00:00Z",
+  "generation_job_id": "98ff2679-00e1-4d31-8d9c-1e2a3b4c5d6e",
+  "input_snapshot": {"project": {"brief": "Explain Sunday batching."}},
+  "content": {
+    "hooks": [
+      {"id": "hook-1", "text": "Your Sunday can save your whole content week."},
+      {"id": "hook-2", "text": "Stop deciding what to post every morning."},
+      {"id": "hook-3", "text": "One hour on Sunday can calm your content calendar."}
+    ],
+    "selected_hook_id": "hook-1",
+    "sections": [
+      {
+        "id": "section-1",
+        "position": 1,
+        "heading": "The reset",
+        "text": "Use one focused Sunday hour to plan the week.",
+        "estimated_duration_seconds": 8
+      }
+    ],
+    "title": "The Sunday batching reset",
+    "description": "A simple weekly content routine.",
+    "call_to_action": "Save this for your next Sunday reset.",
+    "production_notes": ["Start with a calendar close-up."]
+  },
+  "requirement_checks": [],
+  "warning_ids": []
+}

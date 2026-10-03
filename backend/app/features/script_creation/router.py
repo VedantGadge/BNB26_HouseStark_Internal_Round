@@ -97,13 +97,14 @@ def put_campaign_brief(
 @router.get("/versions", response_model=list[ScriptVersionResponse])
 def get_script_versions(
     project_id: uuid.UUID,
+    generation_job_id: uuid.UUID | None = None,
     creator: AuthenticatedCreator = Depends(get_current_creator),
     session: Session = Depends(get_session),
 ) -> list[ScriptVersionResponse]:
     project = ProjectRepository(session).get_owned(creator.id, project_id)
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found.")
-    return list_script_versions(session, project.id)
+    return list_script_versions(session, project.id, generation_job_id)
 
 
 @router.get("/versions/{version_id}", response_model=ScriptVersionResponse)

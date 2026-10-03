@@ -149,4 +149,5 @@ def job_response(job: Job) -> JobResponse:
         status=JobStatus(job.status),
         stage=job.stage,
         error=job.error,
+        conversation_id=job.input_snapshot.get("conversation_id"),
     )

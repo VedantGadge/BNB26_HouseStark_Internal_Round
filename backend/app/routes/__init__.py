@@ -1,11 +1,13 @@
 from fastapi import APIRouter
 
+from app.features.content_workflow import router as workflow_router
 from app.features.script_creation import router as script_router
 from app.features.script_creation import style_router
 from app.routes import assets, clips, insights, jobs, projects, publications
 
 api_router = APIRouter()
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
+api_router.include_router(workflow_router.router, prefix="/projects", tags=["content-workflow"])
 api_router.include_router(
     script_router.router,
     prefix="/projects/{project_id}/scripts",

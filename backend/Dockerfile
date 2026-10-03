@@ -12,6 +12,7 @@ RUN apt-get update \
 
 COPY pyproject.toml README.md ./
 COPY app ./app
+COPY demo ./demo
 COPY docker ./docker
 
 RUN pip install --no-cache-dir .

@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.features.script_creation.requirements import find_requirement_conflicts
 from app.models import CampaignBriefRevision, Project, StyleProfileRevision
 from app.schemas import ScriptGenerationRequest
 
@@ -55,11 +56,21 @@ def resolve_generation_snapshot(
             "revision": style_profile.revision,
             "profile": style_profile.profile,
         }
-    if request.campaign_brief_revision is not None:
+    campaign_revision = request.campaign_brief_revision
+    if campaign_revision is None:
+        current_campaign = session.scalar(
+            select(CampaignBriefRevision)
+            .where(CampaignBriefRevision.project_id == project.id)
+            .order_by(CampaignBriefRevision.revision.desc())
+            .limit(1)
+        )
+        if current_campaign is not None and current_campaign.content_mode == "brand":
+            campaign_revision = current_campaign.revision
+    if campaign_revision is not None:
         campaign_brief = session.scalar(
             select(CampaignBriefRevision).where(
                 CampaignBriefRevision.project_id == project.id,
-                CampaignBriefRevision.revision == request.campaign_brief_revision,
+                CampaignBriefRevision.revision == campaign_revision,
             )
         )
         if campaign_brief is None:
@@ -73,6 +84,17 @@ def resolve_generation_snapshot(
             "content_mode": campaign_brief.content_mode,
             "brand_brief": campaign_brief.brand_brief,
         }
+        brand = campaign_brief.brand_brief or {}
+        if campaign_brief.content_mode == "brand":
+            snapshot["project"]["audience"] = brand.get("campaign_audience")
+            snapshot["project"]["tone"] = brand.get("preferred_tone") or snapshot["project"]["tone"]
+            if brand.get("target_platforms"):
+                snapshot["project"]["target_platforms"] = brand["target_platforms"]
+            if brand.get("target_duration_seconds"):
+                snapshot["request"]["target_duration_seconds"] = brand["target_duration_seconds"]
+    conflicts = find_requirement_conflicts(snapshot)
+    if conflicts:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=" ".join(conflicts))
     return snapshot
 
 

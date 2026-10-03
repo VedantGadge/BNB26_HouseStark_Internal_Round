@@ -19,9 +19,7 @@ def evaluate_requirements(
                 RequirementCheck(
                     requirement_id=requirement["id"],
                     status=RequirementStatus.SATISFIED if satisfied else RequirementStatus.MISSING,
-                    evidence_section_ids=(
-                        [section.id for section in content.sections] if satisfied else []
-                    ),
+                    evidence_section_ids=_evidence_for(literal, content) if satisfied else [],
                     message=None if satisfied else "Required literal text is missing.",
                 )
             )
@@ -34,11 +32,47 @@ def evaluate_requirements(
                 )
             )
             warnings.append(requirement["id"])
-    for phrase in campaign.get("forbidden_phrases", []):
+    for index, phrase in enumerate(campaign.get("forbidden_phrases", []), start=1):
         if phrase.casefold() in combined_text:
-            warnings.append(f"forbidden:{phrase}")
+            checks.append(
+                RequirementCheck(
+                    requirement_id=f"forbidden-{index}",
+                    status=RequirementStatus.MISSING,
+                    evidence_section_ids=_evidence_for(phrase, content),
+                    message=f"Forbidden phrase appears in the script: {phrase}",
+                )
+            )
+    if campaign.get("approved_claims"):
+        checks.append(
+            RequirementCheck(
+                requirement_id="approved-claims",
+                status=RequirementStatus.NEEDS_REVIEW,
+                message="Review factual claims against the approved claims in the brand brief.",
+            )
+        )
+        warnings.append("approved-claims")
     _evaluate_signature_lines(snapshot, content, checks)
     return checks, warnings
+
+
+def find_requirement_conflicts(snapshot: dict) -> list[str]:
+    """Return actionable conflicts before any model call or creator save."""
+
+    campaign = snapshot.get("campaign_brief", {}).get("brand_brief") or {}
+    profile = snapshot.get("style_profile", {}).get("profile") or {}
+    selected_optional = set(snapshot.get("request", {}).get("optional_signature_line_ids", []))
+    conflicts: list[str] = []
+    for line in profile.get("signature_lines", []):
+        required = line.get("inclusion_policy") == "always" or line.get("id") in selected_optional
+        if not required:
+            continue
+        signature = line.get("text", "").casefold()
+        for phrase in campaign.get("forbidden_phrases", []):
+            if phrase.casefold() in signature:
+                conflicts.append(
+                    f"Signature line '{line.get('id')}' conflicts with forbidden phrase '{phrase}'."
+                )
+    return conflicts
 
 
 def _evaluate_signature_lines(
@@ -83,3 +117,8 @@ def _combined_text(content: ScriptContent) -> str:
         + [hook.text for hook in content.hooks]
         + [section.text for section in content.sections]
     )
+
+
+def _evidence_for(text: str, content: ScriptContent) -> list[str]:
+    needle = text.casefold()
+    return [section.id for section in content.sections if needle in section.text.casefold()]

@@ -38,6 +38,23 @@ class Project(TimestampedModel, Base):
     target_platforms: Mapped[list[str]] = mapped_column(JSON, default=list)
     workflow_stage: Mapped[str] = mapped_column(String(64), default="idea", index=True)
     current_script_version_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True)
+    workflow_revision: Mapped[int] = mapped_column(Integer, default=1)
+    workflow_data: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+class Publication(TimestampedModel, Base):
+    __tablename__ = "content_publications"
+    __table_args__ = (UniqueConstraint("project_id", "platform", name="uq_publication_platform"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    project_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ai_script_projects.id"), index=True)
+    platform: Mapped[str] = mapped_column(String(32))
+    status: Mapped[str] = mapped_column(String(32), default="draft")
+    planned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    external_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    package_snapshot: Mapped[dict] = mapped_column(JSON, default=dict)
+    supporting_copy: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class StyleProfileRevision(TimestampedModel, Base):

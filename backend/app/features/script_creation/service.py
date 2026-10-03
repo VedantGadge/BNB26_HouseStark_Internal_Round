@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.features.script_creation.persistence import _apply_changes
 from app.features.script_creation.provider import (
     ProviderError,
     ProviderResult,
@@ -154,7 +155,9 @@ class ScriptCreationService:
             ),
             user_prompt=(
                 "Create a reviewable change proposal for this request. Every change must match the "
-                "target scope and ID exactly.\n"
+                "target scope and ID exactly. For supporting_copy, edit the description only. "
+                "For script, return exactly one change with content_after containing the complete "
+                "replacement script and omit before/after.\n"
                 f"Base script: {json.dumps(base, ensure_ascii=False)}\n"
                 f"Creator request: {json.dumps(message, ensure_ascii=False)}"
             ),
@@ -163,6 +166,13 @@ class ScriptCreationService:
         )
         proposal = AssistantProposalDraft.model_validate(result.payload)
         self._validate_proposal_scope(proposal, message, base["content"])
+        changes = [change.model_dump() for change in proposal.changes]
+        proposed_content = _apply_changes(base["content"], changes)
+        checks, warning_ids = evaluate_requirements(
+            base.get("input_snapshot", {}), proposed_content
+        )
+        if any(check.status.value == "missing" for check in checks):
+            raise ValueError("Proposal would break a mandatory brand or signature requirement")
         conversation_id = uuid.UUID(snapshot["conversation_id"])
         conversation = self.session.get(AssistantConversation, conversation_id)
         base_version = self.session.get(ScriptVersion, uuid.UUID(base["id"]))
@@ -187,8 +197,8 @@ class ScriptCreationService:
                 job_id=job.id,
                 explanation=proposal.explanation,
                 changes=[change.model_dump(mode="json") for change in proposal.changes],
-                requirement_checks=base_version.requirement_checks,
-                warning_ids=base_version.warning_ids,
+                requirement_checks=[check.model_dump(mode="json") for check in checks],
+                warning_ids=warning_ids,
             )
         )
 
@@ -284,6 +294,8 @@ class ScriptCreationService:
         base_content: dict,
     ) -> None:
         expected_scope = AssistantTargetScope(message["target_scope"])
+        if expected_scope is AssistantTargetScope.SCRIPT and len(proposal.changes) != 1:
+            raise ValueError("Full-script proposals must contain exactly one replacement")
         for change in proposal.changes:
             if change.target_scope != expected_scope or change.target_id != message.get(
                 "target_id"
@@ -292,7 +304,19 @@ class ScriptCreationService:
             expected_before = _target_text(expected_scope, message.get("target_id"), base_content)
             if expected_before is not None and change.before != expected_before:
                 raise ValueError("Proposal does not match the selected base content")
-            if change.before == change.after:
+            if expected_scope is AssistantTargetScope.SCRIPT:
+                replacement = change.content_after
+                if replacement is None:
+                    raise ValueError("Full-script proposal is missing replacement content")
+                if {hook.id for hook in replacement.hooks} != {
+                    hook["id"] for hook in base_content.get("hooks", [])
+                } or {section.id for section in replacement.sections} != {
+                    section["id"] for section in base_content.get("sections", [])
+                }:
+                    raise ValueError(
+                        "Full-script proposals must preserve stable hook and section IDs"
+                    )
+            elif change.before == change.after:
                 raise ValueError("Proposal must make an actual change")
 
 
@@ -321,4 +345,6 @@ def _target_text(scope: AssistantTargetScope, target_id: str | None, content: di
         )
     if scope is AssistantTargetScope.CTA:
         return content.get("call_to_action")
+    if scope is AssistantTargetScope.SUPPORTING_COPY:
+        return content.get("description")
     return None

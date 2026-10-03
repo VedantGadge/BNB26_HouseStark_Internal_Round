@@ -9,6 +9,7 @@ from app.schemas import (
     CampaignBriefSaveRequest,
     ContentMode,
     CreatorStyleProfileContent,
+    ProposalChange,
     ScriptContent,
     ScriptGenerationRequest,
     ScriptHook,
@@ -129,6 +130,19 @@ def test_assistant_targets_only_accept_relevant_ids() -> None:
         ).target_id
         == "section_1"
     )
+
+
+def test_full_script_proposals_use_a_complete_replacement() -> None:
+    replacement = script_content().model_copy(update={"title": "A refreshed creator script"})
+    change = ProposalChange(target_scope="script", content_after=replacement)
+
+    assert change.content_after == replacement
+    with pytest.raises(ValidationError, match="content_after only"):
+        ProposalChange(
+            target_scope="script",
+            before="Old script",
+            after="New script",
+        )
 
 
 def test_openrouter_configuration_deduplicates_and_bounds_fallbacks() -> None:

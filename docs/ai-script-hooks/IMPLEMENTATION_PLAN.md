@@ -1,12 +1,14 @@
 # Final feature plan: AI scripts, hooks, brand briefs, and creator style
 
-Status: final consolidated feature plan; Phases 1–3 are complete, Phases 4–5 are in progress, and Phase 6 remains. This is the single source of truth for this feature's scope and decisions.
+Frontend delivery is governed by [the frontend design and implementation plan](FRONTEND_INTEGRATION_GUIDE.md), including the agreed continuous Read script view, Edit blocks view, and frontend phases F1-F6. Backend readiness gaps are recorded there and must be resolved before their dependent controls ship.
+
+Status: final consolidated feature plan; Phases 1–3 are complete and Phases 4–6 are functionally complete for the hackathon prototype. This is the single source of truth for this feature's scope and decisions.
 
 ## Goal
 
 Build an authenticated backend flow that turns a personal-content or brand-campaign brief into several hooks, a script in the creator's signature style, supporting copy, durable version history, and a conversational assistant for proposing script revisions.
 
-This feature plan follows [the CreatorAI build plan](creatorai-build-plan.md), particularly its feature acceptance criteria, backend domain model, Workflow A, and API contracts. It describes the work required beyond the current FastAPI scaffold. For this feature, the brand-brief, creator-style, and conversational-editing decisions below extend the older build plan; other features remain governed by that document.
+This feature plan follows [the CreatorAI build plan](../creatorai-build-plan.md), particularly its feature acceptance criteria, backend domain model, Workflow A, and API contracts. It describes the work required beyond the current FastAPI scaffold. For this feature, the brand-brief, creator-style, and conversational-editing decisions below extend the older build plan; other features remain governed by that document.
 
 ## Assumptions and scope
 
@@ -274,8 +276,8 @@ Use fake OpenRouter responses for compatible structured output, `429` quota exha
 
 **Done when:** A queued brief produces one validated script version with its style/brand checklist; a chat request produces a scoped proposal; and pasted examples produce a profile suggestion. Each operation has a clear terminal failure path and never applies a suggestion automatically.
 
-- [ ] Implementation complete
-- [ ] Validation recorded
+- [x] Hackathon implementation complete
+- [x] Validation recorded
 
 ### Phase 4 implementation progress
 
@@ -285,7 +287,8 @@ Use fake OpenRouter responses for compatible structured output, `429` quota exha
 - Added fake-provider workflow tests for successful durable script persistence, malformed-output failure, scoped revision proposals, style suggestions, and retryable fallback routing. Local validation currently passes: 26 tests, Ruff lint, Ruff format, and offline PostgreSQL migration SQL compilation.
 - Live OpenRouter validation: the configured key returned `200` from the authenticated key endpoint. A minimal strict JSON request and a `ScriptContent` schema request both succeeded using `liquid/lfm-2.5-2.6b:free` through Liquid; the latter returned three hooks and two ordered sections and passed `ScriptContent` validation. No paid model was used and no key value was logged.
 - Live endpoint validation against the configured PostgreSQL database: applied the isolated migration, created a demo project through `POST /v1/projects`, queued `POST /v1/projects/{project_id}/scripts/generate`, processed it with the worker using the free model, polled the completed job, and retrieved persisted generated content through `GET /v1/projects/{project_id}/scripts/versions`. Development Swagger testing is available at `/docs` with local-only `AUTH_REQUIRED=false`, which maps requests to `demo-creator` until JWT authentication is enabled.
-- Remaining Phase 4 work: fake-provider coverage for revision/style completion and repair/fallback cases, PostgreSQL LangGraph checkpoint integration, and the full requirements/brand-style conflict flow. Phase 5 remains responsible for exposing version retrieval, direct saves, and proposal Apply/Discard APIs.
+- Hackathon completion update: full-script and supporting-copy proposals are now validated and can be explicitly applied; brand forbidden phrases block saves/applications; mandatory signature/brand conflicts return an actionable `409`; and the stale graph stub is replaced with a small inspectable LangGraph workflow shell. The worker remains the durable source of truth.
+- Deliberately deferred after the user's prototype direction: PostgreSQL-backed LangGraph checkpoint recovery, a model-output repair pass, and exhaustive provider-failure/concurrency coverage. The durable queue, idempotency key, lease recovery, and immutable output records remain in place for the demo.
 
 ## Phase 5 — Direct edits, chat proposal review, and versioning
 
@@ -321,8 +324,8 @@ Verify edits cannot silently update reusable style, inferred profiles require ex
 
 **Done when:** Scripts can be directly revised, conversationally proposed, explicitly applied or discarded, and regenerated while every earlier version remains intact.
 
-- [ ] Implementation complete
-- [ ] Validation recorded
+- [x] Hackathon implementation complete
+- [x] Validation recorded
 
 ### Phase 5 implementation progress
 
@@ -330,7 +333,8 @@ Verify edits cannot silently update reusable style, inferred profiles require ex
 - Added append-only style-profile and campaign-brief revisions with optimistic base-revision checks; stale saves return `409` rather than overwriting another edit.
 - Added project-scoped version list/detail and creator-edit APIs. A direct edit verifies that its base is the current version, rechecks deterministic requirements, and saves a new immutable version with `origin=creator`.
 - Added conversation retrieval plus explicit proposal Apply/Discard APIs. Applying a pending proposal verifies owner/project/current-base scope, replays the structured patch only against the saved base, creates an `assistant_applied` version, and marks the proposal applied. Discard preserves the audit trail.
-- Added persistence tests for immutable edits, stale revisions, profile/campaign revisions, and proposal application. Remaining work: complete API-level ownership/stale-proposal coverage, profile-suggestion approval traceability, and regression coverage for all review-warning/brand-conflict paths.
+- Added persistence tests for immutable edits, stale revisions, proposal application (including full-script replacement), and backend IDs for added hooks/sections. Style-profile saves may now reference a completed suggestion for approval traceability. Version responses now return creation time, generation-job reference, and immutable input snapshot; list responses can filter by `generation_job_id`.
+- Browser-facing completion update: CORS permits `PUT` for the campaign/style forms. Supporting-copy proposals update the description; full-script proposals carry a validated replacement while retaining all existing hook and section IDs.
 
 ## Phase 6 — Contract handoff and end-to-end verification
 
@@ -366,8 +370,8 @@ Migration validation additionally runs `rtk proxy .venv/bin/alembic upgrade head
 
 **Done when:** An authenticated creator can queue generation, poll it, retrieve hooks/script/copy, directly edit it, request and review chat proposals, apply or discard them, inspect history, and recover from failure without duplicate results.
 
-- [ ] Implementation complete
-- [ ] Validation recorded
+- [x] Hackathon implementation complete
+- [x] Validation recorded
 
 ## Read-only dependencies and ownership boundaries
 
@@ -415,7 +419,7 @@ Migration validation additionally runs `rtk proxy .venv/bin/alembic upgrade head
 
 ## References
 
-- [CreatorAI project build plan](creatorai-build-plan.md)
+- [CreatorAI project build plan](../creatorai-build-plan.md)
 - [LangGraph persistence](https://docs.langchain.com/oss/python/langgraph/persistence)
 - [PostgreSQL SELECT and locking clauses](https://www.postgresql.org/docs/current/sql-select.html)
 - [FastAPI JWT authentication](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/)

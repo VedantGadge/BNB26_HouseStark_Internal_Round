@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -111,6 +112,7 @@ class JobResponse(SchemaModel):
     status: JobStatus
     stage: str
     error: str | None = None
+    conversation_id: str | None = None
 
 
 class SignatureLine(SchemaModel):
@@ -140,6 +142,7 @@ class CreatorStyleProfileContent(SchemaModel):
 class CreatorStyleProfileSaveRequest(SchemaModel):
     base_revision: int | None = Field(default=None, ge=1)
     profile: CreatorStyleProfileContent
+    suggestion_id: str | None = Field(default=None, min_length=1, max_length=120)
 
 
 class CreatorStyleProfileResponse(SchemaModel):
@@ -293,6 +296,9 @@ class ScriptVersionResponse(SchemaModel):
     id: str = StableId
     version: int = Field(ge=1)
     origin: ScriptOrigin
+    created_at: datetime
+    generation_job_id: str | None = None
+    input_snapshot: dict = Field(default_factory=dict)
     content: ScriptContent
     requirement_checks: list[RequirementCheck] = Field(default_factory=list)
     warning_ids: list[str] = Field(default_factory=list)
@@ -327,8 +333,9 @@ class AssistantMessageRequest(SchemaModel):
 class ProposalChange(SchemaModel):
     target_scope: AssistantTargetScope
     target_id: str | None = Field(default=None, min_length=1, max_length=120)
-    before: str = Field(min_length=1, max_length=3_000)
-    after: str = Field(min_length=1, max_length=3_000)
+    before: str | None = Field(default=None, min_length=1, max_length=3_000)
+    after: str | None = Field(default=None, min_length=1, max_length=3_000)
+    content_after: ScriptContent | None = None
 
     @model_validator(mode="after")
     def validates_target(self) -> ProposalChange:
@@ -340,6 +347,13 @@ class ProposalChange(SchemaModel):
             raise ValueError("hook and section changes require target_id")
         if not target_required and self.target_id is not None:
             raise ValueError("this change scope cannot include target_id")
+        if self.target_scope is AssistantTargetScope.SCRIPT:
+            if self.content_after is None or self.before is not None or self.after is not None:
+                raise ValueError("script changes require content_after only")
+        elif self.content_after is not None:
+            raise ValueError("only script changes can include content_after")
+        elif self.before is None or self.after is None:
+            raise ValueError("text changes require before and after")
         return self
 
 

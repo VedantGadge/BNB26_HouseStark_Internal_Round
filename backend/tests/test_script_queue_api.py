@@ -131,3 +131,18 @@ def test_assistant_revision_queues_against_the_current_script(
 
     assert accepted.status_code == 202
     assert accepted.json()["status"] == "queued"
+
+
+def test_cors_allows_browser_put_requests(client_session: tuple[TestClient, Session]) -> None:
+    client, _session = client_session
+
+    response = client.options(
+        "/v1/me/style-profile",
+        headers={
+            "Origin": "http://localhost:3000",
+            "Access-Control-Request-Method": "PUT",
+        },
+    )
+
+    assert response.status_code == 200
+    assert "PUT" in response.headers["access-control-allow-methods"]

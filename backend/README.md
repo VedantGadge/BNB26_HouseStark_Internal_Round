@@ -40,3 +40,20 @@ rtk proxy .venv/bin/python -m app.worker
 Feature persistence is isolated in `ai_script_*` PostgreSQL tables and uses its own
 `ai_script_alembic_version` table, so it does not share migration state with other features in the
 same database.
+
+## AI script feature demo flow
+
+1. Create a project at `POST /v1/projects`.
+2. Optionally save a creator style profile (`PUT /v1/me/style-profile`) and a campaign brief
+   (`PUT /v1/projects/{project_id}/scripts/campaign-brief`).
+3. Queue generation at `POST /v1/projects/{project_id}/scripts/generate` with an
+   `Idempotency-Key`, then poll `GET /v1/jobs/{job_id}`.
+4. Retrieve versions at `GET /v1/projects/{project_id}/scripts/versions`. Each result includes
+   its immutable input snapshot, creation time, generation job reference, and requirement checks.
+5. Save direct changes through `POST .../scripts/versions`, or queue a chat proposal through
+   `POST .../scripts/assistant/messages`. Proposals are always review-only until Apply or Discard.
+
+The prototype supports whole-script, hook, section, CTA, and supporting-copy proposals. New hooks
+or sections submitted in a direct edit receive stable backend IDs. A brand's forbidden phrase or a
+required signature-line conflict is blocked with a clear `409` response. Browser clients may use
+`PUT` for the style-profile and campaign-brief forms.
