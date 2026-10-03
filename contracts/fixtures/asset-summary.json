@@ -1,0 +1,19 @@
+{
+  "id": "4ff3fd1c-f861-4d15-8ed1-029cf57b35f3",
+  "project_id": "2c1c7d3a-3f24-4469-9424-d27ca8d10c85",
+  "kind": "video",
+  "public_id": "creatorai/projects/2c1c7d3a-3f24-4469-9424-d27ca8d10c85/assets/4ff3fd1c-f861-4d15-8ed1-029cf57b35f3",
+  "resource_type": "video",
+  "delivery_type": "authenticated",
+  "provider_version": "1700000000",
+  "format": "mp4",
+  "byte_size": 12345,
+  "width": 1920,
+  "height": 1080,
+  "duration_ms": 12340,
+  "tags": ["intro"],
+  "processing_status": "uploaded",
+  "processing_error": null,
+  "created_at": "2026-10-03T12:00:00Z",
+  "updated_at": "2026-10-03T12:00:00Z"
+}

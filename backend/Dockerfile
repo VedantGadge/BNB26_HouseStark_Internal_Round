@@ -14,6 +14,7 @@ COPY pyproject.toml README.md ./
 COPY app ./app
 COPY demo ./demo
 COPY docker ./docker
+COPY scripts ./scripts
 
 RUN pip install --no-cache-dir .
 

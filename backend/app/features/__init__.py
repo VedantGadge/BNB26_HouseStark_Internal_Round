@@ -1,1 +1,1 @@
-"""Feature modules owned independently from shared application infrastructure."""
+"""Business capabilities organized by feature ownership and shared infrastructure."""

@@ -15,7 +15,7 @@ target_metadata = Base.metadata
 
 
 def database_url() -> str:
-    value = get_settings().database_url
+    value = get_settings().sqlalchemy_database_url
     if not value:
         raise RuntimeError("DATABASE_URL must be configured before running migrations")
     return value

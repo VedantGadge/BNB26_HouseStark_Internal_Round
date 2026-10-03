@@ -439,3 +439,33 @@ class EditRecipe(SchemaModel):
     output: OutputFormat
     crop: CropPosition
     captions: list[Caption] = Field(default_factory=list)
+
+
+# Compatibility exports for callers that still use the original shared schema module.
+from app.features.assets.schemas import (  # noqa: E402
+    AssetKind,
+    AssetProcessingStatus,
+    AssetResponse,
+    AssetUploadComplete,
+    AssetUploadSession,
+    AssetUploadSessionCreate,
+)
+
+__all__ = [
+    "AssetKind",
+    "AssetProcessingStatus",
+    "AssetResponse",
+    "AssetUploadComplete",
+    "AssetUploadSession",
+    "AssetUploadSessionCreate",
+    "Caption",
+    "CropPosition",
+    "EditRecipe",
+    "EditSegment",
+    "JobResponse",
+    "JobStatus",
+    "OutputFormat",
+    "Platform",
+    "ProjectCreate",
+    "ProjectSummary",
+]

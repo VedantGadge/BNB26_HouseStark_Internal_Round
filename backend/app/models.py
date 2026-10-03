@@ -12,11 +12,9 @@ from sqlalchemy import (
     Uuid,
     func,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
-
-class Base(DeclarativeBase):
-    pass
+from app.database import Base
 
 
 class TimestampedModel:
@@ -202,3 +200,18 @@ class LlmCall(TimestampedModel, Base):
     output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     outcome: Mapped[str] = mapped_column(String(64))
     error_category: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+# Compatibility exports let shared code import one domain module while each feature
+# owns its implementation model in a focused folder.
+from app.features.assets.models import Asset  # noqa: E402
+from app.features.clip_generation.models import ClipCandidate  # noqa: E402
+from app.features.editing.models import EditRender, EditVersion  # noqa: E402
+from app.features.footage_analysis.models import TranscriptSegment, VisualObservation  # noqa: E402
+from app.features.script_alignment.models import ScriptAlignment  # noqa: E402
+
+__all__ = [
+    "Asset", "AssistantConversation", "AssistantMessage", "Base", "CampaignBriefRevision",
+    "ClipCandidate", "EditRender", "EditVersion", "Job", "LlmCall", "Project", "Publication",
+    "RevisionProposal", "ScriptAlignment", "ScriptVersion", "StyleProfileRevision",
+    "StyleProfileSuggestion", "TranscriptSegment", "VisualObservation",
+]

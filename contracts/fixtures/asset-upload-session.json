@@ -1,0 +1,11 @@
+{
+  "asset_id": "4ff3fd1c-f861-4d15-8ed1-029cf57b35f3",
+  "cloud_name": "creatorai-dev",
+  "api_key": "123456789012345",
+  "resource_type": "video",
+  "upload_url": "https://api.cloudinary.com/v1_1/creatorai-dev/video/upload",
+  "public_id": "creatorai/projects/2c1c7d3a-3f24-4469-9424-d27ca8d10c85/assets/4ff3fd1c-f861-4d15-8ed1-029cf57b35f3",
+  "delivery_type": "authenticated",
+  "timestamp": 1700000000,
+  "signature": "server-generated-example-signature"
+}

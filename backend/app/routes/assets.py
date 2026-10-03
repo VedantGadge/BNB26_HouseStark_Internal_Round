@@ -1,5 +1,7 @@
-"""Asset upload-session, completion, metadata, transcript, and alignment endpoints."""
+"""Compatibility import; Person B asset code lives in app.features.assets."""
 
-from fastapi import APIRouter
-
-router = APIRouter()
+from app.features.assets.router import (  # noqa: F401
+    get_storage,
+    project_router,
+    router,
+)
