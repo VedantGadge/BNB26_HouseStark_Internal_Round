@@ -1,0 +1,6 @@
+{
+  "id": "job_demo_001",
+  "status": "queued",
+  "stage": "awaiting_worker",
+  "error": null
+}

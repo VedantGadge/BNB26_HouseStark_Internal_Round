@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "creatorai-api"
+version = "0.1.0"
+description = "CreatorAI FastAPI API and persisted media-job worker"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "alembic==1.16.5",
+  "cloudinary==1.44.1",
+  "fastapi==0.142.2",
+  "langgraph==1.2.12",
+  "langgraph-checkpoint-postgres==3.1.2",
+  "psycopg[binary,pool]==3.2.10",
+  "pydantic-settings==2.11.0",
+  "SQLAlchemy==2.1.2",
+  "uvicorn[standard]==0.37.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx==0.28.1",
+  "pytest==8.4.2",
+  "ruff==0.12.10",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
