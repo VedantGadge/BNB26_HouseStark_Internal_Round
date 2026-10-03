@@ -64,6 +64,8 @@ def get_current_creator(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     settings: Settings = Depends(get_settings),
 ) -> AuthenticatedCreator:
+    if not settings.auth_required:
+        return AuthenticatedCreator(id="demo-creator")
     if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -145,7 +145,7 @@ Include missing gateway credentials, unapproved/paid model IDs, unsupported stru
 
 ### Phase 1 execution record
 
-- Completed 3 October 2026 on branch `vg`.
+- Completed 3 October 2026 on branch `vg`. All feature-owned persistence is isolated in `ai_script_*` tables and has its own `ai_script_alembic_version` migration table, avoiding collisions with other work in the shared PostgreSQL database.
 - Added validated Pydantic contracts for personal/brand briefs, creator-style profiles and signature lines, script generations and versions, structured assistant proposals, and requirement checks in `backend/app/schemas.py`.
 - Added backend-only OpenRouter settings, free-only defaults, bounded fallback parsing, timeout/output/call limits, and documented environment variables in `backend/app/config.py` and `backend/.env.example`.
 - Registered the future script router at `/v1/projects/{project_id}/scripts` and the future style router at `/v1/me/style-profile`; route handlers remain owned by later phases.
@@ -229,7 +229,7 @@ Test style/brief optimistic conflicts, foreign-owned profile access, immutable s
 - Generation submission resolves project defaults and requested style/campaign revisions into an immutable snapshot before acceptance. Assistant requests verify the current base version, conversation ownership, and selected hook/section target before queuing. Style suggestions store creator-provided examples without applying a reusable profile.
 - Added queue unit/API coverage in `backend/tests/test_script_jobs.py` and `backend/tests/test_script_queue_api.py`, including idempotency, owner isolation, claim/recovery/retry, generation polling, style-suggestion retrieval, and assistant-revision submission.
 - Validation passed: `rtk proxy .venv/bin/python -m pytest -q` (18 passed), `rtk proxy .venv/bin/ruff check app tests alembic`, `rtk proxy .venv/bin/ruff format --check app tests alembic`, and offline PostgreSQL migration compilation with `rtk proxy env DATABASE_URL=postgresql+psycopg://creatorai:placeholder@localhost/creatorai .venv/bin/alembic upgrade head --sql`.
-- Remaining limitation: the worker deliberately does not claim-and-dispatch jobs until the Phase 4 model workflows exist. PostgreSQL simultaneous-claim and crash-recovery behavior still requires an online disposable PostgreSQL integration run; no `DATABASE_URL` is configured locally.
+- Remaining limitation: PostgreSQL simultaneous-claim and crash-recovery behavior still requires dedicated concurrent integration coverage. The isolated feature migration has been applied to the configured database; actual workflow dispatch is recorded in Phase 4.
 
 ## Phase 4 — Generation and conversational revision workflows
 
@@ -284,6 +284,7 @@ Use fake OpenRouter responses for compatible structured output, `429` quota exha
 - Script generation is explicitly two-stage: validate three hook alternatives first, then draft the script while requiring those hooks to remain unchanged. Provider calls record model/provider/token metadata, malformed output produces a failed job, and generated drafts create an immutable script version only after schema validation.
 - Added fake-provider workflow tests for successful durable script persistence, malformed-output failure, scoped revision proposals, style suggestions, and retryable fallback routing. Local validation currently passes: 26 tests, Ruff lint, Ruff format, and offline PostgreSQL migration SQL compilation.
 - Live OpenRouter validation: the configured key returned `200` from the authenticated key endpoint. A minimal strict JSON request and a `ScriptContent` schema request both succeeded using `liquid/lfm-2.5-2.6b:free` through Liquid; the latter returned three hooks and two ordered sections and passed `ScriptContent` validation. No paid model was used and no key value was logged.
+- Live endpoint validation against the configured PostgreSQL database: applied the isolated migration, created a demo project through `POST /v1/projects`, queued `POST /v1/projects/{project_id}/scripts/generate`, processed it with the worker using the free model, polled the completed job, and retrieved persisted generated content through `GET /v1/projects/{project_id}/scripts/versions`. Development Swagger testing is available at `/docs` with local-only `AUTH_REQUIRED=false`, which maps requests to `demo-creator` until JWT authentication is enabled.
 - Remaining Phase 4 work: fake-provider coverage for revision/style completion and repair/fallback cases, PostgreSQL LangGraph checkpoint integration, and the full requirements/brand-style conflict flow. Phase 5 remains responsible for exposing version retrieval, direct saves, and proposal Apply/Discard APIs.
 
 ## Phase 5 — Direct edits, chat proposal review, and versioning

@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     auth_jwks_url: str | None = None
     auth_audience: str | None = None
     auth_issuer: str | None = None
+    auth_required: bool = True
 
     openrouter_api_key: SecretStr | None = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
