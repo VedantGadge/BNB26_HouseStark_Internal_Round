@@ -13,9 +13,18 @@ from app.auth import AuthenticatedCreator, get_current_creator
 from app.config import Settings, get_settings
 from app.database import get_session
 from app.features.content_workflow.service import owned_project
+from app.features.media_workflow.router import Key, enqueue
+from app.features.script_creation.routing import require_openrouter_configuration, routing_snapshot
 from app.features.youtube.models import YouTubeConnection, YouTubeOAuthAttempt
-from app.features.youtube.provider import SCOPES, YouTubeProvider, token_cipher, video_id_from_url
+from app.features.youtube.provider import (
+    SCOPES,
+    YouTubeProvider,
+    public_video_metrics,
+    token_cipher,
+    video_id_from_url,
+)
 from app.models import PerformanceSnapshot, Project, Publication
+from app.schemas import JobResponse, JobType
 
 router = APIRouter()
 
@@ -33,8 +42,87 @@ class SyncInput(BaseModel):
     reporting_window_days: int = Field(default=7, ge=1, le=365)
 
 
+class PublicVideoInput(BaseModel):
+    url: str = Field(min_length=1, max_length=2_048)
+
+
+def public_insight_facts(metrics: dict) -> dict:
+    """Make a provenance-preserving, immutable fact set for one public video."""
+    snapshot_id = f"youtube-public:{metrics['video_id']}:{metrics['observed_at']}"
+    return {
+        "project_id": None,
+        "scope": "public_youtube_video",
+        "production": {},
+        "performance": [
+            {
+                "snapshot_id": snapshot_id,
+                "publication_id": metrics["video_id"],
+                "project_id": None,
+                "platform": "youtube",
+                "reporting_window_days": None,
+                "reporting_basis": "youtube_public_lifetime",
+                "observed_at": metrics["observed_at"],
+                "published_at": metrics["published_at"],
+                "source": metrics["source"],
+                "title": metrics["title"],
+                "channel_title": metrics["channel_title"],
+                "canonical_url": metrics["canonical_url"],
+                "duration": metrics["duration"],
+                "views": metrics["views"],
+                "likes": metrics["likes"],
+                "comments": metrics["comments"],
+                "shares": None,
+                "retention": None,
+                "engagement_rate": metrics["engagement_rate"],
+                "favorites": metrics["favorites"],
+                "channel_statistics": metrics["channel_statistics"],
+                "metadata": metrics["metadata"],
+            }
+        ],
+        "recommendations": [],
+        "missing_data": [
+            "Public YouTube statistics are current lifetime totals, not a reporting window.",
+            "Public YouTube data does not include shares, retention, audience demographics, "
+            "or historical daily performance.",
+            "One video cannot establish what caused its performance.",
+        ],
+    }
+
+
 def get_provider(settings: Settings = Depends(get_settings)) -> YouTubeProvider:
     return YouTubeProvider(settings)
+
+
+@router.post("/youtube/public/metrics")
+def public_metrics(
+    payload: PublicVideoInput,
+    creator: AuthenticatedCreator = Depends(get_current_creator),
+    settings: Settings = Depends(get_settings),
+):
+    del creator  # Keep the server API key and its quota behind application authentication.
+    return public_video_metrics(settings, payload.url)
+
+
+@router.post("/youtube/public/insights", response_model=JobResponse, status_code=202)
+def summarize_public_metrics(
+    payload: PublicVideoInput,
+    idempotency_key: Key,
+    creator: AuthenticatedCreator = Depends(get_current_creator),
+    session: Session = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+):
+    """Queue an AI explanation from a fresh, server-fetched public metrics snapshot."""
+    require_openrouter_configuration(settings)
+    metrics = public_video_metrics(settings, payload.url)
+    return enqueue(
+        session,
+        creator,
+        None,
+        JobType.INSIGHT_SUMMARY,
+        idempotency_key,
+        {"facts": public_insight_facts(metrics)},
+        routing_snapshot(settings),
+    )
 
 
 @router.get("/me/youtube")
@@ -51,6 +139,7 @@ def connection_status(
     record = session.get(YouTubeConnection, creator.id)
     return {
         "configured": configured,
+        "public_lookup_configured": settings.youtube_public_api_key is not None,
         "connected": record is not None,
         "channel_id": record.channel_id if record else None,
         "channel_title": record.channel_title if record else None,

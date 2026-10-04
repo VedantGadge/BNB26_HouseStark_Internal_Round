@@ -2,8 +2,21 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { apiFetch, post } from "@/lib/api";
-import { Field, Status, useAction, useApi } from "./common";
+import { apiFetch, downloadFile, post } from "@/lib/api";
+import { Field, Job, Status, useAction, useApi } from "./common";
+
+function displayDuration(value) {
+  const match = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(value || "");
+  if (!match) return "Unavailable";
+  const [, hours, minutes, seconds] = match;
+  return [
+    hours && `${hours}h`,
+    minutes && `${minutes}m`,
+    seconds && `${seconds}s`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
 
 export function YouTubeMetrics({ projectId, publications }) {
   const account = useApi("/me/youtube");
@@ -127,6 +140,162 @@ export function YouTubeMetrics({ projectId, publications }) {
             </p>
           )}
         </>
+      )}
+    </section>
+  );
+}
+
+export function PublicYouTubeMetrics() {
+  const action = useAction();
+  const [metrics, setMetrics] = useState(null);
+  const [job, setJob] = useState(null);
+  const [report, setReport] = useState(null);
+
+  return (
+    <section className="form-section">
+      <h2>Look up a public YouTube Short</h2>
+      <p className="muted">
+        Current public lifetime counts. This does not require channel access.
+      </p>
+      <Status error={action.error} />
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          const url = new FormData(event.currentTarget).get("url");
+          setMetrics(null);
+          setJob(null);
+          setReport(null);
+          action.run(async () => {
+            const result = await post("/youtube/public/metrics", { url });
+            setMetrics(result);
+          });
+        }}
+      >
+        <Field label="Public YouTube video or Shorts URL">
+          <input
+            name="url"
+            type="url"
+            placeholder="https://youtube.com/shorts/..."
+            required
+          />
+        </Field>
+        <button disabled={action.busy}>
+          {action.busy ? "Looking up…" : "Get public metrics"}
+        </button>
+      </form>
+      {metrics && (
+        <div className="notice" role="status">
+          <p>
+            <strong>{metrics.title}</strong> · {metrics.channel_title}
+          </p>
+          <dl className="metrics">
+            <div>
+              <dt>Views</dt>
+              <dd>{metrics.views?.toLocaleString() ?? "Unavailable"}</dd>
+            </div>
+            <div>
+              <dt>Likes</dt>
+              <dd>{metrics.likes?.toLocaleString() ?? "Unavailable"}</dd>
+            </div>
+            <div>
+              <dt>Comments</dt>
+              <dd>{metrics.comments?.toLocaleString() ?? "Unavailable"}</dd>
+            </div>
+            <div>
+              <dt>Engagement</dt>
+              <dd>
+                {metrics.engagement_rate === null
+                  ? "Unavailable"
+                  : `${(metrics.engagement_rate * 100).toFixed(2)}%`}
+              </dd>
+            </div>
+            <div>
+              <dt>Channel subscribers</dt>
+              <dd>
+                {metrics.channel_statistics?.subscribers_hidden
+                  ? "Hidden"
+                  : (metrics.channel_statistics?.subscribers?.toLocaleString() ??
+                    "Unavailable")}
+              </dd>
+            </div>
+            <div>
+              <dt>Channel views</dt>
+              <dd>
+                {metrics.channel_statistics?.views?.toLocaleString() ??
+                  "Unavailable"}
+              </dd>
+            </div>
+            <div>
+              <dt>Channel videos</dt>
+              <dd>
+                {metrics.channel_statistics?.videos?.toLocaleString() ??
+                  "Unavailable"}
+              </dd>
+            </div>
+            {metrics.metadata?.concurrent_viewers !== null && (
+              <div>
+                <dt>Live viewers</dt>
+                <dd>{metrics.metadata.concurrent_viewers.toLocaleString()}</dd>
+              </div>
+            )}
+          </dl>
+          <p className="muted">
+            Published {new Date(metrics.published_at).toLocaleDateString()} ·
+            duration {displayDuration(metrics.duration)} ·{" "}
+            {metrics.metadata?.definition || ""}
+            {metrics.metadata?.caption_available ? " · captions" : ""}
+          </p>
+          <p className="muted">
+            Public API data includes lifetime video and channel counts. Shares,
+            retention, traffic sources, audience demographics and historical
+            daily data require the channel owner’s connection.
+          </p>
+          <button
+            disabled={action.busy}
+            onClick={() =>
+              action.run(async () => {
+                const queued = await post(
+                  "/youtube/public/insights",
+                  { url: metrics.canonical_url },
+                  true,
+                );
+                setJob(queued.id);
+                setReport(null);
+              })
+            }
+          >
+            Generate AI insight report
+          </button>
+          <Job
+            id={job}
+            pollInterval={1000}
+            onDone={(record) => setReport(record.result)}
+          />
+          {report?.summary && (
+            <div className="notice">
+              <p>{report.summary}</p>
+              <ul>
+                {report.limitations?.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <button
+                className="secondary"
+                disabled={action.busy}
+                onClick={() =>
+                  action.run(() =>
+                    downloadFile(
+                      `/jobs/${job}/insight-report.pdf`,
+                      "creatorai-youtube-insight-report.pdf",
+                    ),
+                  )
+                }
+              >
+                Download AI report (PDF)
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </section>
   );

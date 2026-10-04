@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     api_prefix: str = "/v1"
     cors_origins: str = "http://localhost:3000"
-    worker_poll_interval_seconds: float = Field(default=3, gt=0)
+    worker_poll_interval_seconds: float = Field(default=1, gt=0)
     worker_lease_seconds: int = Field(default=120, ge=30, le=900)
 
     database_url: str | None = None
@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     youtube_client_secret: SecretStr | None = None
     youtube_redirect_uri: str = "http://localhost:3000/youtube/callback"
     youtube_token_encryption_key: SecretStr | None = None
+    youtube_public_api_key: SecretStr | None = None
 
     openrouter_api_key: SecretStr | None = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"

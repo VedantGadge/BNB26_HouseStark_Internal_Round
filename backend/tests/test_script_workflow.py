@@ -698,3 +698,41 @@ def test_insight_explanation_uses_frozen_facts_and_rejects_fake_evidence(session
     ).execute_claimed_job(claimed)
     assert claimed.status == "completed"
     assert claimed.input_snapshot["result"]["evidence_snapshot_ids"] == ["known"]
+
+
+def test_insight_explanation_can_report_missing_performance_without_fake_evidence(session):
+    JobRepository(session).enqueue(
+        owner_id="creator-a",
+        project_id=None,
+        job_type=JobType.INSIGHT_SUMMARY,
+        idempotency_key="no-performance-facts",
+        routing_snapshot=routing_snapshot(),
+        input_snapshot={
+            "facts": {
+                "performance": [],
+                "production": {"clips_produced": 2, "exports_completed": 1},
+            }
+        },
+    )
+    claimed = JobRepository(session).claim_next(900)
+    assert claimed is not None
+
+    ScriptCreationService(
+        session,
+        FakeProvider(
+            [
+                {
+                    "summary": "Two clips were produced and one export completed.",
+                    "evidence_snapshot_ids": [],
+                    "limitations": ["No performance observations are available yet."],
+                }
+            ]
+        ),
+    ).execute_claimed_job(claimed)
+
+    assert claimed.status == "completed"
+    assert claimed.input_snapshot["result"] == {
+        "summary": "Two clips were produced and one export completed.",
+        "evidence_snapshot_ids": [],
+        "limitations": ["No performance observations are available yet."],
+    }

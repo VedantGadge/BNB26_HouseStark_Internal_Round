@@ -15,7 +15,7 @@ from app.features.script_creation.service import ScriptCreationService
 from app.main import create_app
 from app.models import Base, Job, ScriptVersion
 from app.repositories import ProjectRepository
-from app.schemas import Platform, ProjectCreate
+from app.schemas import JobStatus, JobType, Platform, ProjectCreate
 
 
 @pytest.fixture
@@ -150,6 +150,57 @@ def test_style_suggestion_queue_is_retrievable_by_job_id(
     assert suggestion.status_code == 200
     assert suggestion.json()["status"] == "queued"
     assert suggestion.json()["profile"] is None
+
+
+def test_completed_insight_job_downloads_a_pdf(client_session: tuple[TestClient, Session]) -> None:
+    client, session = client_session
+    job = Job(
+        owner_id="creator-a",
+        type=JobType.INSIGHT_SUMMARY.value,
+        idempotency_key="completed-insight-pdf",
+        payload_hash="pdf-report",
+        status=JobStatus.COMPLETED.value,
+        stage="completed",
+        input_snapshot={
+            "facts": {
+                "performance": [
+                    {
+                        "snapshot_id": "public-short",
+                        "title": "Public Short",
+                        "channel_title": "Public Channel",
+                        "views": 1429189,
+                        "likes": 52043,
+                        "comments": 201,
+                        "engagement_rate": 0.0366,
+                        "channel_statistics": {
+                            "views": 9123416180,
+                            "subscribers": 44700000,
+                            "videos": 271234,
+                            "subscribers_hidden": False,
+                        },
+                        "observed_at": "2026-10-04T11:11:52Z",
+                        "source": "YouTube Data API public lifetime statistics",
+                    }
+                ],
+                "missing_data": ["Shares and retention are unavailable."],
+            },
+            "result": {
+                "summary": "This Short has 1.4 million lifetime views.",
+                "evidence_snapshot_ids": ["public-short"],
+                "limitations": ["One publication does not establish causation."],
+            },
+        },
+        routing_snapshot={},
+    )
+    session.add(job)
+    session.commit()
+
+    response = client.get(f"/v1/jobs/{job.id}/insight-report.pdf")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/pdf")
+    assert response.headers["content-disposition"].endswith(f"creatorai-insight-{job.id}.pdf\"")
+    assert response.content.startswith(b"%PDF-")
 
 
 def test_assistant_revision_queues_against_the_current_script(

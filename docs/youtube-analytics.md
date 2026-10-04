@@ -43,6 +43,21 @@ The integration requests `youtube.readonly` for channel/video identification and
 Google consent and production verification requirements apply to your OAuth app;
 see [Google's web-server OAuth guide](https://developers.google.com/identity/protocols/oauth2/web-server).
 
+### Public Shorts lookup
+
+To look up an already-public YouTube Short without connecting its channel, create
+an API key in the same Google Cloud project, restrict it to **YouTube Data API
+v3**, and set `YOUTUBE_PUBLIC_API_KEY` on the backend. The lookup returns current
+lifetime views, likes, comments, title, channel, publication time and duration.
+It also returns public channel views, subscribers (when visible), and video count,
+plus available video metadata such as definition, captions and live viewer count.
+It deliberately does not return shares, retention, traffic sources, audience data,
+or a date-window report: those are not public fields. After a lookup, **Generate
+AI insight report** fetches a fresh server-side public snapshot and queues an
+evidence-backed explanation. The job stores that snapshot as its immutable
+evidence; it remains separate from creator-authorized analytics and does not claim
+that one video establishes cause.
+
 ## Reporting semantics
 
 The requested window is an upper bound on the number of calendar days starting
@@ -73,3 +88,8 @@ Disconnect removes local credentials and attempts Google token revocation.
 - `DELETE /v1/me/youtube`: disconnect the channel.
 - `POST /v1/publications/{id}/performance/youtube` with
   `reporting_window_days` (1–365, default 7): fetch and save available metrics.
+- `POST /v1/youtube/public/metrics` with a public YouTube `url`: retrieve the
+  current public lifetime snapshot without connecting a channel.
+- `POST /v1/youtube/public/insights` with a public YouTube `url` and an
+  `Idempotency-Key`: fetch a fresh public snapshot and queue an AI explanation
+  that cites it.

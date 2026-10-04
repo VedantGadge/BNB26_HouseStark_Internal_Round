@@ -5,7 +5,7 @@ import json
 import uuid
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import case, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -81,10 +81,14 @@ class JobRepository:
         return job
 
     def claim_next(self, lease_seconds: int) -> Job | None:
+        interactive_priority = case(
+            (Job.type == JobType.INSIGHT_SUMMARY.value, 0),
+            else_=1,
+        )
         statement = (
             select(Job)
             .where(Job.status == JobStatus.QUEUED.value)
-            .order_by(Job.created_at.asc(), Job.id.asc())
+            .order_by(interactive_priority, Job.created_at.asc(), Job.id.asc())
             .with_for_update(skip_locked=True)
             .limit(1)
         )

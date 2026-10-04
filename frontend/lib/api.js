@@ -104,3 +104,29 @@ export async function optionalFetch(path) {
     throw error;
   }
 }
+
+export async function downloadFile(path, filename) {
+  const token = await getCreatorAccessToken();
+  const response = await fetch(`${apiBaseUrl}/v1${path}`, {
+    headers: {
+      Accept: "application/pdf",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new ApiError(
+      typeof body.detail === "string"
+        ? body.detail
+        : `Download failed (${response.status})`,
+      response.status,
+      body.detail,
+    );
+  }
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}

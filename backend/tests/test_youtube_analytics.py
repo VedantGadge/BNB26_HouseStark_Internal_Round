@@ -1,6 +1,7 @@
 import copy
 from datetime import UTC, datetime, timedelta
 from urllib.parse import parse_qs, urlparse
+from uuid import UUID
 
 import httpx
 import pytest
@@ -17,7 +18,7 @@ from app.database import get_session
 from app.features.youtube import provider as youtube
 from app.features.youtube.models import YouTubeConnection, YouTubeOAuthAttempt
 from app.main import create_app
-from app.models import Base, PerformanceSnapshot, Project, Publication
+from app.models import Base, Job, PerformanceSnapshot, Project, Publication
 
 VIDEO_ID = "dQw4w9WgXcQ"
 REPORT = {
@@ -166,6 +167,7 @@ def test_connect_scopes_encryption_status_and_replay(connected):
     status = client.get("/v1/me/youtube").json()
     assert status == {
         "configured": True,
+        "public_lookup_configured": False,
         "connected": True,
         "channel_id": "channel-a",
         "channel_title": "My channel",
@@ -174,6 +176,238 @@ def test_connect_scopes_encryption_status_and_replay(connected):
     before = len(remote["requests"])
     assert client.post("/v1/me/youtube/callback", json=payload).status_code == 409
     assert len(remote["requests"]) == before
+
+
+def test_public_video_metrics_returns_current_lifetime_counts(monkeypatch):
+    calls = []
+
+    def get(url, **kwargs):
+        calls.append((url, kwargs))
+        if url.endswith("/channels"):
+            return httpx.Response(
+                200,
+                json={
+                    "items": [
+                        {
+                            "id": "public-channel",
+                            "statistics": {
+                                "viewCount": "20000",
+                                "subscriberCount": "500",
+                                "videoCount": "100",
+                                "hiddenSubscriberCount": False,
+                            },
+                        }
+                    ]
+                },
+            )
+        return httpx.Response(
+            200,
+            json={
+                "items": [
+                    {
+                        "id": VIDEO_ID,
+                        "snippet": {
+                            "title": "Public Short",
+                            "channelId": "public-channel",
+                            "channelTitle": "Public channel",
+                            "publishedAt": "2025-02-01T01:00:00Z",
+                        },
+                        "statistics": {
+                            "viewCount": "1000",
+                            "likeCount": "90",
+                            "commentCount": "10",
+                        },
+                        "contentDetails": {"duration": "PT42S"},
+                    }
+                ]
+            },
+        )
+
+    monkeypatch.setattr(youtube.httpx, "get", get)
+    result = youtube.public_video_metrics(
+        Settings(_env_file=None, youtube_public_api_key="public-api-key"),
+        f"https://youtube.com/shorts/{VIDEO_ID}?si=tracking",
+    )
+    assert result == {
+        "video_id": VIDEO_ID,
+        "canonical_url": f"https://www.youtube.com/watch?v={VIDEO_ID}",
+        "title": "Public Short",
+        "channel_id": "public-channel",
+        "channel_title": "Public channel",
+        "published_at": "2025-02-01T01:00:00+00:00",
+        "duration": "PT42S",
+        "views": 1000,
+        "likes": 90,
+        "comments": 10,
+        "favorites": None,
+        "engagement_rate": 0.1,
+        "channel_statistics": {
+            "views": 20000,
+            "subscribers": 500,
+            "videos": 100,
+            "subscribers_hidden": False,
+        },
+        "metadata": {
+            "category_id": None,
+            "live_broadcast_content": None,
+            "definition": None,
+            "dimension": None,
+            "caption_available": False,
+            "licensed_content": None,
+            "projection": None,
+            "embeddable": None,
+            "public_stats_viewable": None,
+            "made_for_kids": None,
+            "topic_categories": [],
+            "concurrent_viewers": None,
+        },
+        "source": "YouTube Data API public lifetime statistics",
+        "observed_at": result["observed_at"],
+    }
+    assert calls[0][0] == "https://www.googleapis.com/youtube/v3/videos"
+    assert calls[0][1]["params"]["part"] == (
+        "snippet,statistics,contentDetails,status,topicDetails,liveStreamingDetails"
+    )
+    assert calls[0][1]["params"]["id"] == VIDEO_ID
+    assert calls[0][1]["params"]["key"] == "public-api-key"
+    assert calls[1][0] == "https://www.googleapis.com/youtube/v3/channels"
+    assert calls[1][1]["params"]["id"] == "public-channel"
+
+
+@pytest.mark.parametrize(
+    "response,status",
+    [
+        (httpx.Response(200, json={"items": []}), 404),
+        (httpx.Response(403, json={"error": {}}), 503),
+        (httpx.Response(429, json={"error": {}}), 503),
+        (httpx.Response(200, json={"items": [{"id": VIDEO_ID}]}), 502),
+    ],
+)
+def test_public_video_metrics_rejects_unavailable_or_invalid_data(monkeypatch, response, status):
+    monkeypatch.setattr(youtube.httpx, "get", lambda *args, **kwargs: response)
+    with pytest.raises(HTTPException) as error:
+        youtube.public_video_metrics(
+            Settings(_env_file=None, youtube_public_api_key="public-api-key"),
+            f"https://youtu.be/{VIDEO_ID}",
+        )
+    assert error.value.status_code == status
+
+
+def test_public_video_metrics_requires_a_separate_server_key():
+    with pytest.raises(HTTPException) as error:
+        youtube.public_video_metrics(Settings(_env_file=None), f"https://youtu.be/{VIDEO_ID}")
+    assert error.value.status_code == 503
+
+
+def test_public_short_metrics_queue_an_ai_report_with_frozen_api_evidence(connected, monkeypatch):
+    client, session, _, _, _, _, _ = connected
+
+    def get(url, **kwargs):
+        if url.endswith("/channels"):
+            return httpx.Response(
+                200,
+                json={
+                    "items": [
+                        {
+                            "id": "public-channel",
+                            "statistics": {
+                                "viewCount": "20000",
+                                "subscriberCount": "500",
+                                "videoCount": "100",
+                                "hiddenSubscriberCount": False,
+                            },
+                        }
+                    ]
+                },
+            )
+        assert url == "https://www.googleapis.com/youtube/v3/videos"
+        assert kwargs["params"]["id"] == VIDEO_ID
+        return httpx.Response(
+            200,
+            json={
+                "items": [
+                    {
+                        "id": VIDEO_ID,
+                        "snippet": {
+                            "title": "Public Short",
+                            "channelId": "public-channel",
+                            "channelTitle": "Public channel",
+                            "publishedAt": "2025-02-01T01:00:00Z",
+                        },
+                        "statistics": {
+                            "viewCount": "1000",
+                            "likeCount": "90",
+                            "commentCount": "10",
+                        },
+                        "contentDetails": {"duration": "PT42S"},
+                    }
+                ]
+            },
+        )
+
+    monkeypatch.setattr(youtube.httpx, "get", get)
+    configured = Settings(
+        _env_file=None,
+        youtube_public_api_key="public-api-key",
+        openrouter_api_key="test-openrouter-key",
+    )
+    client.app.dependency_overrides[get_settings] = lambda: configured
+    response = client.post(
+        "/v1/youtube/public/insights",
+        json={"url": f"https://youtube.com/shorts/{VIDEO_ID}"},
+        headers={"Idempotency-Key": "public-short-report"},
+    )
+
+    assert response.status_code == 202, response.text
+    job = session.get(Job, UUID(response.json()["id"]))
+    assert job is not None and job.type == "insight_summary"
+    facts = job.input_snapshot["facts"]
+    assert facts["scope"] == "public_youtube_video"
+    assert facts["performance"] == [
+        {
+            "snapshot_id": facts["performance"][0]["snapshot_id"],
+            "publication_id": VIDEO_ID,
+            "project_id": None,
+            "platform": "youtube",
+            "reporting_window_days": None,
+            "reporting_basis": "youtube_public_lifetime",
+            "observed_at": facts["performance"][0]["observed_at"],
+            "published_at": "2025-02-01T01:00:00+00:00",
+            "source": "YouTube Data API public lifetime statistics",
+            "title": "Public Short",
+            "channel_title": "Public channel",
+            "canonical_url": f"https://www.youtube.com/watch?v={VIDEO_ID}",
+            "duration": "PT42S",
+            "views": 1000,
+            "likes": 90,
+            "comments": 10,
+            "shares": None,
+            "retention": None,
+            "engagement_rate": 0.1,
+            "favorites": None,
+            "channel_statistics": {
+                "views": 20000,
+                "subscribers": 500,
+                "videos": 100,
+                "subscribers_hidden": False,
+            },
+            "metadata": {
+                "category_id": None,
+                "live_broadcast_content": None,
+                "definition": None,
+                "dimension": None,
+                "caption_available": False,
+                "licensed_content": None,
+                "projection": None,
+                "embeddable": None,
+                "public_stats_viewable": None,
+                "made_for_kids": None,
+                "topic_categories": [],
+                "concurrent_viewers": None,
+            },
+        }
+    ]
+    assert facts["missing_data"][-1] == "One video cannot establish what caused its performance."
 
 
 def test_oauth_owner_expiry_and_no_public_callback(connected):

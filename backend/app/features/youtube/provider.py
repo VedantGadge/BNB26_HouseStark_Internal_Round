@@ -17,6 +17,8 @@ SCOPES = (
 )
 PACIFIC = ZoneInfo("America/Los_Angeles")
 METRICS = ("views", "likes", "comments", "shares")
+PUBLIC_METRICS = ("views", "likes", "comments", "favorites")
+PUBLIC_STATISTIC_FIELDS = ("viewCount", "likeCount", "commentCount", "favoriteCount")
 
 
 def token_cipher(settings: Settings) -> Fernet:
@@ -52,6 +54,139 @@ def video_id_from_url(value: str | None) -> str:
     if not re.fullmatch(r"[A-Za-z0-9_-]{11}", video_id):
         raise HTTPException(422, "Save a valid YouTube video or Shorts URL in Publish first.")
     return video_id
+
+
+def _public_resource(settings: Settings, resource: str, **params) -> dict:
+    """Fetch a public YouTube Data API resource without leaking the server key."""
+    try:
+        response = httpx.get(
+            f"https://www.googleapis.com/youtube/v3/{resource}",
+            params={**params, "key": settings.youtube_public_api_key.get_secret_value()},
+            timeout=15,
+            follow_redirects=False,
+        )
+        body = response.json()
+    except httpx.RequestError as error:
+        raise HTTPException(503, "YouTube is unavailable. Try again later.") from error
+    except ValueError as error:
+        raise HTTPException(502, "YouTube returned an invalid response.") from error
+    if response.status_code in {401, 403}:
+        raise HTTPException(503, "Public YouTube lookup is not configured correctly.")
+    if response.status_code == 429 or response.status_code >= 500:
+        raise HTTPException(503, "YouTube is unavailable or rate limited. Try again later.")
+    if not response.is_success or not isinstance(body, dict):
+        raise HTTPException(502, "YouTube could not complete the lookup.")
+    return body
+
+
+def _public_count(values: dict, field: str) -> int | None:
+    raw = values.get(field)
+    if raw is None:
+        return None
+    if isinstance(raw, str) and raw.isdigit():
+        return int(raw)
+    raise ValueError("invalid statistic")
+
+
+def public_video_metrics(settings: Settings, value: str) -> dict:
+    """Retrieve public lifetime video and channel metrics for a video or Short."""
+    if settings.youtube_public_api_key is None:
+        raise HTTPException(503, "Public YouTube lookup is not configured on the server.")
+    video_id = video_id_from_url(value)
+    body = _public_resource(
+        settings,
+        "videos",
+        part="snippet,statistics,contentDetails,status,topicDetails,liveStreamingDetails",
+        id=video_id,
+    )
+    items = body.get("items")
+    if not isinstance(items, list):
+        raise HTTPException(502, "YouTube returned incomplete public metrics.")
+    if not items:
+        raise HTTPException(404, "The public YouTube video was not found.")
+    if len(items) != 1:
+        raise HTTPException(502, "YouTube returned incomplete public metrics.")
+    try:
+        record = items[0]
+        if record["id"] != video_id:
+            raise ValueError("mismatched ID")
+        snippet, statistics, content = (
+            record["snippet"],
+            record["statistics"],
+            record["contentDetails"],
+        )
+        counts = {
+            metric: _public_count(statistics, field)
+            for metric, field in zip(PUBLIC_METRICS, PUBLIC_STATISTIC_FIELDS, strict=True)
+        }
+        published_at = datetime.fromisoformat(snippet["publishedAt"].replace("Z", "+00:00"))
+        if (
+            published_at.tzinfo is None
+            or not all(
+                isinstance(snippet[field], str) and snippet[field].strip()
+                for field in ("title", "channelId", "channelTitle")
+            )
+            or not isinstance(content["duration"], str)
+        ):
+            raise ValueError("invalid metadata")
+    except (AttributeError, KeyError, TypeError, ValueError) as error:
+        raise HTTPException(502, "YouTube returned incomplete public metrics.") from error
+    channel_body = _public_resource(
+        settings, "channels", part="statistics", id=snippet["channelId"]
+    )
+    channel_items = channel_body.get("items")
+    try:
+        if not isinstance(channel_items, list) or len(channel_items) != 1:
+            raise ValueError("missing channel")
+        channel = channel_items[0]
+        if channel["id"] != snippet["channelId"]:
+            raise ValueError("mismatched channel")
+        channel_statistics = channel["statistics"]
+        channel_counts = {
+            "views": _public_count(channel_statistics, "viewCount"),
+            "subscribers": _public_count(channel_statistics, "subscriberCount"),
+            "videos": _public_count(channel_statistics, "videoCount"),
+            "subscribers_hidden": channel_statistics.get("hiddenSubscriberCount"),
+        }
+        if not isinstance(channel_counts["subscribers_hidden"], bool):
+            raise ValueError("invalid channel statistic")
+    except (AttributeError, KeyError, TypeError, ValueError) as error:
+        raise HTTPException(502, "YouTube returned incomplete public channel metrics.") from error
+    engagement_rate = (
+        (counts["likes"] + counts["comments"]) / counts["views"]
+        if counts["views"] and counts["likes"] is not None and counts["comments"] is not None
+        else None
+    )
+    return {
+        "video_id": video_id,
+        "canonical_url": f"https://www.youtube.com/watch?v={video_id}",
+        "title": snippet["title"],
+        "channel_id": snippet["channelId"],
+        "channel_title": snippet["channelTitle"],
+        "published_at": published_at.isoformat(),
+        "duration": content["duration"],
+        **counts,
+        "engagement_rate": engagement_rate,
+        "channel_statistics": channel_counts,
+        "metadata": {
+            "category_id": snippet.get("categoryId"),
+            "live_broadcast_content": snippet.get("liveBroadcastContent"),
+            "definition": content.get("definition"),
+            "dimension": content.get("dimension"),
+            "caption_available": content.get("caption") == "true",
+            "licensed_content": content.get("licensedContent"),
+            "projection": content.get("projection"),
+            "embeddable": record.get("status", {}).get("embeddable"),
+            "public_stats_viewable": record.get("status", {}).get("publicStatsViewable"),
+            "made_for_kids": record.get("status", {}).get("madeForKids"),
+            "topic_categories": record.get("topicDetails", {}).get("topicCategories", []),
+            "concurrent_viewers": _public_count(
+                record.get("liveStreamingDetails", {}), "concurrentViewers"
+            ),
+        },
+        "observed_at": datetime.now(UTC).isoformat(),
+        "source": "YouTube Data API public lifetime statistics",
+    }
 
 
 class YouTubeProvider:

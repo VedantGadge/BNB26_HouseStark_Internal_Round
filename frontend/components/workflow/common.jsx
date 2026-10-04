@@ -7,6 +7,7 @@ import { CheckCircle, Clock, WarningCircle } from "@phosphor-icons/react";
 import { humanize } from "@/lib/creator.mjs";
 
 export function useApi(path, poll = false) {
+  const pollInterval = typeof poll === "number" ? poll : 4000;
   return useQuery({
     queryKey: [path],
     queryFn: () => apiFetch(path),
@@ -18,7 +19,7 @@ export function useApi(path, poll = false) {
             query.state.data?.status,
           )
             ? false
-            : 4000
+            : pollInterval
       : false,
   });
 }
@@ -78,8 +79,8 @@ export function Field({ label, children }) {
   );
 }
 
-export function Job({ id, onDone }) {
-  const query = useApi(id ? `/jobs/${id}` : null, true);
+export function Job({ id, onDone, pollInterval }) {
+  const query = useApi(id ? `/jobs/${id}` : null, pollInterval || true);
   const action = useAction();
   const notified = useRef(null);
   useEffect(() => {

@@ -101,6 +101,32 @@ def test_claim_recovery_and_retry_preserve_durable_job(session: Session) -> None
     assert retried.error is None
 
 
+def test_insight_jobs_are_claimed_before_older_media_work(session: Session) -> None:
+    project = create_project(session)
+    repository = JobRepository(session)
+    media = repository.enqueue(
+        owner_id="creator-a",
+        project_id=project.id,
+        job_type=JobType.ASSET_INGESTION,
+        idempotency_key="older-media",
+        input_snapshot={"asset_id": "asset-1"},
+        routing_snapshot={},
+    )
+    insight = repository.enqueue(
+        owner_id="creator-a",
+        project_id=None,
+        job_type=JobType.INSIGHT_SUMMARY,
+        idempotency_key="newer-insight",
+        input_snapshot={"facts": {"performance": []}},
+        routing_snapshot={"default_model": "free/model"},
+    )
+
+    claimed = repository.claim_next(lease_seconds=30)
+
+    assert claimed is not None and claimed.id == insight.id
+    assert repository.get_owned("creator-a", media.id).status == JobStatus.QUEUED.value
+
+
 def test_jobs_remain_owner_scoped(session: Session) -> None:
     job = enqueue_script_job(session)
 
