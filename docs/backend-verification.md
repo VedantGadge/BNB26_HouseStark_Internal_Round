@@ -59,6 +59,8 @@ single linear migration head. No remote branch was rewritten or pushed.
 - Full locked-dependency suite with isolated PostgreSQL enabled: **82 passed**.
 - `ruff check app tests scripts`: passed.
 - `pip check`: no broken requirements.
+- Local backend Docker image: built successfully; API/worker imports pass,
+  `/usr/bin/ffmpeg` provides `drawtext` and `loudnorm`, and DejaVu Sans is present.
 - Integration frontend production build: passed before the visual redesign.
 - Real QA graph recovery: completed with the saved selected edit, without
   repeating proposal/render work.

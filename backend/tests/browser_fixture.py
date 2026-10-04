@@ -131,7 +131,11 @@ def build_app():
             with factory() as session:
                 job = JobRepository(session).claim_next(900)
                 if job is not None:
-                    if job.type == JobType.SCRIPT_GENERATION:
+                    if job.type not in {
+                        JobType.ASSET_INGESTION,
+                        JobType.CLIP_GENERATION,
+                        JobType.MEDIA_EXPORT,
+                    }:
                         ScriptCreationService(
                             session, OpenRouterProvider(settings) if live else ScriptProvider()
                         ).execute_claimed_job(job)

@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "approved_reference": ".impeccable/mocks/landing-multiview.png",
+  "provenance_policy": "All generated media is illustrative-only. This scene is AI-generated demonstration imagery, not user footage, a customer endorsement, or evidence of actual platform exports.",
+  "produce": [
+    {
+      "id": "coastline",
+      "source_crop": ".impeccable/mocks/landing-multiview.png (seaside creator scene; visual reference only, no pixels extracted)",
+      "output_path": "frontend/public/media/coastline.webp",
+      "public_url": "/media/coastline.webp",
+      "source_path": ".impeccable/sources/coastline.png",
+      "source_native_path": "/Users/vedantgadge1512/.codex/generated_images/01a103ee-4ba9-7d80-98ac-47e96585048a/exec-38de9893-74ff-4900-9399-2e9730c38a4a.png",
+      "strategy": "Independent clean photographic regeneration through built-in image_gen; copied source kept non-destructively; optimized through cwebp quality82 method6 resize1024.",
+      "prompt_used": "Use case: photorealistic-natural\nAsset type: clean production travel photograph for synchronized video framing previews.\nPrimary request: Independently create a realistic seaside creator photograph matching this approved scene: a creator viewed from behind filming a Mediterranean cove with a small handheld camera.\nScene/backdrop: Clear turquoise Mediterranean water, sculptural warm limestone cliffs and sea stacks, a small pale sandy beach, blue open sea and a clean light-blue sky.\nSubject: One adult creator seen from behind, brown hair in a loose bun, white short-sleeve shirt and plain black backpack, holding a compact unbranded camera on a handheld grip toward the cove.\nStyle/medium: Natural editorial travel photography, realistic rock and fabric textures, crisp optical detail.\nComposition/framing: Landscape 3:2 source photograph. Keep the creator near the horizontal center, within the central 30 percent of the frame so a center portrait crop retains the head, camera, shoulders and backpack. Rear eye-level view, creator in the lower middle foreground; generous turquoise water and warm cliffs extend to both sides. Enough vertical room above the head and below the backpack for portrait, landscape and square crops from one source.\nLighting/mood: Crisp clear midday sunshine, natural shadows, bright welcoming daylight.\nColor palette: Turquoise and azure water, warm honey limestone, pale sand, clean blue sky, neutral white shirt and black backpack.\nConstraints: This is a raw photograph only. Full bleed scene. No interface, no cards, no borders, no rounded corners, no perspective transforms, no captions, no logos, no typography, no watermark. Generate original scene pixels independently; do not crop or reproduce UI screenshot pixels.\nAvoid: extra people, invented props, sunset lighting, artificial purple tint, illustration, excessive HDR, blurry image, letterboxing, baked overlays.",
+      "prompt_path": ".impeccable/sources/coastline.prompt.txt",
+      "prompt_embedding": {
+        "source": "PNG tEXt impeccable:prompt",
+        "production": "frontend/public/media/coastline.webp.json (embed-prompt.mjs WebP fallback)",
+        "readback_verified": true
+      },
+      "dimensions": {
+        "width": 1024,
+        "height": 683
+      },
+      "source_dimensions": {
+        "width": 1536,
+        "height": 1024
+      },
+      "file_size_bytes": 142876,
+      "format": "webp",
+      "transparency": false,
+      "alt_text": "Illustrative AI-generated photograph of a creator filming a turquoise seaside cove from a limestone overlook.",
+      "provenance": {
+        "type": "AI-generated",
+        "generator": "native image_gen",
+        "illustrative_only": true,
+        "derived_from_mock_pixels": false,
+        "original_preserved": true
+      },
+      "deviations": [
+        "Creator centered to support one-source portrait, landscape and square crops; approved mock's landscape creator appears left of center.",
+        "The main limestone cliff is on the left rather than the approved mock's right; warm coastal material, clear midday light, turquoise water, rear-view creator, camera and backpack are preserved."
+      ],
+      "qa_status": "accepted",
+      "qa_notes": "Opened native source and optimized WebP; compared to approved mock. Full-bleed crisp natural image; no text, UI, borders, rounded clipping, watermark or logos. Center portrait crop retains head, handheld camera and shoulders. Use upper-right zoom for an ocean/detail-only square if required."
+    }
+  ],
+  "direct": [],
+  "semantic": [
+    {
+      "id": "multiview-tray",
+      "implementation": "Compose /media/coastline.webp with synchronized Remotion previews inside semantic portrait, landscape and square media regions. CSS owns 14–16px rounded clipping, cool silver inset tray, border and diffused shadow; use object-fit cover and crop positions per format.",
+      "notes": "One identical source underpins each preview; the third view can zoom toward upper-right sea stacks. Responsive mobile layout should prioritize portrait and stack the other views. No imagery was cropped from the UI comp.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "preview-controls-and-captions",
+      "implementation": "Use actual Remotion player transport, accessible play/pause/seek/audio/fullscreen controls and semantic text captions. Native HTML owns 'Illustrative preview' label and caption treatment; do not bake labels or transport into the photo.",
+      "notes": "Label all photo-driven demonstrations illustrative. FFmpeg-verified actual export states remain separate.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "lower-edit-demonstration",
+      "implementation": "Reuse /media/coastline.webp as the original and caption/crop preview source. Render trim range, captions, crop region, title and audio controls as native form inputs and timeline elements, with synchronized frame presentation.",
+      "notes": "Second generated scene unnecessary: repeated source communicates original-preserving edits and coherent output formats.",
+      "qa_status": "accepted"
+    }
+  ],
+  "execution_order": [
+    "produce coastline independent source",
+    "visually compare against approved mock",
+    "resize and compress 1024px WebP",
+    "embed source prompt and production sidecar through embed-prompt.mjs",
+    "read both prompts",
+    "write manifest and semantic handoff"
+  ],
+  "blockers": [],
+  "assumptions": [
+    "A single generated still can support the illustrative animated framing preview and lower edit demonstration.",
+    "Implementation is responsible for visible illustrative labelling and all interactions.",
+    "The parent-approved request to retain central portrait cropping permits centered creator placement."
+  ]
+}

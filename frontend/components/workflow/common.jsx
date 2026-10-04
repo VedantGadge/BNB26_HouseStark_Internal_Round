@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, post } from "@/lib/api";
+import { CheckCircle, Clock, WarningCircle } from "@phosphor-icons/react";
+import { humanize } from "@/lib/creator.mjs";
 
 export function useApi(path, poll = false) {
   return useQuery({ queryKey: [path], queryFn: () => apiFetch(path),
-    enabled: Boolean(path), refetchInterval: poll ? 3000 : false });
+    enabled: Boolean(path), refetchInterval: poll ? (query) => path?.startsWith("/jobs/") && ["completed", "failed", "waiting_review"].includes(query.state.data?.status) ? false : 4000 : false });
 }
 
 export function useAction() {
@@ -26,8 +28,8 @@ export function useAction() {
 }
 
 export function Status({ query, error }) {
-  return <>{query?.isPending && <p role="status">Loading…</p>}
-    {(error || query?.error?.message) && <p role="alert" className="error">{error || query.error.message}</p>}</>;
+  return <>{query?.isPending && query?.fetchStatus !== "idle" && <div className="status-loading" role="status"><Clock size={20} weight="light" />Loading workspace…</div>}
+    {(error || query?.error?.message) && <div role="alert" className="notice error"><p>{error || query.error.message}</p>{query?.isError && <button className="secondary" onClick={() => query.refetch()}>Try again</button>}</div>}</>;
 }
 
 export function Field({ label, children }) {
@@ -45,7 +47,7 @@ export function Job({ id, onDone }) {
   }, [query.data, id, onDone]);
   if (!id) return null;
   return <div className="job" aria-live="polite"><Status query={query} error={action.error} />
-    {query.data && <><p>{query.data.status} · {query.data.stage.replaceAll("_", " ")}</p>
+    {query.data && <><div className="job-top">{query.data.status === "completed" ? <CheckCircle size={21} weight="light" className="success"/> : query.data.status === "failed" ? <WarningCircle size={21} weight="light"/> : <Clock size={21} weight="light"/>}<strong>{humanize(query.data.type)} · {humanize(query.data.status)}</strong></div><p className="muted">{humanize(query.data.stage)}</p>
       {query.data.error && <p className="error">{query.data.error}</p>}
       {query.data.status === "waiting_review" && <p>Drafts are ready. Open a clip, save your changes, then submit review.</p>}
       {query.data.status === "failed" && <button disabled={action.busy} onClick={() => action.run(() => post(`/jobs/${id}/retry`, {}))}>Retry job</button>}
@@ -54,18 +56,19 @@ export function Job({ id, onDone }) {
 }
 
 export function Media({ assetId, renderId, seek = 0, kind = "video" }) {
-  const query = useApi(assetId ? `/assets/${assetId}/delivery` : renderId ? `/exports/${renderId}/delivery` : null);
+  const path = assetId ? `/assets/${assetId}/delivery` : renderId ? `/exports/${renderId}/delivery` : null;
+  const query = useQuery({ queryKey:[path],queryFn:()=>apiFetch(path),enabled:Boolean(path),refetchInterval:240000 });
+  const [playbackError,setPlaybackError] = useState("");
   const player = useRef(null);
   useEffect(() => { if (player.current && seek !== null) player.current.currentTime = seek; }, [seek]);
   if (!assetId && !renderId) return null;
-  return <div className="media"><Status query={query} />
+  return <div className="media"><Status query={query} error={playbackError} />
     {query.data && (kind === "image" ? <img src={query.data.url} alt="Uploaded asset" /> :
       kind === "audio" ? <audio controls src={query.data.url} /> :
-      <video ref={player} controls playsInline src={query.data.url} onLoadedMetadata={() => { if (player.current) player.current.currentTime = seek || 0; }} />)}
+      <video ref={player} controls playsInline preload="metadata" src={query.data.url} onError={() => setPlaybackError("The media could not play. Refresh the signed playback link and try again.")} onLoadedMetadata={() => { setPlaybackError("");if (player.current) player.current.currentTime = seek || 0; }} />)}
     {query.data && <a href={query.data.url} target="_blank" rel="noreferrer">Open / download media</a>}
-    <button onClick={() => query.refetch()} className="secondary">Refresh playback link</button>
+    <button type="button" onClick={() => query.refetch()} className="secondary">Refresh playback link</button>
   </div>;
 }
 
 export function time(ms) { return `${(ms / 1000).toFixed(1)}s`; }
-
