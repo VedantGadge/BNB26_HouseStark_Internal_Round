@@ -1,0 +1,18 @@
+{
+  "id": "22222222-2222-4222-8222-222222222222",
+  "platform": "instagram",
+  "status": "published",
+  "mode": "manual",
+  "planned_at": "2026-10-04T05:00:00Z",
+  "published_at": "2026-10-04T05:01:00Z",
+  "external_url": "https://example.com/sample-post",
+  "package_snapshot": {
+    "title": "Prepared workflow demo",
+    "caption": "Sample fixture copy.",
+    "media_checked": true,
+    "revision": 4,
+    "provenance": "prepared_demo",
+    "media_path": "/projects/11111111-1111-4111-8111-111111111111/workflow/media"
+  },
+  "supporting_copy": {"title": "Prepared workflow demo", "caption": "Sample fixture copy."}
+}

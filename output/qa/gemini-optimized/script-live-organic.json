@@ -1,0 +1,172 @@
+{
+  "timestamp_utc": "2026-10-04T04:14:42.295675+00:00",
+  "case": "organic",
+  "requested_model": "google/gemini-3.8-flash",
+  "free_only": false,
+  "job_status": "completed",
+  "error": null,
+  "elapsed_seconds": 10.488,
+  "call_count": 2,
+  "calls": [
+    {
+      "stage": "creator_script",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "google/gemini-3.8-flash",
+      "provider": "Google",
+      "input_tokens": 898,
+      "output_tokens": 532,
+      "reasoning_tokens": 0,
+      "cost": 0.0026685,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_1",
+            "text": "If planning content every single morning is draining your creative energy, here is a simple weekly framework."
+          },
+          {
+            "id": "hook_2",
+            "text": "Stop brainstorming every day from scratch. Here is how to plan your entire week in three concrete steps."
+          },
+          {
+            "id": "hook_3",
+            "text": "Here is the exact three-step system you can use to batch plan a week of content in one sitting."
+          }
+        ],
+        "selected_hook_id": "hook_2",
+        "sections": [
+          {
+            "id": "sec_intro",
+            "position": 1,
+            "heading": "Hook",
+            "text": "Stop brainstorming every day from scratch. Here is how to plan your entire week in three concrete steps.",
+            "estimated_duration_seconds": 6
+          },
+          {
+            "id": "sec_step1",
+            "position": 2,
+            "heading": "Step 1: Theme Your Days",
+            "text": "Step one: Assign themes to your posting days. For example, make Mondays educational breakdowns, Wednesdays behind-the-scenes, and Fridays audience questions. Themes narrow your focus immediately.",
+            "estimated_duration_seconds": 12
+          },
+          {
+            "id": "sec_step2",
+            "position": 3,
+            "heading": "Step 2: Collect Prompts into a Central Backlog",
+            "text": "Step two: Maintain a single backlog doc for raw ideas. Spend twenty focused minutes reviewing your comments, bookmarks, and everyday notes, turning them into one-sentence concepts under each theme.",
+            "estimated_duration_seconds": 13
+          },
+          {
+            "id": "sec_step3",
+            "position": 4,
+            "heading": "Step 3: Outline Formats Before Recording",
+            "text": "Step three: Draft bullet points for each concept before opening your camera or design app. Define the hook, the core takeaway, and the format so production becomes purely execution.",
+            "estimated_duration_seconds": 10
+          },
+          {
+            "id": "sec_outro",
+            "position": 5,
+            "heading": "Outro & CTA",
+            "text": "Try scheduling one planning block this weekend to set up your next week. Save this Reel to reference when you plan!",
+            "estimated_duration_seconds": 4
+          }
+        ],
+        "title": "3 Practical Steps to Batch Plan Content Weekly",
+        "description": "Planning content day-by-day causes creator fatigue. Use this three-step batching method to organize your weekly concepts ahead of time.",
+        "call_to_action": "Save this Reel for your next planning session and drop your current workflow in the comments.",
+        "production_notes": [
+          "Use direct-to-camera speaking style with natural, warm lighting.",
+          "Add clear on-screen kinetic text overlays highlighting each of the 3 steps.",
+          "Keep pacing brisk to stay within the 45-second duration target."
+        ]
+      },
+      "elapsed_seconds": 7.946
+    },
+    {
+      "stage": "creator_script_review",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "google/gemini-3.8-flash",
+      "provider": "Google",
+      "input_tokens": 862,
+      "output_tokens": 10,
+      "reasoning_tokens": 0,
+      "cost": 0.000684,
+      "payload": {
+        "approved": true,
+        "feedback": []
+      },
+      "elapsed_seconds": 2.444
+    }
+  ],
+  "input_tokens": 1760,
+  "output_tokens": 542,
+  "reasoning_tokens": 0,
+  "provider_reported_cost": 0.0033525,
+  "versions_saved": 1,
+  "project_stage": "editing",
+  "content": {
+    "hooks": [
+      {
+        "id": "hook_1",
+        "text": "If planning content every single morning is draining your creative energy, here is a simple weekly framework."
+      },
+      {
+        "id": "hook_2",
+        "text": "Stop brainstorming every day from scratch. Here is how to plan your entire week in three concrete steps."
+      },
+      {
+        "id": "hook_3",
+        "text": "Here is the exact three-step system you can use to batch plan a week of content in one sitting."
+      }
+    ],
+    "selected_hook_id": "hook_2",
+    "sections": [
+      {
+        "id": "sec_intro",
+        "position": 1,
+        "heading": "Hook",
+        "text": "Stop brainstorming every day from scratch. Here is how to plan your entire week in three concrete steps.",
+        "estimated_duration_seconds": 6
+      },
+      {
+        "id": "sec_step1",
+        "position": 2,
+        "heading": "Step 1: Theme Your Days",
+        "text": "Step one: Assign themes to your posting days. For example, make Mondays educational breakdowns, Wednesdays behind-the-scenes, and Fridays audience questions. Themes narrow your focus immediately.",
+        "estimated_duration_seconds": 12
+      },
+      {
+        "id": "sec_step2",
+        "position": 3,
+        "heading": "Step 2: Collect Prompts into a Central Backlog",
+        "text": "Step two: Maintain a single backlog doc for raw ideas. Spend twenty focused minutes reviewing your comments, bookmarks, and everyday notes, turning them into one-sentence concepts under each theme.",
+        "estimated_duration_seconds": 13
+      },
+      {
+        "id": "sec_step3",
+        "position": 4,
+        "heading": "Step 3: Outline Formats Before Recording",
+        "text": "Step three: Draft bullet points for each concept before opening your camera or design app. Define the hook, the core takeaway, and the format so production becomes purely execution.",
+        "estimated_duration_seconds": 10
+      },
+      {
+        "id": "sec_outro",
+        "position": 5,
+        "heading": "Outro & CTA",
+        "text": "Try scheduling one planning block this weekend to set up your next week. Save this Reel to reference when you plan!",
+        "estimated_duration_seconds": 4
+      }
+    ],
+    "title": "3 Practical Steps to Batch Plan Content Weekly",
+    "description": "Planning content day-by-day causes creator fatigue. Use this three-step batching method to organize your weekly concepts ahead of time.",
+    "call_to_action": "Save this Reel for your next planning session and drop your current workflow in the comments.",
+    "production_notes": [
+      "Use direct-to-camera speaking style with natural, warm lighting.",
+      "Add clear on-screen kinetic text overlays highlighting each of the 3 steps.",
+      "Keep pacing brisk to stay within the 45-second duration target."
+    ]
+  },
+  "requirement_checks": [],
+  "warning_ids": []
+}

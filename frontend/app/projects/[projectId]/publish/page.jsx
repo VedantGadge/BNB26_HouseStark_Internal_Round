@@ -1,5 +1,6 @@
-import { WorkspacePlaceholder } from "@/components/workspace-placeholder";
+import { Publish } from "@/components/workflow/publish";
 
-export default function PublishPage() {
-  return <WorkspacePlaceholder title="Publish" description="Export packages, planned dates, and manual publication tracking." />;
+export default async function Page({ params }) {
+  const { projectId } = await params;
+  return <Publish projectId={projectId} />;
 }

@@ -3,5 +3,5 @@
  * Keep token acquisition in this module; API clients should never infer ownership from route IDs.
  */
 export async function getCreatorAccessToken() {
-  return null;
+  return typeof window === "undefined" ? null : sessionStorage.getItem("creatorai-token");
 }

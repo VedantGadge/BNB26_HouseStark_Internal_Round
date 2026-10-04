@@ -1,0 +1,16 @@
+{
+  "id": "aa8f2679-00e1-4d31-8d9c-1e2a3b4c5d6e",
+  "base_version": 1,
+  "status": "pending",
+  "explanation": "Made the opening more conversational without changing the rest of the script.",
+  "changes": [
+    {
+      "target_scope": "hook",
+      "target_id": "hook-1",
+      "before": "Your Sunday can save your whole content week.",
+      "after": "Want your content week to feel less chaotic before Monday even starts?"
+    }
+  ],
+  "requirement_checks": [],
+  "warning_ids": []
+}

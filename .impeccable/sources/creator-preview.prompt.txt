@@ -1,0 +1,11 @@
+Use case: photorealistic-natural
+Asset type: clean photographic source for an illustrative creator video editing preview.
+Primary request: Independently generate a natural landscape selfie photograph of an adult woman filming herself on a rocky coastal overlook at golden hour.
+Scene/backdrop: Rugged warm rocky coastal cliffs and a green overlook on the left, ocean and sculptural offshore sea stacks behind her on the right, gentle breaking waves, pale warm evening sky.
+Subject: One adult woman with brown wavy hair, a beige ribbed knit beanie, an olive outdoor jacket and plain dark backpack straps. She smiles naturally and looks directly into the lens, holding the filming camera herself at arm's length; her extended jacket sleeve enters from the lower left. No visible camera is necessary because this is its selfie viewpoint.
+Style/medium: Believable editorial travel photography, natural skin and knit textures, detailed rocks and ocean, crisp subject and softly atmospheric distant coast.
+Composition/framing: Landscape 1536x1024, 3:2. Eye-level wide selfie camera angle, woman's face just left of center and in the upper-middle, head and beanie fully visible with breathing room, chest and extended arm in the lower foreground; enough coastline and sea stacks behind her for landscape and centered portrait preview crops.
+Lighting/mood: Warm natural late-afternoon golden-hour sunlight from the right, softly lit face, warm rim light on hair, realistic cool ocean shadows, welcoming candid expression.
+Color palette: Warm beige knit, muted olive jacket, brown hair, honey rocks, blue-gray ocean, soft cream evening sky.
+Constraints: Raw full-bleed photographic scene only. Generate original scene pixels independently; do not crop a UI mockup. No text, captions, logos, watermark, interface, video controls, borders, rounded clipping, card shadows or dark overlay wash. CSS will own all presentation.
+Avoid: additional people, invented props, artificial beauty retouching, excessive HDR, illustration, harsh flash, purple lighting, letterboxing, cut-off beanie.

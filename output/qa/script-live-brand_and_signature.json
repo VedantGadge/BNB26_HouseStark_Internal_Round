@@ -1,0 +1,307 @@
+{
+  "timestamp_utc": "2026-10-04T04:04:44.141744+00:00",
+  "case": "brand_and_signature",
+  "requested_model": "liquid/lfm-2.5-2.6b:free",
+  "free_only": true,
+  "job_status": "completed",
+  "error": null,
+  "elapsed_seconds": 42.837,
+  "call_count": 4,
+  "calls": [
+    {
+      "stage": "creator_hooks",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "provider": "Liquid",
+      "input_tokens": 280,
+      "output_tokens": 909,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_1",
+            "text": "Stop the weekly scramble. PlanPilot's weekly content planning template turns chaotic scheduling into a simple routine. In just three steps, you'll have your whole month mapped out. Keep creating!"
+          },
+          {
+            "id": "hook_2",
+            "text": "Batch your creativity like a pro. With PlanPilot's weekly content planning template, you can prep multiple weeks of posts at once. No more last-minute panic—just steady growth. Keep creating!"
+          },
+          {
+            "id": "hook_3",
+            "text": "Your content calendar doesn't have to be a nightmare. PlanPilot offers a straightforward weekly template to organize your ideas before they disappear. Three actionable steps to start today. Keep creating!"
+          }
+        ]
+      },
+      "elapsed_seconds": 8.769
+    },
+    {
+      "stage": "creator_script",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "provider": "Liquid",
+      "input_tokens": 464,
+      "output_tokens": 1649,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_1",
+            "text": "Stop the weekly scramble. PlanPilot's weekly content planning template turns chaotic scheduling into a simple routine. In just three steps, you'll have your whole month mapped out. Keep creating!"
+          },
+          {
+            "id": "hook_2",
+            "text": "Batch your creativity like a pro. With PlanPilot's weekly content planning template, you can prep multiple weeks of posts at once. No more last-minute panic—just steady growth. Keep creating!"
+          },
+          {
+            "id": "hook_3",
+            "text": "Your content calendar doesn't have to be a nightmare. PlanPilot offers a straightforward weekly template to organize your ideas before they disappear. Three actionable steps to start today. Keep creating!"
+          }
+        ],
+        "selected_hook_id": "hook_1",
+        "sections": [
+          {
+            "id": "intro",
+            "position": 1,
+            "heading": "Intro & Hook",
+            "text": "Stop the weekly scramble. PlanPilot's weekly content planning template turns chaotic scheduling into a simple routine. In just three steps, you'll have your whole month mapped out.",
+            "estimated_duration_seconds": 5
+          },
+          {
+            "id": "step_1",
+            "position": 2,
+            "heading": "Step 1 — Define Your Theme Week",
+            "text": "First, pick a theme for your week. Instead of scrolling through ideas, choose one clear focus—like 'behind-the-scenes' or 'tutorial Tuesday.' This gives your audience something consistent and makes planning much easier.",
+            "estimated_duration_seconds": 12
+          },
+          {
+            "id": "step_2",
+            "position": 3,
+            "heading": "Step 2 — Map Specific Days",
+            "text": "Next, block out your week day by day. Assign each day a specific post type and deadline. Seeing your content spread across the week prevents last-minute rushes and keeps your feed balanced.",
+            "estimated_duration_seconds": 12
+          },
+          {
+            "id": "step_3",
+            "position": 4,
+            "heading": "Step 3 — Reserve Creation Time",
+            "text": "Finally, schedule dedicated creation blocks. PlanPilot helps you protect those slots so you actually make content instead of waiting for inspiration. Consistency beats perfection every time.",
+            "estimated_duration_seconds": 11
+          },
+          {
+            "id": "outro",
+            "position": 5,
+            "heading": "Outro & CTA",
+            "text": "Start using PlanPilot today and turn your weekly chaos into a smooth workflow. Your content calendar doesn't have to be a nightmare. Three actionable steps to begin now. Keep creating!",
+            "estimated_duration_seconds": 9
+          }
+        ],
+        "title": "Batch Your Weekly Content Planning with PlanPilot",
+        "description": "A 45-second Instagram Reel that shows independent creators how to use PlanPilot's weekly content planning template to stop the weekly scramble. The video walks viewers through three practical steps: define a theme week, map specific days, and reserve creation time. Perfect for creators who want steady growth without last-minute panic.",
+        "call_to_action": "Download PlanPilot's free weekly template and start planning your month today.",
+        "production_notes": [
+          "Video length: 45 seconds total",
+          "Music: Upbeat but professional track (royalty-free), fades under voiceover",
+          "Visual style: Quick cuts between phone screen recordings of the PlanPilot template, then transition to creator-style shots of actual content creation",
+          "Text overlays: Bold, friendly font for each step number; keep on-screen time under 3 seconds per overlay",
+          "Voiceover tone: Friendly, direct, warm — matching the brand's practical vibe",
+          "End card: Logo animation with 'PlanPilot' and 'Free Template' callout",
+          "Captions: Auto-generated subtitles enabled for accessibility"
+        ]
+      },
+      "elapsed_seconds": 11.205
+    },
+    {
+      "stage": "creator_script_review",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "provider": "Liquid",
+      "input_tokens": 1290,
+      "output_tokens": 1192,
+      "payload": {
+        "approved": false,
+        "feedback": [
+          "The total estimated duration of the script is 49 seconds (5+12+12+11+9=49s), exceeding the target of 45 seconds. Adjust the timing estimates to meet the 45-second requirement.",
+          "Consider trimming the intro section from 5 seconds to approximately 4 seconds to bring the total to exactly 45 seconds while preserving all content.",
+          "All other requirements are met: brand name 'PlanPilot' is correctly used, approved claim 'PlanPilot provides a weekly content planning template' is properly referenced in intro, step_3, and outro, forbidden phrases are absent, and the signature closing line 'Keep creating!' is included in both intro and outro as required."
+        ]
+      },
+      "elapsed_seconds": 8.214
+    },
+    {
+      "stage": "creator_script_revision",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "provider": "Liquid",
+      "input_tokens": 1422,
+      "output_tokens": 2987,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_1",
+            "text": "Stop the weekly scramble. PlanPilot's weekly content planning template turns chaotic scheduling into a simple routine. In just three steps, you'll have your whole month mapped out. Keep creating!"
+          },
+          {
+            "id": "hook_2",
+            "text": "Batch your creativity like a pro. With PlanPilot's weekly content planning template, you can prep multiple weeks of posts at once. No more last-minute panic—just steady growth. Keep creating!"
+          },
+          {
+            "id": "hook_3",
+            "text": "Your content calendar doesn't have to be a nightmare. PlanPilot offers a straightforward weekly template to organize your ideas before they disappear. Three actionable steps to start today. Keep creating!"
+          }
+        ],
+        "selected_hook_id": "hook_1",
+        "sections": [
+          {
+            "id": "intro",
+            "position": 1,
+            "heading": "Intro & Hook",
+            "text": "Stop the weekly scramble. PlanPilot's weekly content planning template turns chaotic scheduling into a simple routine. In just three steps, you'll have your whole month mapped out.",
+            "estimated_duration_seconds": 4
+          },
+          {
+            "id": "step_1",
+            "position": 2,
+            "heading": "Step 1 — Define Your Theme Week",
+            "text": "First, pick a theme for your week. Instead of scrolling through ideas, choose one clear focus—like 'behind-the-scenes' or 'tutorial Tuesday.' This gives your audience something consistent and makes planning much easier.",
+            "estimated_duration_seconds": 12
+          },
+          {
+            "id": "step_2",
+            "position": 3,
+            "heading": "Step 2 — Map Specific Days",
+            "text": "Next, block out your week day by day. Assign each day a specific post type and deadline. Seeing your content spread across the week prevents last-minute rushes and keeps your feed balanced.",
+            "estimated_duration_seconds": 12
+          },
+          {
+            "id": "step_3",
+            "position": 4,
+            "heading": "Step 3 — Reserve Creation Time",
+            "text": "Finally, schedule dedicated creation blocks. PlanPilot helps you protect those slots so you actually make content instead of waiting for inspiration. Consistency beats perfection every time.",
+            "estimated_duration_seconds": 11
+          },
+          {
+            "id": "outro",
+            "position": 5,
+            "heading": "Outro & CTA",
+            "text": "Start using PlanPilot today and turn your weekly chaos into a smooth workflow. Keep creating!",
+            "estimated_duration_seconds": 8
+          }
+        ],
+        "title": "Batch Your Weekly Content Planning with PlanPilot",
+        "description": "A 45-second Instagram Reel that shows independent creators how to use PlanPilot's weekly content planning template to stop the weekly scramble. The video walks viewers through three practical steps: define a theme week, map specific days, and reserve creation time. Perfect for creators who want steady growth without last-minute panic.",
+        "call_to_action": "Download PlanPilot's free weekly template and start planning your month today.",
+        "production_notes": [
+          "Video length: 45 seconds total",
+          "Music: Upbeat but professional track (royalty-free), fades under voiceover",
+          "Visual style: Quick cuts between phone screen recordings of the PlanPilot template, then transition to creator-style shots of actual content creation",
+          "Text overlays: Bold, friendly font for each step number; keep on-screen time under 3 seconds per overlay",
+          "Voiceover tone: Friendly, direct, warm — matching the brand's practical vibe",
+          "End card: Logo animation with 'PlanPilot' and 'Free Template' callout",
+          "Captions: Auto-generated subtitles enabled for accessibility"
+        ]
+      },
+      "elapsed_seconds": 14.554
+    }
+  ],
+  "input_tokens": 3456,
+  "output_tokens": 6737,
+  "versions_saved": 1,
+  "project_stage": "editing",
+  "content": {
+    "hooks": [
+      {
+        "id": "hook_1",
+        "text": "Stop the weekly scramble. PlanPilot's weekly content planning template turns chaotic scheduling into a simple routine. In just three steps, you'll have your whole month mapped out. Keep creating!"
+      },
+      {
+        "id": "hook_2",
+        "text": "Batch your creativity like a pro. With PlanPilot's weekly content planning template, you can prep multiple weeks of posts at once. No more last-minute panic—just steady growth. Keep creating!"
+      },
+      {
+        "id": "hook_3",
+        "text": "Your content calendar doesn't have to be a nightmare. PlanPilot offers a straightforward weekly template to organize your ideas before they disappear. Three actionable steps to start today. Keep creating!"
+      }
+    ],
+    "selected_hook_id": "hook_1",
+    "sections": [
+      {
+        "id": "intro",
+        "position": 1,
+        "heading": "Intro & Hook",
+        "text": "Stop the weekly scramble. PlanPilot's weekly content planning template turns chaotic scheduling into a simple routine. In just three steps, you'll have your whole month mapped out.",
+        "estimated_duration_seconds": 4
+      },
+      {
+        "id": "step_1",
+        "position": 2,
+        "heading": "Step 1 — Define Your Theme Week",
+        "text": "First, pick a theme for your week. Instead of scrolling through ideas, choose one clear focus—like 'behind-the-scenes' or 'tutorial Tuesday.' This gives your audience something consistent and makes planning much easier.",
+        "estimated_duration_seconds": 12
+      },
+      {
+        "id": "step_2",
+        "position": 3,
+        "heading": "Step 2 — Map Specific Days",
+        "text": "Next, block out your week day by day. Assign each day a specific post type and deadline. Seeing your content spread across the week prevents last-minute rushes and keeps your feed balanced.",
+        "estimated_duration_seconds": 12
+      },
+      {
+        "id": "step_3",
+        "position": 4,
+        "heading": "Step 3 — Reserve Creation Time",
+        "text": "Finally, schedule dedicated creation blocks. PlanPilot helps you protect those slots so you actually make content instead of waiting for inspiration. Consistency beats perfection every time.",
+        "estimated_duration_seconds": 11
+      },
+      {
+        "id": "outro",
+        "position": 5,
+        "heading": "Outro & CTA",
+        "text": "Start using PlanPilot today and turn your weekly chaos into a smooth workflow. Keep creating!",
+        "estimated_duration_seconds": 8
+      }
+    ],
+    "title": "Batch Your Weekly Content Planning with PlanPilot",
+    "description": "A 45-second Instagram Reel that shows independent creators how to use PlanPilot's weekly content planning template to stop the weekly scramble. The video walks viewers through three practical steps: define a theme week, map specific days, and reserve creation time. Perfect for creators who want steady growth without last-minute panic.",
+    "call_to_action": "Download PlanPilot's free weekly template and start planning your month today.",
+    "production_notes": [
+      "Video length: 45 seconds total",
+      "Music: Upbeat but professional track (royalty-free), fades under voiceover",
+      "Visual style: Quick cuts between phone screen recordings of the PlanPilot template, then transition to creator-style shots of actual content creation",
+      "Text overlays: Bold, friendly font for each step number; keep on-screen time under 3 seconds per overlay",
+      "Voiceover tone: Friendly, direct, warm — matching the brand's practical vibe",
+      "End card: Logo animation with 'PlanPilot' and 'Free Template' callout",
+      "Captions: Auto-generated subtitles enabled for accessibility"
+    ]
+  },
+  "requirement_checks": [
+    {
+      "requirement_id": "brand-name",
+      "status": "satisfied",
+      "evidence_section_ids": [
+        "intro",
+        "step_3",
+        "outro"
+      ],
+      "message": null
+    },
+    {
+      "requirement_id": "approved-claims",
+      "status": "needs_review",
+      "evidence_section_ids": [],
+      "message": "Review factual claims against the approved claims in the brand brief."
+    },
+    {
+      "requirement_id": "signature-closing-line",
+      "status": "satisfied",
+      "evidence_section_ids": [
+        "intro"
+      ],
+      "message": null
+    }
+  ],
+  "warning_ids": [
+    "approved-claims"
+  ]
+}

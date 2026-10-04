@@ -1,6 +1,10 @@
 # JavaScript
 frontend/node_modules/
 frontend/.next/
+frontend/.next-qa/
+frontend/.next-build-qa/
+frontend/test-results/
+frontend/playwright-report/
 frontend/.vercel/
 frontend/.env.local
 
@@ -18,8 +22,11 @@ backend/.env
 storage/
 tmp/
 *.mp4
+!backend/demo/workflow-demo.mp4
 *.mov
 *.webm
 
 # Local operating-system files
 .DS_Store
+output/playwright/
+.playwright-cli/

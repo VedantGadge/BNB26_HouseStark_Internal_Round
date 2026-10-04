@@ -1,0 +1,634 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-04T05:07:09Z",
+  "title": "Design System: CreatorAI",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Warm Coral",
+        "tonalRamp": [
+          "oklch(15% 0.14 29)",
+          "oklch(25% 0.14 29)",
+          "oklch(35% 0.14 29)",
+          "oklch(45% 0.14 29)",
+          "oklch(55% 0.14 29)",
+          "oklch(65% 0.14 29)",
+          "oklch(80% 0.14 29)",
+          "oklch(95% 0.14 29)"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Deep Coral",
+        "tonalRamp": [
+          "oklch(15% 0.14 29)",
+          "oklch(25% 0.14 29)",
+          "oklch(35% 0.14 29)",
+          "oklch(45% 0.14 29)",
+          "oklch(55% 0.14 29)",
+          "oklch(65% 0.14 29)",
+          "oklch(80% 0.14 29)",
+          "oklch(95% 0.14 29)"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Pale Coral",
+        "tonalRamp": [
+          "oklch(15% 0.14 29)",
+          "oklch(25% 0.14 29)",
+          "oklch(35% 0.14 29)",
+          "oklch(45% 0.14 29)",
+          "oklch(55% 0.14 29)",
+          "oklch(65% 0.14 29)",
+          "oklch(80% 0.14 29)",
+          "oklch(95% 0.14 29)"
+        ]
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Light Coral",
+        "tonalRamp": [
+          "oklch(15% 0.14 29)",
+          "oklch(25% 0.14 29)",
+          "oklch(35% 0.14 29)",
+          "oklch(45% 0.14 29)",
+          "oklch(55% 0.14 29)",
+          "oklch(65% 0.14 29)",
+          "oklch(80% 0.14 29)",
+          "oklch(95% 0.14 29)"
+        ]
+      },
+      "dark-accent-hover": {
+        "role": "primary",
+        "displayName": "Soft Light Coral",
+        "tonalRamp": [
+          "oklch(15% 0.14 29)",
+          "oklch(25% 0.14 29)",
+          "oklch(35% 0.14 29)",
+          "oklch(45% 0.14 29)",
+          "oklch(55% 0.14 29)",
+          "oklch(65% 0.14 29)",
+          "oklch(80% 0.14 29)",
+          "oklch(95% 0.14 29)"
+        ]
+      },
+      "dark-accent-soft": {
+        "role": "primary",
+        "displayName": "Coral Charcoal",
+        "tonalRamp": [
+          "oklch(15% 0.14 29)",
+          "oklch(25% 0.14 29)",
+          "oklch(35% 0.14 29)",
+          "oklch(45% 0.14 29)",
+          "oklch(55% 0.14 29)",
+          "oklch(65% 0.14 29)",
+          "oklch(80% 0.14 29)",
+          "oklch(95% 0.14 29)"
+        ]
+      },
+      "demo-selected": {
+        "role": "primary",
+        "displayName": "Selected Media Coral",
+        "tonalRamp": [
+          "oklch(15% 0.14 29)",
+          "oklch(25% 0.14 29)",
+          "oklch(35% 0.14 29)",
+          "oklch(45% 0.14 29)",
+          "oklch(55% 0.14 29)",
+          "oklch(65% 0.14 29)",
+          "oklch(80% 0.14 29)",
+          "oklch(95% 0.14 29)"
+        ]
+      },
+      "demo-selection-border": {
+        "role": "primary",
+        "displayName": "Media Coral Outline",
+        "tonalRamp": [
+          "oklch(15% 0.14 29)",
+          "oklch(25% 0.14 29)",
+          "oklch(35% 0.14 29)",
+          "oklch(45% 0.14 29)",
+          "oklch(55% 0.14 29)",
+          "oklch(65% 0.14 29)",
+          "oklch(80% 0.14 29)",
+          "oklch(95% 0.14 29)"
+        ]
+      },
+      "demo-tab-selected": {
+        "role": "primary",
+        "displayName": "Selected Media Tab",
+        "tonalRamp": [
+          "oklch(15% 0.14 29)",
+          "oklch(25% 0.14 29)",
+          "oklch(35% 0.14 29)",
+          "oklch(45% 0.14 29)",
+          "oklch(55% 0.14 29)",
+          "oklch(65% 0.14 29)",
+          "oklch(80% 0.14 29)",
+          "oklch(95% 0.14 29)"
+        ]
+      },
+      "demo-tab-foreground": {
+        "role": "primary",
+        "displayName": "Pale Coral Tab Text",
+        "tonalRamp": [
+          "oklch(15% 0.14 29)",
+          "oklch(25% 0.14 29)",
+          "oklch(35% 0.14 29)",
+          "oklch(45% 0.14 29)",
+          "oklch(55% 0.14 29)",
+          "oklch(65% 0.14 29)",
+          "oklch(80% 0.14 29)",
+          "oklch(95% 0.14 29)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Pale Gray",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(25% 0.002 270)",
+          "oklch(35% 0.002 270)",
+          "oklch(45% 0.002 270)",
+          "oklch(55% 0.002 270)",
+          "oklch(65% 0.002 270)",
+          "oklch(80% 0.002 270)",
+          "oklch(95% 0.002 270)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Studio White",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(25% 0.002 270)",
+          "oklch(35% 0.002 270)",
+          "oklch(45% 0.002 270)",
+          "oklch(55% 0.002 270)",
+          "oklch(65% 0.002 270)",
+          "oklch(80% 0.002 270)",
+          "oklch(95% 0.002 270)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(25% 0.002 270)",
+          "oklch(35% 0.002 270)",
+          "oklch(45% 0.002 270)",
+          "oklch(55% 0.002 270)",
+          "oklch(65% 0.002 270)",
+          "oklch(80% 0.002 270)",
+          "oklch(95% 0.002 270)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Quiet Ink",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(25% 0.002 270)",
+          "oklch(35% 0.002 270)",
+          "oklch(45% 0.002 270)",
+          "oklch(55% 0.002 270)",
+          "oklch(65% 0.002 270)",
+          "oklch(80% 0.002 270)",
+          "oklch(95% 0.002 270)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Fine Gray",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(25% 0.002 270)",
+          "oklch(35% 0.002 270)",
+          "oklch(45% 0.002 270)",
+          "oklch(55% 0.002 270)",
+          "oklch(65% 0.002 270)",
+          "oklch(80% 0.002 270)",
+          "oklch(95% 0.002 270)"
+        ]
+      },
+      "dark-background": {
+        "role": "neutral",
+        "displayName": "Studio Charcoal",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(25% 0.002 270)",
+          "oklch(35% 0.002 270)",
+          "oklch(45% 0.002 270)",
+          "oklch(55% 0.002 270)",
+          "oklch(65% 0.002 270)",
+          "oklch(80% 0.002 270)",
+          "oklch(95% 0.002 270)"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Working Plane",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(25% 0.002 270)",
+          "oklch(35% 0.002 270)",
+          "oklch(45% 0.002 270)",
+          "oklch(55% 0.002 270)",
+          "oklch(65% 0.002 270)",
+          "oklch(80% 0.002 270)",
+          "oklch(95% 0.002 270)"
+        ]
+      },
+      "dark-foreground": {
+        "role": "neutral",
+        "displayName": "Light Ink",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(25% 0.002 270)",
+          "oklch(35% 0.002 270)",
+          "oklch(45% 0.002 270)",
+          "oklch(55% 0.002 270)",
+          "oklch(65% 0.002 270)",
+          "oklch(80% 0.002 270)",
+          "oklch(95% 0.002 270)"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Quiet Light Ink",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(25% 0.002 270)",
+          "oklch(35% 0.002 270)",
+          "oklch(45% 0.002 270)",
+          "oklch(55% 0.002 270)",
+          "oklch(65% 0.002 270)",
+          "oklch(80% 0.002 270)",
+          "oklch(95% 0.002 270)"
+        ]
+      },
+      "dark-border": {
+        "role": "neutral",
+        "displayName": "Dark Boundary",
+        "tonalRamp": [
+          "oklch(15% 0.002 270)",
+          "oklch(25% 0.002 270)",
+          "oklch(35% 0.002 270)",
+          "oklch(45% 0.002 270)",
+          "oklch(55% 0.002 270)",
+          "oklch(65% 0.002 270)",
+          "oklch(80% 0.002 270)",
+          "oklch(95% 0.002 270)"
+        ]
+      },
+      "success": {
+        "role": "neutral",
+        "displayName": "Success Green",
+        "tonalRamp": [
+          "oklch(15% 0.1 160)",
+          "oklch(25% 0.1 160)",
+          "oklch(35% 0.1 160)",
+          "oklch(45% 0.1 160)",
+          "oklch(55% 0.1 160)",
+          "oklch(65% 0.1 160)",
+          "oklch(80% 0.1 160)",
+          "oklch(95% 0.1 160)"
+        ]
+      },
+      "dark-success": {
+        "role": "neutral",
+        "displayName": "Light Success Green",
+        "tonalRamp": [
+          "oklch(15% 0.1 160)",
+          "oklch(25% 0.1 160)",
+          "oklch(35% 0.1 160)",
+          "oklch(45% 0.1 160)",
+          "oklch(55% 0.1 160)",
+          "oklch(65% 0.1 160)",
+          "oklch(80% 0.1 160)",
+          "oklch(95% 0.1 160)"
+        ]
+      },
+      "danger": {
+        "role": "neutral",
+        "displayName": "Error Red",
+        "tonalRamp": [
+          "oklch(15% 0.16 25)",
+          "oklch(25% 0.16 25)",
+          "oklch(35% 0.16 25)",
+          "oklch(45% 0.16 25)",
+          "oklch(55% 0.16 25)",
+          "oklch(65% 0.16 25)",
+          "oklch(80% 0.16 25)",
+          "oklch(95% 0.16 25)"
+        ]
+      },
+      "dark-danger": {
+        "role": "neutral",
+        "displayName": "Light Error Red",
+        "tonalRamp": [
+          "oklch(15% 0.16 25)",
+          "oklch(25% 0.16 25)",
+          "oklch(35% 0.16 25)",
+          "oklch(45% 0.16 25)",
+          "oklch(55% 0.16 25)",
+          "oklch(65% 0.16 25)",
+          "oklch(80% 0.16 25)",
+          "oklch(95% 0.16 25)"
+        ]
+      },
+      "demo-background": {
+        "role": "neutral",
+        "displayName": "Media Charcoal",
+        "tonalRamp": [
+          "oklch(15% 0.014 265)",
+          "oklch(25% 0.014 265)",
+          "oklch(35% 0.014 265)",
+          "oklch(45% 0.014 265)",
+          "oklch(55% 0.014 265)",
+          "oklch(65% 0.014 265)",
+          "oklch(80% 0.014 265)",
+          "oklch(95% 0.014 265)"
+        ]
+      },
+      "demo-surface": {
+        "role": "neutral",
+        "displayName": "Media Working Plane",
+        "tonalRamp": [
+          "oklch(15% 0.014 265)",
+          "oklch(25% 0.014 265)",
+          "oklch(35% 0.014 265)",
+          "oklch(45% 0.014 265)",
+          "oklch(55% 0.014 265)",
+          "oklch(65% 0.014 265)",
+          "oklch(80% 0.014 265)",
+          "oklch(95% 0.014 265)"
+        ]
+      },
+      "demo-foreground": {
+        "role": "neutral",
+        "displayName": "Media Light Ink",
+        "tonalRamp": [
+          "oklch(15% 0.014 265)",
+          "oklch(25% 0.014 265)",
+          "oklch(35% 0.014 265)",
+          "oklch(45% 0.014 265)",
+          "oklch(55% 0.014 265)",
+          "oklch(65% 0.014 265)",
+          "oklch(80% 0.014 265)",
+          "oklch(95% 0.014 265)"
+        ]
+      },
+      "demo-muted": {
+        "role": "neutral",
+        "displayName": "Media Quiet Ink",
+        "tonalRamp": [
+          "oklch(15% 0.014 265)",
+          "oklch(25% 0.014 265)",
+          "oklch(35% 0.014 265)",
+          "oklch(45% 0.014 265)",
+          "oklch(55% 0.014 265)",
+          "oklch(65% 0.014 265)",
+          "oklch(80% 0.014 265)",
+          "oklch(95% 0.014 265)"
+        ]
+      },
+      "demo-border": {
+        "role": "neutral",
+        "displayName": "Media Boundary",
+        "tonalRamp": [
+          "oklch(15% 0.014 265)",
+          "oklch(25% 0.014 265)",
+          "oklch(35% 0.014 265)",
+          "oklch(45% 0.014 265)",
+          "oklch(55% 0.014 265)",
+          "oklch(65% 0.014 265)",
+          "oklch(80% 0.014 265)",
+          "oklch(95% 0.014 265)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Hero display",
+        "purpose": "Short centered landing headline; mobile overrides remain in CSS."
+      },
+      "headline": {
+        "displayName": "Working headline",
+        "purpose": "Shared studio titles use 32px/650/1.2, reducing to 29px below 800px."
+      },
+      "title": {
+        "displayName": "Section title",
+        "purpose": "General sections; task panels use the observed 19px variant."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Instructions and paragraphs; manuscript styles expand spoken text."
+      },
+      "label": {
+        "displayName": "Control label",
+        "purpose": "Visible labels and working controls; small project metadata remains local."
+      }
+    },
+    "shadows": [
+      {
+        "name": "surface-ambient",
+        "value": "0 12px 40px rgba(26, 25, 45, 0.08)",
+        "purpose": "Media previews and dialogs in light theme."
+      },
+      {
+        "name": "surface-ambient-dark",
+        "value": "0 12px 40px rgba(0, 0, 0, 0.22)",
+        "purpose": "Dark theme counterpart."
+      },
+      {
+        "name": "demonstration-ambient",
+        "value": "0 14px 38px rgba(24, 27, 47, 0.15)",
+        "purpose": "Landing editor depth."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Control, image and accordion transitions."
+      },
+      {
+        "name": "state-transition",
+        "value": "0.2s",
+        "purpose": "Fill, border and small hover feedback."
+      },
+      {
+        "name": "project-card-hover",
+        "value": "translateY(-2px)",
+        "purpose": "Project-card hover with border strengthening; no added shadow."
+      },
+      {
+        "name": "studio-button-active",
+        "value": "translateY(1px)",
+        "purpose": "Pressed feedback on studio actions; evidence and list rows are excluded."
+      },
+      {
+        "name": "image-transition",
+        "value": "0.7s",
+        "purpose": "Photographic thumbnail hover scale."
+      },
+      {
+        "name": "accordion-transition",
+        "value": "0.6s",
+        "purpose": "Landing workflow flex expansion."
+      },
+      {
+        "name": "story-text-scrub",
+        "value": "opacity 0.65 to 1; stagger 0.18; scrub 0.7",
+        "purpose": "Readable story words when reduced motion is not requested."
+      },
+      {
+        "name": "story-image-scrub",
+        "value": "scale 0.8 to 1, then opacity 1 to 0.2; scrub 0.8",
+        "purpose": "Story photograph scale/fade when reduced motion is not requested."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Disable CSS transitions/animations, smooth scroll and GSAP scroll effects."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "demo-compact",
+        "value": "1150px"
+      },
+      {
+        "name": "studio-compact",
+        "value": "1100px"
+      },
+      {
+        "name": "stack",
+        "value": "800px"
+      },
+      {
+        "name": "mobile",
+        "value": "520px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Studio Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Monochrome studio action with coral keyboard focus.",
+      "html": "<button class=\"ds-primary\">Save version</button>",
+      "css": ".ds-primary{font-family:var(--font-body,Outfit,'Noto Sans Devanagari',sans-serif);display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:11px 20px;border:0;border-radius:9px;font-size:14px;font-weight:600;line-height:1.3;cursor:pointer;transition:background .2s var(--ease,cubic-bezier(.16,1,.3,1));background:var(--foreground,#19191b);color:var(--surface,#fff)}.ds-primary:hover{background:color-mix(in srgb,var(--foreground,#19191b) 85%,var(--surface,#fff))}.ds-primary:focus-visible{outline:3px solid var(--accent,#b83b2f);outline-offset:4px;}.ds-primary:active{transform:translateY(1px)}.ds-primary:disabled{opacity:.55;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-primary{transition:none}.ds-primary:active{transform:none}}"
+    },
+    {
+      "name": "Studio Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Surface action with a fine inset boundary.",
+      "html": "<button class=\"ds-secondary\">Compare versions</button>",
+      "css": ".ds-secondary{font-family:var(--font-body,Outfit,'Noto Sans Devanagari',sans-serif);display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:11px 20px;border:0;border-radius:9px;font-size:14px;font-weight:600;line-height:1.3;cursor:pointer;transition:background .2s var(--ease,cubic-bezier(.16,1,.3,1));background:var(--surface,#fff);color:var(--foreground,#19191b);box-shadow:inset 0 0 0 1px var(--border,#dedee0)}.ds-secondary:hover{background:var(--background,#f7f7f7)}.ds-secondary:focus-visible{outline:3px solid var(--accent,#b83b2f);outline-offset:4px;}.ds-secondary:active{transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-secondary{transition:none}.ds-secondary:active{transform:none}}"
+    },
+    {
+      "name": "Landing Hero Button",
+      "kind": "button",
+      "refersTo": "button-hero",
+      "description": "Coral action within the centered landing hero.",
+      "html": "<button class=\"ds-hero\">Open your studio</button>",
+      "css": ".ds-hero{font-family:var(--font-body,Outfit,'Noto Sans Devanagari',sans-serif);display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:11px 20px;border:0;border-radius:9px;font-size:14px;font-weight:600;line-height:1.3;cursor:pointer;transition:background .2s var(--ease,cubic-bezier(.16,1,.3,1));min-height:48px;padding:13px 24px;border-radius:12px;background:var(--accent,#b83b2f);color:#fff}.ds-hero:hover{background:var(--accent-hover,#963025)}.ds-hero:focus-visible{outline:3px solid var(--accent,#b83b2f);outline-offset:4px;}.ds-hero:active{transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-hero{transition:none}.ds-hero:active{transform:none}}"
+    },
+    {
+      "name": "Labelled Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Native working input with a visible label and fine border.",
+      "html": "<label class=\"ds-field\"><span>Project name</span><input value=\"Coastal story\" /></label>",
+      "css": ".ds-field{font-family:var(--font-body,Outfit,'Noto Sans Devanagari',sans-serif);display:flex;flex-direction:column;gap:7px;font-size:14px;color:var(--foreground,#19191b)}.ds-field span{font-weight:550}.ds-field input{font:inherit;line-height:1.5;padding:11px 12px;border:1px solid var(--border,#dedee0);border-radius:9px;background:var(--surface,#fff);color:var(--foreground,#19191b);min-width:0}.ds-field input:hover{border-color:var(--muted,#626266)}.ds-field input:focus-visible{outline:3px solid var(--accent,#b83b2f);outline-offset:4px;}"
+    },
+    {
+      "name": "Working Surface",
+      "kind": "card",
+      "refersTo": "surface",
+      "description": "Quiet bordered container for related tools.",
+      "html": "<section class=\"ds-surface\"><h3>Saved version</h3><p>Review your edit before exporting.</p></section>",
+      "css": ".ds-surface{font-family:var(--font-body,Outfit,'Noto Sans Devanagari',sans-serif);color:var(--foreground,#19191b);background:var(--surface,#fff);border:1px solid var(--border,#dedee0);border-radius:14px;padding:24px}.ds-surface h3{font-size:19px;font-weight:620;margin:0 0 10px}.ds-surface p{font-size:13px;line-height:1.65;margin:0;color:var(--muted,#626266)}"
+    },
+    {
+      "name": "Active Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-active",
+      "description": "Compact coral state marker; always retains a readable label.",
+      "html": "<span class=\"ds-badge\">In review</span>",
+      "css": ".ds-badge{font-family:var(--font-body,Outfit,'Noto Sans Devanagari',sans-serif);display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft,#fff0ed);color:var(--accent,#b83b2f);border-radius:6px;padding:6px 10px;font-size:12px;font-weight:550;white-space:nowrap}"
+    },
+    {
+      "name": "Studio Navigation",
+      "kind": "nav",
+      "refersTo": "nav-active",
+      "description": "Light SVG icon and coral selected route.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Project sections\"><a href=\"#script\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><path d=\"M5 3h10l4 4v14H5zM15 3v5h4M8 12h8M8 16h6\"/></svg><span>Script</span></a><a href=\"#assets\">Assets</a></nav>",
+      "css": ".ds-nav{font-family:var(--font-body,Outfit,'Noto Sans Devanagari',sans-serif);display:flex;flex-direction:column;gap:5px}.ds-nav a{display:flex;align-items:center;gap:10px;padding:12px 14px;min-height:44px;border-radius:9px;font-size:14px;color:var(--muted,#626266);text-decoration:none}.ds-nav a:hover{background:var(--background,#f7f7f7);color:var(--foreground,#19191b)}.ds-nav a[aria-current=page]{background:var(--accent-soft,#fff0ed);color:var(--accent,#b83b2f);font-weight:600}.ds-nav a:focus-visible{outline:3px solid var(--accent,#b83b2f);outline-offset:4px;}"
+    },
+    {
+      "name": "Project Card",
+      "kind": "card",
+      "refersTo": "project-card",
+      "description": "Real project brief, stage and destination metadata within a quiet lane.",
+      "html": "<a class=\"ds-project\" href=\"#project\"><h3>Coastal story</h3><p>A saved brief for a short creator story.</p><span class=\"ds-stage\">Script</span><div class=\"ds-project-meta\">Instagram · YouTube</div></a>",
+      "css": ".ds-project{font-family:var(--font-body,Outfit,'Noto Sans Devanagari',sans-serif);display:block;background:var(--surface,#fff);color:var(--foreground,#19191b);border:1px solid var(--border,#dedee0);border-radius:12px;padding:18px;text-decoration:none;transition:border-color .2s var(--ease,cubic-bezier(.16,1,.3,1)),transform .2s var(--ease,cubic-bezier(.16,1,.3,1))}.ds-project h3{font-size:17px;font-weight:600;line-height:1.35;margin:0}.ds-project p{font-size:13px;line-height:1.6;color:var(--muted,#626266);margin:10px 0 16px}.ds-stage{font-size:12px;color:var(--accent,#b83b2f)}.ds-project-meta{border-top:1px solid var(--border,#dedee0);padding-top:12px;margin-top:16px;font-size:11px;color:var(--muted,#626266)}.ds-project:hover{border-color:var(--muted,#626266);transform:translateY(-2px)}.ds-project:focus-visible{outline:3px solid var(--accent,#b83b2f);outline-offset:4px;}.ds-project:active{transform:none}@media(prefers-reduced-motion:reduce){.ds-project{transition:none}.ds-project:hover{transform:none}}"
+    },
+    {
+      "name": "Board and List Switch",
+      "kind": "chip",
+      "description": "Functional selected view control with coral state.",
+      "html": "<div class=\"ds-switch\" aria-label=\"Project view\"><button aria-pressed=\"true\">Board</button><button aria-pressed=\"false\">List</button></div>",
+      "css": ".ds-switch{font-family:var(--font-body,Outfit,'Noto Sans Devanagari',sans-serif);display:inline-flex;gap:3px;border:1px solid var(--border,#dedee0);border-radius:9px;padding:3px;background:var(--surface,#fff)}.ds-switch button{font:inherit;font-size:13px;font-weight:600;min-height:36px;padding:8px 12px;border:0;border-radius:6px;background:transparent;color:var(--muted,#626266);cursor:pointer}.ds-switch button:hover{background:var(--background,#f7f7f7);color:var(--foreground,#19191b)}.ds-switch button[aria-pressed=true]{background:var(--accent-soft,#fff0ed);color:var(--accent,#b83b2f)}.ds-switch button:focus-visible{outline:3px solid var(--accent,#b83b2f);outline-offset:4px;}.ds-switch button:active{transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-switch button:active{transform:none}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Connected creator studio",
+    "overview": "White and pale gray working surfaces, ink typography, monochrome studio actions and warm coral selections make a connected creation workflow understandable. The user-pinned Instagram-inspired palette replaces violet across the website while keeping CreatorAI's own wordmark and product structure. Outfit gives the interface a rounded, confident voice; coastal creator photography supplies the human context. The dark media editor reads as a working tool within the light page, with a deliberate charcoal theme available for the wider interface.\n\nThe landing page uses large centered type, generous chapter spacing and an interactive demonstration. Studio screens use a slim breadcrumb bar, stage board, compact forms, readable scripts, evidence rows and familiar project navigation. This records the built local hackathon prototype; it makes no production readiness or accessibility certification claim. Implementation truth lives in `frontend/app/globals.css`, the root layout and the shared shell, UI, workflow, landing and Remotion components. The latest authority in `.impeccable/studio-brief.md` and `studio-social-1.png` supersedes historical violet passages and mockup-only account details.",
+    "keyCharacteristics": [
+      "Monochrome studio actions, coral selections and coherent light/dark working planes.",
+      "Open working areas, fine borders and softly inset media.",
+      "Native text and controls around authored photographic previews.",
+      "Visible distinctions between illustrative demonstrations, editable drafts and verified exports."
+    ],
+    "rules": [
+      {
+        "name": "The Coral Selection Rule",
+        "body": "Use coral to signal selection, focus and workflow context. Let white/ink carry working surfaces and studio primary actions. Do not reintroduce violet or teal as an application accent.",
+        "section": "colors"
+      },
+      {
+        "name": "The Readable Script Rule",
+        "body": "Use the manuscript's larger type and generous leading for spoken text; keep tool labels subordinate.",
+        "section": "typography"
+      },
+      {
+        "name": "The Working Plane Rule",
+        "body": "Keep rows and ordinary containers quiet; reserve ambient lift for media and overlays.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep white/ink studio actions and coral selections coherent through semantic CSS variables in both themes.",
+      "**Do** use native controls, visible labels, accessible SVG icons and clear focus outlines.",
+      "**Do** give scripts reading space and tools compact, predictable placement.",
+      "**Do** label illustrative imagery and examples, preserve source/version distinctions, show real workflow state and fetched board counts, and derive next-step guidance from the actual checklist and completed exports.",
+      "**Do** keep controls outside authored caption space and honor reduced motion."
+    ],
+    "donts": [
+      "**Don't** introduce invented customer proof, metrics, prices or unsupported product controls.",
+      "**Don't** reintroduce violet or teal accents; the latest user authority explicitly supersedes the older palette.",
+      "**Don't** turn small demo metadata into the default body type size.",
+      "**Don't** make transient scroll opacity hide meaningful text; retain the observed readable 0.65 starting opacity.",
+      "**Don't** replace functional UI with screenshot imagery, glyph icons or unlabeled actions.",
+      "**Don't** add hard offset shadows, decorative eyebrows or a new accent family to this system."
+    ]
+  }
+}

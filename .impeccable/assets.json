@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "approved_reference": ".impeccable/mocks/landing-multiview.png",
+  "provenance_policy": "All generated media is illustrative-only. This scene is AI-generated demonstration imagery, not user footage, a customer endorsement, or evidence of actual platform exports.",
+  "produce": [
+    {
+      "id": "coastline",
+      "source_crop": ".impeccable/mocks/landing-multiview.png (seaside creator scene; visual reference only, no pixels extracted)",
+      "output_path": "frontend/public/media/coastline.webp",
+      "public_url": "/media/coastline.webp",
+      "source_path": ".impeccable/sources/coastline.png",
+      "source_native_path": "/Users/vedantgadge1512/.codex/generated_images/01a103ee-4ba9-7d80-98ac-47e96585048a/exec-38de9893-74ff-4900-9399-2e9730c38a4a.png",
+      "strategy": "Independent clean photographic regeneration through built-in image_gen; copied source kept non-destructively; optimized through cwebp quality82 method6 resize1024.",
+      "prompt_used": "Use case: photorealistic-natural\nAsset type: clean production travel photograph for synchronized video framing previews.\nPrimary request: Independently create a realistic seaside creator photograph matching this approved scene: a creator viewed from behind filming a Mediterranean cove with a small handheld camera.\nScene/backdrop: Clear turquoise Mediterranean water, sculptural warm limestone cliffs and sea stacks, a small pale sandy beach, blue open sea and a clean light-blue sky.\nSubject: One adult creator seen from behind, brown hair in a loose bun, white short-sleeve shirt and plain black backpack, holding a compact unbranded camera on a handheld grip toward the cove.\nStyle/medium: Natural editorial travel photography, realistic rock and fabric textures, crisp optical detail.\nComposition/framing: Landscape 3:2 source photograph. Keep the creator near the horizontal center, within the central 30 percent of the frame so a center portrait crop retains the head, camera, shoulders and backpack. Rear eye-level view, creator in the lower middle foreground; generous turquoise water and warm cliffs extend to both sides. Enough vertical room above the head and below the backpack for portrait, landscape and square crops from one source.\nLighting/mood: Crisp clear midday sunshine, natural shadows, bright welcoming daylight.\nColor palette: Turquoise and azure water, warm honey limestone, pale sand, clean blue sky, neutral white shirt and black backpack.\nConstraints: This is a raw photograph only. Full bleed scene. No interface, no cards, no borders, no rounded corners, no perspective transforms, no captions, no logos, no typography, no watermark. Generate original scene pixels independently; do not crop or reproduce UI screenshot pixels.\nAvoid: extra people, invented props, sunset lighting, artificial purple tint, illustration, excessive HDR, blurry image, letterboxing, baked overlays.",
+      "prompt_path": ".impeccable/sources/coastline.prompt.txt",
+      "prompt_embedding": {
+        "source": "PNG tEXt impeccable:prompt",
+        "production": "frontend/public/media/coastline.webp.json (embed-prompt.mjs WebP fallback)",
+        "readback_verified": true
+      },
+      "dimensions": {
+        "width": 1024,
+        "height": 683
+      },
+      "source_dimensions": {
+        "width": 1536,
+        "height": 1024
+      },
+      "file_size_bytes": 142876,
+      "format": "webp",
+      "transparency": false,
+      "alt_text": "Illustrative AI-generated photograph of a creator filming a turquoise seaside cove from a limestone overlook.",
+      "provenance": {
+        "type": "AI-generated",
+        "generator": "native image_gen",
+        "illustrative_only": true,
+        "derived_from_mock_pixels": false,
+        "original_preserved": true
+      },
+      "deviations": [
+        "Creator centered to support one-source portrait, landscape and square crops; approved mock's landscape creator appears left of center.",
+        "The main limestone cliff is on the left rather than the approved mock's right; warm coastal material, clear midday light, turquoise water, rear-view creator, camera and backpack are preserved."
+      ],
+      "qa_status": "accepted",
+      "qa_notes": "Opened native source and optimized WebP; compared to approved mock. Full-bleed crisp natural image; no text, UI, borders, rounded clipping, watermark or logos. Center portrait crop retains head, handheld camera and shoulders. Use upper-right zoom for an ocean/detail-only square if required."
+    },
+    {
+      "id": "creator-preview",
+      "source_crop": ".impeccable/mocks/saas-3.png (central creator selfie; reference only, no pixels extracted)",
+      "approved_reference": ".impeccable/mocks/saas-3.png",
+      "approval_authority": "Parent chose comp 3 under the user's explicit recommended-choice delegation.",
+      "output_path": "frontend/public/media/creator-preview.webp",
+      "public_url": "/media/creator-preview.webp",
+      "source_path": ".impeccable/sources/creator-preview.png",
+      "source_native_path": "/Users/vedantgadge1512/.codex/generated_images/01a103ee-4ba9-7d80-98ac-47e96585048a/exec-9c1c76c6-4812-4804-99dd-d348075c6081.png",
+      "strategy": "Independent photographic generation through native image_gen; source copied non-destructively; cwebp quality82 method6 resize1024.",
+      "prompt_used": "Use case: photorealistic-natural\nAsset type: clean photographic source for an illustrative creator video editing preview.\nPrimary request: Independently generate a natural landscape selfie photograph of an adult woman filming herself on a rocky coastal overlook at golden hour.\nScene/backdrop: Rugged warm rocky coastal cliffs and a green overlook on the left, ocean and sculptural offshore sea stacks behind her on the right, gentle breaking waves, pale warm evening sky.\nSubject: One adult woman with brown wavy hair, a beige ribbed knit beanie, an olive outdoor jacket and plain dark backpack straps. She smiles naturally and looks directly into the lens, holding the filming camera herself at arm's length; her extended jacket sleeve enters from the lower left. No visible camera is necessary because this is its selfie viewpoint.\nStyle/medium: Believable editorial travel photography, natural skin and knit textures, detailed rocks and ocean, crisp subject and softly atmospheric distant coast.\nComposition/framing: Landscape 1536x1024, 3:2. Eye-level wide selfie camera angle, woman's face just left of center and in the upper-middle, head and beanie fully visible with breathing room, chest and extended arm in the lower foreground; enough coastline and sea stacks behind her for landscape and centered portrait preview crops.\nLighting/mood: Warm natural late-afternoon golden-hour sunlight from the right, softly lit face, warm rim light on hair, realistic cool ocean shadows, welcoming candid expression.\nColor palette: Warm beige knit, muted olive jacket, brown hair, honey rocks, blue-gray ocean, soft cream evening sky.\nConstraints: Raw full-bleed photographic scene only. Generate original scene pixels independently; do not crop a UI mockup. No text, captions, logos, watermark, interface, video controls, borders, rounded clipping, card shadows or dark overlay wash. CSS will own all presentation.\nAvoid: additional people, invented props, artificial beauty retouching, excessive HDR, illustration, harsh flash, purple lighting, letterboxing, cut-off beanie.",
+      "prompt_path": ".impeccable/sources/creator-preview.prompt.txt",
+      "prompt_embedding": {
+        "source": "PNG tEXt impeccable:prompt",
+        "production": "frontend/public/media/creator-preview.webp.json (embed-prompt.mjs WebP fallback)",
+        "readback_verified": true
+      },
+      "dimensions": {
+        "width": 1024,
+        "height": 683
+      },
+      "source_dimensions": {
+        "width": 1536,
+        "height": 1024
+      },
+      "file_size_bytes": 87650,
+      "format": "webp",
+      "transparency": false,
+      "alt_text": "Illustrative AI-generated selfie of a creator in a beige beanie and olive jacket on a rocky coastal overlook at golden hour.",
+      "provenance": {
+        "type": "AI-generated",
+        "generator": "native image_gen",
+        "illustrative_only": true,
+        "derived_from_mock_pixels": false,
+        "original_preserved": true
+      },
+      "deviations": [
+        "Smile is closed-mouth rather than the reference's open-mouth speaking expression.",
+        "Face is slightly left of center; portrait preview should use approximately 40% horizontal crop position."
+      ],
+      "qa_status": "accepted",
+      "qa_notes": "Native source and optimized WebP opened and compared against approved mock. Natural adult subject, fully visible beige beanie, brown hair, olive jacket and selfie arm; warm rocky coast, ocean and sea stacks preserved. No UI, captions, text, logos, overlays, borders or letterboxing."
+    }
+  ],
+  "direct": [],
+  "latest_approved_reference": ".impeccable/mocks/saas-3.png",
+  "studio_inventory": {
+    "approved_reference": ".impeccable/mocks/studio-social-1.png",
+    "structural_reference": ".impeccable/mocks/studio-board-1.png",
+    "palette_override": "Latest user request supersedes teal: Instagram-inspired monochrome white/ink working surfaces with warm coral #b83b2f accents; dark mode uses charcoal and #ff9b8f. Retain CreatorAI identity. No violet. Historical asset-production records below remain provenance only.",
+    "surface_brief": ".impeccable/studio-brief.md",
+    "produce": [],
+    "direct": [],
+    "semantic_ids": [
+      "studio-shell-and-wordmark",
+      "studio-title-and-workflow-strip",
+      "studio-filter-and-view-toolbar",
+      "studio-project-lanes-and-cards",
+      "studio-empty-lanes-and-onboarding",
+      "studio-task-panels-and-forms",
+      "studio-actual-media-previews"
+    ],
+    "qa_status": "accepted",
+    "qa_notes": "Independently opened both the complete studio-board-1 structural reference and the final studio-social-1 comp. The latter preserves the stage-board topology with white/ink surfaces, dark primary buttons and warm coral selections/links. No photographic, texture, illustration or other raster ingredients appear. The platform badges remain vector/text roles. Fake account initials, plan labels and update times are removed from the final comp. Existing landing demonstration assets remain historical records and are not project covers.",
+    "execution_order": [],
+    "blockers": [],
+    "assumptions": [
+      "The recolored studio-social-1 retains the previously approved stage-board structure and semantic visual roles under the explicit user palette override.",
+      "Actual private source delivery remains dynamic project media, not a raster asset to regenerate or copy publicly.",
+      "Existing landing photography remains unchanged under the user's whole-site palette update; its UI presentation is owned by implementation."
+    ]
+  },
+  "semantic": [
+    {
+      "id": "studio-shell-and-wordmark",
+      "implementation": "Compose StudioShell/ProjectShell from semantic aside, nav, header and main regions. Keep CreatorAI as the existing Brand text link and apply warm coral #b83b2f to its AI suffix. CSS owns the white 224px sidebar, slim 64px topbar, fine neutral separators, monochrome white/ink main canvas and softly coral-tinted active nav row; existing Phosphor SVG components own navigation, theme and creator-session icons. Dark mode uses charcoal working planes and #ff9b8f accents. At mobile widths move navigation above the workspace with horizontal overflow and keep the main pane full width.",
+      "notes": "Use the existing creator-session control and valid destinations. The mock account initials, workspace plan, settings and help are not product evidence. No nearby produced raster assets are required. Preserve explicit dark-theme variables.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "studio-title-and-workflow-strip",
+      "implementation": "Use PageHeader with native h1, supporting paragraph and the real New project button; Phosphor Plus is an SVG child. CSS owns Outfit 32px/650 ink title, 15px supporting copy, ink-filled 44px primary action and 10px button corners. Warm coral #b83b2f marks selected stages and links; dark mode uses charcoal and #ff9b8f accents. Render the four real workflow stages as an ordered list with CSS-bordered numbered circles, connecting rules and text. Wrap or stack the stage list on narrow screens while retaining the sequence.",
+      "notes": "Keep existing product copy and real workflow meaning. Do not rasterize the title, numbered circles, labels or action. No produced raster composition is needed.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "studio-filter-and-view-toolbar",
+      "implementation": "Render the project search as a labelled native search input, stage and platform filters as native selects, and Board/List as labelled buttons with visible selected state and aria-pressed. Phosphor MagnifyingGlass, layout/list and chevron SVGs provide icons. CSS owns monochrome white/ink surfaces, 9px field corners, 44px controls, neutral outlines and coral selected view; dark mode uses charcoal and #ff9b8f. Mobile wraps controls and lets search occupy a full row.",
+      "notes": "Filter fetched projects and preserve the selected view without inventing data or stage transitions. All control text and focus states remain semantic. No raster assets are composed with these controls.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "studio-project-lanes-and-cards",
+      "implementation": "Render three labelled stage sections with fetched counts and semantic project links/cards. CSS grid owns three softly inset monochrome neutral lanes, 14px corners and 18px-padded white cards with fine borders and no ambient shadow. Ink type carries hierarchy and warm coral #b83b2f marks actions; dark mode uses charcoal and #ff9b8f. Native headings and paragraphs show the project name and brief; semantic badges show actual workflow stage/platforms and real timestamps. Use existing Phosphor platform SVGs or readable platform names. Stack lanes on small screens; list view uses the same project data as compact rows.",
+      "notes": "Do not introduce photo covers, generated portraits, fake timestamps or mock completed substeps. This is a stage view only; workflow mutations remain explicit. No nearby landing raster should be reused as a real project source.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "studio-empty-lanes-and-onboarding",
+      "implementation": "Build empty lane bodies from the Empty component or semantic headings, concise instructions and links/buttons to real next tasks. A Phosphor file/upload SVG sits inside a small CSS-created neutral circular backing. CSS owns monochrome white/ink hierarchy, vertical centering, readable constrained text, spacing and coral/outlined controls; dark mode uses charcoal and #ff9b8f. Render any workflow guidance footer as native text with ordered steps and actual links; stack it on mobile.",
+      "notes": "The approved empty-state symbols are functional vector icons, not illustrations to generate. Keep empty counts honest and avoid implying completion or publication. No raster image is needed.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "studio-task-panels-and-forms",
+      "implementation": "Carry the shared shell through Overview, Script, Assets, Clips/editor, Publish and Insights with semantic task headings, native labelled forms, status messages, lists/tables and CSS-owned 14px monochrome white/ink working panels with coral #b83b2f actions. Dark mode uses charcoal planes and #ff9b8f accents. Maintain manuscript reading type for script content and compact labels for tools. Radix dialogs retain labelled overlay/content, accessible close button and scrollable body. Inspectors stack below the main task at narrow widths and tables overflow within their containers.",
+      "notes": "Preserve API fields, validation, draft recovery, saved versions and meaningful status text. Any chart or metric remains SVG/HTML and sourced from actual data. No screenshot of an entire UI region should ship as a bitmap.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "studio-actual-media-previews",
+      "implementation": "Compose existing privately delivered source images/video and Remotion previews in semantic media regions only when real sources are present. CSS owns rounded clipping, aspect ratio, monochrome white/ink or dark-charcoal surroundings, borders and preview placement; coral #b83b2f or dark-mode #ff9b8f marks selected controls. Native controls and timeline elements own playback, seek, caption/trim/crop controls and metadata. Keep video controls outside authored caption areas and prioritize the preview ahead of inspectors on mobile.",
+      "notes": "Source delivery APIs provide actual project media; they are not generated or copied into the public asset directory by this pass. The approved board needs no media. Preserve separate proposal, editable preview and authoritative verified export states; existing illustrative landing imagery is not evidence of an uploaded source.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "saas-creator-demo",
+      "implementation": "Compose /media/creator-preview.webp inside native HTML/Remotion source, edit and export demonstrations. CSS owns near-black field, silver bezel, rounded clipping and a subtle radial edge wash inside imagery. Native accessible controls own play/seek, captions, trim and crop. Use object-position approximately 40% center for portrait crops; responsive mobile places the main preview ahead of secondary controls.",
+      "notes": "Keep an explicit illustrative workflow label. This generated still does not prove an exported video; retain authoritative FFmpeg output state. Caption text and all interface layers remain semantic, never rasterized.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "multiview-tray",
+      "implementation": "Compose /media/coastline.webp with synchronized Remotion previews inside semantic portrait, landscape and square media regions. CSS owns 14–16px rounded clipping, cool silver inset tray, border and diffused shadow; use object-fit cover and crop positions per format.",
+      "notes": "One identical source underpins each preview; the third view can zoom toward upper-right sea stacks. Responsive mobile layout should prioritize portrait and stack the other views. No imagery was cropped from the UI comp.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "preview-controls-and-captions",
+      "implementation": "Use actual Remotion player transport, accessible play/pause/seek/audio/fullscreen controls and semantic text captions. Native HTML owns 'Illustrative preview' label and caption treatment; do not bake labels or transport into the photo.",
+      "notes": "Label all photo-driven demonstrations illustrative. FFmpeg-verified actual export states remain separate.",
+      "qa_status": "accepted"
+    },
+    {
+      "id": "lower-edit-demonstration",
+      "implementation": "Reuse /media/coastline.webp as the original and caption/crop preview source. Render trim range, captions, crop region, title and audio controls as native form inputs and timeline elements, with synchronized frame presentation.",
+      "notes": "Second generated scene unnecessary: repeated source communicates original-preserving edits and coherent output formats.",
+      "qa_status": "accepted"
+    }
+  ],
+  "execution_order": [
+    "produce coastline independent source",
+    "visually compare against approved mock",
+    "resize and compress 1024px WebP",
+    "embed source prompt and production sidecar through embed-prompt.mjs",
+    "read both prompts",
+    "write manifest and semantic handoff",
+    "generate independent creator selfie against saas-3",
+    "inspect selfie source and optimized WebP",
+    "embed and read creator-preview prompts",
+    "append creator-preview manifest while preserving coastline"
+  ],
+  "blockers": [],
+  "assumptions": [
+    "A single generated still can support the illustrative animated framing preview and lower edit demonstration.",
+    "Implementation is responsible for visible illustrative labelling and all interactions.",
+    "The parent-approved request to retain central portrait cropping permits centered creator placement."
+  ]
+}
