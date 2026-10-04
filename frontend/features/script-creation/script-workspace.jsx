@@ -77,7 +77,7 @@ export function ScriptWorkspace({ projectId }) {
   );
   const spoken = spokenScript(draft);
   return (
-    <section className="workspace">
+    <section className="workspace script-workspace">
       <PageHeader
         title="Make it sound like you."
         description="A clear script, a stronger opening, your voice."
@@ -92,7 +92,7 @@ export function ScriptWorkspace({ projectId }) {
       />
       <Status query={versions} error={action.error} />
       <div className="two-pane">
-        <div>
+        <div className="script-working-pane">
           <div className="tabs" aria-label="Script view">
             {["Read", "Edit", "Context"].map((value) => (
               <button

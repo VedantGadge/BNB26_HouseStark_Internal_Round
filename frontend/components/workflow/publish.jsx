@@ -104,7 +104,7 @@ export function Publish({ projectId }) {
   const [preview, setPreview] = useState(null);
   const state = workflow.data;
   return (
-    <section className="workspace">
+    <section className="workspace publish-workspace">
       <PageHeader
         title="Get your story ready."
         description="Review the final media, prepare each post and keep publication records connected."
@@ -139,6 +139,7 @@ export function Publish({ projectId }) {
             )}
           </div>
           <form
+            className="package-form studio-panel"
             onSubmit={(e) => {
               e.preventDefault();
               const fields = new FormData(e.currentTarget);
@@ -230,6 +231,7 @@ export function Publish({ projectId }) {
           )}
           <h2>Plan a platform</h2>
           <form
+            className="publication-plan-form studio-panel"
             onSubmit={(e) => {
               e.preventDefault();
               const f = new FormData(e.currentTarget);

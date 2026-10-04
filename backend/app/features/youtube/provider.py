@@ -35,7 +35,10 @@ def token_cipher(settings: Settings) -> Fernet:
 
 
 def video_id_from_url(value: str | None) -> str:
-    parsed = urlparse(value or "")
+    try:
+        parsed = urlparse(value or "")
+    except ValueError as error:
+        raise HTTPException(422, "Save a valid YouTube video URL in Publish first.") from error
     parts = parsed.path.strip("/").split("/")
     video_id = ""
     if parsed.scheme == "https" and not parsed.username and not parsed.password:
@@ -101,9 +104,13 @@ class YouTubeProvider:
                 "grant_type": "authorization_code",
             },
         )
-        if not set(SCOPES) <= set(result.get("scope", "").split()):
+        scope = result.get("scope")
+        if not isinstance(scope, str) or not set(SCOPES) <= set(scope.split()):
             raise HTTPException(409, "Allow both YouTube read-only permissions when connecting.")
-        if not result.get("access_token") or not result.get("refresh_token"):
+        if any(
+            not isinstance(result.get(key), str) or not result[key]
+            for key in ("access_token", "refresh_token")
+        ):
             raise HTTPException(409, "Reconnect YouTube and allow offline access.")
         return result
 
@@ -133,6 +140,8 @@ class YouTubeProvider:
             headers={"Authorization": f"Bearer {access_token}"},
         )
         items = body.get("items", [])
+        if not isinstance(items, list):
+            raise HTTPException(502, "YouTube returned invalid channel details.")
         if len(items) != 1:
             raise HTTPException(409, "Choose a Google account with a YouTube channel.")
         try:
@@ -152,6 +161,8 @@ class YouTubeProvider:
             headers=headers,
         )
         items = body.get("items", [])
+        if not isinstance(items, list):
+            raise HTTPException(502, "YouTube returned invalid video details.")
         if not items:
             raise HTTPException(404, "The YouTube video was not found or is inaccessible.")
         try:
@@ -161,7 +172,7 @@ class YouTubeProvider:
             published = datetime.fromisoformat(snippet["publishedAt"].replace("Z", "+00:00"))
             if published.tzinfo is None:
                 raise ValueError("missing timezone")
-        except (KeyError, TypeError, ValueError) as error:
+        except (AttributeError, KeyError, TypeError, ValueError) as error:
             raise HTTPException(502, "YouTube returned invalid video details.") from error
         start = published.astimezone(PACIFIC).date()
         end = min(
@@ -222,7 +233,7 @@ class YouTubeProvider:
             "observed_at": datetime.now(UTC),
             "reporting_window_days": (available_end - start).days + 1,
             "reporting_basis": "youtube_calendar_days",
-            "source": f"YouTube Analytics API · {start} to {available_end} (Pacific)",
+            "source": f"YouTube Analytics API · {video_id} · {start} to {available_end} (Pacific)",
         }
 
     def revoke(self, encrypted_refresh_token):

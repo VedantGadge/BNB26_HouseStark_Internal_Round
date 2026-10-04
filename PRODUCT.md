@@ -51,8 +51,10 @@ and Insights project navigation and existing route URLs. Work remains local.
 
 ## Brand Commitments
 
-Keep the CreatorAI name. Preserve violet as the recognizable action color from
-the existing integration guides. The user explicitly requested a sleek modern
+Keep the CreatorAI name. The latest user directive explicitly rejects violet and
+requests an Instagram-inspired website: white/ink surfaces, monochrome actions,
+warm coral selection accents, and charcoal dark mode. This supersedes the earlier
+violet integration-guide palette. The user explicitly requested a sleek modern
 redesign using Impeccable, design-taste-frontend, high-end-visual-design,
 landing-page-design and Remotion SaaS guidance. Specific aesthetic decisions are
 delegated, not claims of an established external brand.

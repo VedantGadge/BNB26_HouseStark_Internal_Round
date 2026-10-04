@@ -40,7 +40,7 @@ export function YouTubeCallback() {
   }, [router]);
 
   return (
-    <main className="workspace">
+    <main id="main-content" className="workspace">
       <h1>Connect YouTube</h1>
       {error ? (
         <>

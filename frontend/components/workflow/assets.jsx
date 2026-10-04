@@ -4,6 +4,7 @@ import { post } from "@/lib/api";
 import { uploadFile } from "@/lib/upload";
 import { Field, Job, Media, Status, time, useAction, useApi } from "./common";
 import { Empty, PageHeader } from "@/components/ui/studio-ui";
+import { CloudArrowUp } from "@phosphor-icons/react";
 
 function Evidence({ asset }) {
   const analysis = useApi(
@@ -74,7 +75,7 @@ export function Assets({ projectId }) {
   const [progress, setProgress] = useState(null);
   const selectedAsset = assets.data?.find((a) => a.id === selected);
   return (
-    <section className="workspace">
+    <section className="workspace assets-workspace">
       <PageHeader
         title="Every story starts somewhere."
         description="Your private source library. Upload, analyze and find the evidence behind each moment."
@@ -119,6 +120,13 @@ export function Assets({ projectId }) {
           });
         }}
       >
+        <div className="upload-intro">
+          <CloudArrowUp size={32} weight="light" aria-hidden="true" />
+          <div>
+            <h2>Add your original media</h2>
+            <p>Video, images and audio. Your sources stay untouched.</p>
+          </div>
+        </div>
         <Field label="Video, image, or audio · up to 100 MB">
           <input
             name="file"
@@ -135,7 +143,7 @@ export function Assets({ projectId }) {
           <progress max="100" value={progress} aria-label="Upload progress" />
         )}
       </form>
-      <div className="columns">
+      <div className="columns asset-filter-toolbar">
         <Field label="Media type">
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             {["all", "video", "image", "audio"].map((v) => (
@@ -147,7 +155,9 @@ export function Assets({ projectId }) {
           <input value={search} onChange={(e) => setSearch(e.target.value)} />
         </Field>
       </div>
-      <div className="asset-layout">
+      <div
+        className={`asset-layout${assets.data?.length === 0 ? " is-empty" : ""}`}
+      >
         <div className="asset-list">
           <div className="rows">
             {assets.data
@@ -188,7 +198,7 @@ export function Assets({ projectId }) {
               <Job key={j.id} id={j.id} />
             ))}
         </div>
-        <div>
+        <div className="asset-evidence">
           {selectedAsset ? (
             <Evidence key={selectedAsset.id} asset={selectedAsset} />
           ) : (

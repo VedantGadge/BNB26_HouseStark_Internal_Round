@@ -91,9 +91,9 @@
   "direct": [],
   "latest_approved_reference": ".impeccable/mocks/saas-3.png",
   "studio_inventory": {
-    "approved_reference": ".impeccable/mocks/studio-teal-1.png",
+    "approved_reference": ".impeccable/mocks/studio-social-1.png",
     "structural_reference": ".impeccable/mocks/studio-board-1.png",
-    "palette_override": "User pinned deep teal #116b5b, mint #83d8c5, off-white #f4f6f5 and charcoal. Violet is superseded across the website; historical asset-production records below are preserved as provenance only.",
+    "palette_override": "Latest user request supersedes teal: Instagram-inspired monochrome white/ink working surfaces with warm coral #b83b2f accents; dark mode uses charcoal and #ff9b8f. Retain CreatorAI identity. No violet. Historical asset-production records below remain provenance only.",
     "surface_brief": ".impeccable/studio-brief.md",
     "produce": [],
     "direct": [],
@@ -106,12 +106,12 @@
       "studio-task-panels-and-forms",
       "studio-actual-media-previews"
     ],
-    "qa_status": "needs_parent_review",
-    "qa_notes": "Independently opened the complete studio-board-1 structural reference and compared every visible role with the studio brief. No photographic, texture, illustration or other raster ingredients appear. User's teal palette override does not introduce raster requirements. Awaiting visual comparison of studio-teal-1 once the parent recoloring is saved; existing landing demonstration assets remain historical records and are not project covers.",
+    "qa_status": "accepted",
+    "qa_notes": "Independently opened both the complete studio-board-1 structural reference and the final studio-social-1 comp. The latter preserves the stage-board topology with white/ink surfaces, dark primary buttons and warm coral selections/links. No photographic, texture, illustration or other raster ingredients appear. The platform badges remain vector/text roles. Fake account initials, plan labels and update times are removed from the final comp. Existing landing demonstration assets remain historical records and are not project covers.",
     "execution_order": [],
     "blockers": [],
     "assumptions": [
-      "The recolored studio-teal-1 retains the previously approved stage-board structure and semantic visual roles.",
+      "The recolored studio-social-1 retains the previously approved stage-board structure and semantic visual roles under the explicit user palette override.",
       "Actual private source delivery remains dynamic project media, not a raster asset to regenerate or copy publicly.",
       "Existing landing photography remains unchanged under the user's whole-site palette update; its UI presentation is owned by implementation."
     ]
@@ -119,43 +119,43 @@
   "semantic": [
     {
       "id": "studio-shell-and-wordmark",
-      "implementation": "Compose StudioShell/ProjectShell from semantic aside, nav, header and main regions. Keep the existing Brand text link and apply deep teal to its AI suffix. CSS owns the white 224px sidebar, slim 64px topbar, fine separators, off-white #f4f6f5 main canvas and mint-tinted active nav row with teal text; existing Phosphor SVG components own navigation, theme and creator-session icons. At mobile widths move navigation above the workspace with horizontal overflow and keep the main pane full width.",
+      "implementation": "Compose StudioShell/ProjectShell from semantic aside, nav, header and main regions. Keep CreatorAI as the existing Brand text link and apply warm coral #b83b2f to its AI suffix. CSS owns the white 224px sidebar, slim 64px topbar, fine neutral separators, monochrome white/ink main canvas and softly coral-tinted active nav row; existing Phosphor SVG components own navigation, theme and creator-session icons. Dark mode uses charcoal working planes and #ff9b8f accents. At mobile widths move navigation above the workspace with horizontal overflow and keep the main pane full width.",
       "notes": "Use the existing creator-session control and valid destinations. The mock account initials, workspace plan, settings and help are not product evidence. No nearby produced raster assets are required. Preserve explicit dark-theme variables.",
       "qa_status": "accepted"
     },
     {
       "id": "studio-title-and-workflow-strip",
-      "implementation": "Use PageHeader with native h1, supporting paragraph and the real New project button; Phosphor Plus is an SVG child. CSS owns Outfit 32px/650 charcoal title, 15px supporting copy, deep teal #116b5b 44px action and 10px button corners. Render the four real workflow stages as an ordered list with CSS-bordered numbered circles, connecting rules and text. Wrap or stack the stage list on narrow screens while retaining the sequence.",
+      "implementation": "Use PageHeader with native h1, supporting paragraph and the real New project button; Phosphor Plus is an SVG child. CSS owns Outfit 32px/650 ink title, 15px supporting copy, ink-filled 44px primary action and 10px button corners. Warm coral #b83b2f marks selected stages and links; dark mode uses charcoal and #ff9b8f accents. Render the four real workflow stages as an ordered list with CSS-bordered numbered circles, connecting rules and text. Wrap or stack the stage list on narrow screens while retaining the sequence.",
       "notes": "Keep existing product copy and real workflow meaning. Do not rasterize the title, numbered circles, labels or action. No produced raster composition is needed.",
       "qa_status": "accepted"
     },
     {
       "id": "studio-filter-and-view-toolbar",
-      "implementation": "Render the project search as a labelled native search input, stage and platform filters as native selects, and Board/List as labelled buttons with visible selected state and aria-pressed. Phosphor MagnifyingGlass, layout/list and chevron SVGs provide icons. CSS owns 9px field corners, 44px controls, neutral outlines and teal selected view; mobile wraps controls and lets search occupy a full row.",
+      "implementation": "Render the project search as a labelled native search input, stage and platform filters as native selects, and Board/List as labelled buttons with visible selected state and aria-pressed. Phosphor MagnifyingGlass, layout/list and chevron SVGs provide icons. CSS owns monochrome white/ink surfaces, 9px field corners, 44px controls, neutral outlines and coral selected view; dark mode uses charcoal and #ff9b8f. Mobile wraps controls and lets search occupy a full row.",
       "notes": "Filter fetched projects and preserve the selected view without inventing data or stage transitions. All control text and focus states remain semantic. No raster assets are composed with these controls.",
       "qa_status": "accepted"
     },
     {
       "id": "studio-project-lanes-and-cards",
-      "implementation": "Render three labelled stage sections with fetched counts and semantic project links/cards. CSS grid owns three softly inset off-white neutral lanes, 14px corners and 18px-padded white cards with fine borders and no ambient shadow. Native headings and paragraphs show the project name and brief; semantic badges show actual workflow stage/platforms and real timestamps. Use existing Phosphor platform SVGs or readable platform names. Stack lanes on small screens; list view uses the same project data as compact rows.",
+      "implementation": "Render three labelled stage sections with fetched counts and semantic project links/cards. CSS grid owns three softly inset monochrome neutral lanes, 14px corners and 18px-padded white cards with fine borders and no ambient shadow. Ink type carries hierarchy and warm coral #b83b2f marks actions; dark mode uses charcoal and #ff9b8f. Native headings and paragraphs show the project name and brief; semantic badges show actual workflow stage/platforms and real timestamps. Use existing Phosphor platform SVGs or readable platform names. Stack lanes on small screens; list view uses the same project data as compact rows.",
       "notes": "Do not introduce photo covers, generated portraits, fake timestamps or mock completed substeps. This is a stage view only; workflow mutations remain explicit. No nearby landing raster should be reused as a real project source.",
       "qa_status": "accepted"
     },
     {
       "id": "studio-empty-lanes-and-onboarding",
-      "implementation": "Build empty lane bodies from the Empty component or semantic headings, concise instructions and links/buttons to real next tasks. A Phosphor file/upload SVG sits inside a small CSS-created neutral circular backing. CSS owns vertical centering, readable constrained text, spacing and teal/outlined controls. Render any workflow guidance footer as native text with ordered steps and actual links; stack it on mobile.",
+      "implementation": "Build empty lane bodies from the Empty component or semantic headings, concise instructions and links/buttons to real next tasks. A Phosphor file/upload SVG sits inside a small CSS-created neutral circular backing. CSS owns monochrome white/ink hierarchy, vertical centering, readable constrained text, spacing and coral/outlined controls; dark mode uses charcoal and #ff9b8f. Render any workflow guidance footer as native text with ordered steps and actual links; stack it on mobile.",
       "notes": "The approved empty-state symbols are functional vector icons, not illustrations to generate. Keep empty counts honest and avoid implying completion or publication. No raster image is needed.",
       "qa_status": "accepted"
     },
     {
       "id": "studio-task-panels-and-forms",
-      "implementation": "Carry the shared shell through Overview, Script, Assets, Clips/editor, Publish and Insights with semantic task headings, native labelled forms, status messages, lists/tables and CSS-owned 14px working panels. Maintain manuscript reading type for script content and compact labels for tools. Radix dialogs retain labelled overlay/content, accessible close button and scrollable body. Inspectors stack below the main task at narrow widths and tables overflow within their containers.",
+      "implementation": "Carry the shared shell through Overview, Script, Assets, Clips/editor, Publish and Insights with semantic task headings, native labelled forms, status messages, lists/tables and CSS-owned 14px monochrome white/ink working panels with coral #b83b2f actions. Dark mode uses charcoal planes and #ff9b8f accents. Maintain manuscript reading type for script content and compact labels for tools. Radix dialogs retain labelled overlay/content, accessible close button and scrollable body. Inspectors stack below the main task at narrow widths and tables overflow within their containers.",
       "notes": "Preserve API fields, validation, draft recovery, saved versions and meaningful status text. Any chart or metric remains SVG/HTML and sourced from actual data. No screenshot of an entire UI region should ship as a bitmap.",
       "qa_status": "accepted"
     },
     {
       "id": "studio-actual-media-previews",
-      "implementation": "Compose existing privately delivered source images/video and Remotion previews in semantic media regions only when real sources are present. CSS owns rounded clipping, aspect ratio, borders and preview placement; native controls and timeline elements own playback, seek, caption/trim/crop controls and metadata. Keep video controls outside authored caption areas and prioritize the preview ahead of inspectors on mobile.",
+      "implementation": "Compose existing privately delivered source images/video and Remotion previews in semantic media regions only when real sources are present. CSS owns rounded clipping, aspect ratio, monochrome white/ink or dark-charcoal surroundings, borders and preview placement; coral #b83b2f or dark-mode #ff9b8f marks selected controls. Native controls and timeline elements own playback, seek, caption/trim/crop controls and metadata. Keep video controls outside authored caption areas and prioritize the preview ahead of inspectors on mobile.",
       "notes": "Source delivery APIs provide actual project media; they are not generated or copied into the public asset directory by this pass. The approved board needs no media. Preserve separate proposal, editable preview and authoritative verified export states; existing illustrative landing imagery is not evidence of an uploaded source.",
       "qa_status": "accepted"
     },

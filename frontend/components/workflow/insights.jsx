@@ -24,7 +24,7 @@ export function Insights({ projectId }) {
   const summary = useApi(activeJob ? `/jobs/${activeJob}` : null, true);
   const result = explanation || summary.data?.result;
   return (
-    <section className="workspace">
+    <section className="workspace insights-workspace">
       <PageHeader
         title="Learn from what you make."
         description="Real production activity. Sourced observations. Evidence you can check."
@@ -51,7 +51,7 @@ export function Insights({ projectId }) {
             {Object.entries(data.data.production).map(([key, value]) => (
               <div key={key}>
                 <dt>{key.replaceAll("_", " ")}</dt>
-                <dd>
+                <dd data-empty={value === null}>
                   {value === null
                     ? "No data yet"
                     : Number.isInteger(value)

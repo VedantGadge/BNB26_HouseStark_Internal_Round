@@ -56,6 +56,34 @@ claims from search traffic. Existing source alignment still checks footage suppo
 
 ## Verification
 
+### Local end-to-end test
+
+The API and worker must use the same PostgreSQL `DATABASE_URL` from `backend/.env`.
+Remove any shell-level SQLite override before starting them. The current local
+frontend uses `http://127.0.0.1:8001`, saved in `frontend/.env.local`.
+
+From `backend`, apply normal migrations, then start the API and worker in separate
+terminals:
+
+```sh
+rtk proxy .venv/bin/alembic upgrade head
+rtk proxy .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
+```
+
+```sh
+rtk proxy .venv/bin/python -m app.worker
+```
+
+From `frontend`, run `rtk npm run dev` and open `http://localhost:3000/projects`.
+Create a project with a relevant brief. Open Script, expand Recent trends, choose
+a region, find suggestions, select one, then generate. Watch the job progress
+through writing/review and confirm a new version appears with its selected trend
+and source links. Reload to confirm the version remains saved. An unrelated brief
+may return no suggestions; generation still works with no trend selected.
+
+The original split-history database was reconciled using the procedure in the
+[backend README](../backend/README.md); fresh databases do not need that procedure.
+
 `backend/tests/test_google_trends.py` covers XML parsing, Unicode, timestamps,
 attribution, unsafe links, caching, network failure, owner access, selection
 validation, durable snapshots, idempotency, generation prompts, and fallback

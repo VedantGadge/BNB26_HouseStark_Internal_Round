@@ -69,7 +69,7 @@ export function Editor({ projectId, clipId }) {
     recipe.source_start_ms >= 0 &&
     (!source?.duration_ms || recipe.source_end_ms <= source.duration_ms);
   return (
-    <section className="workspace">
+    <section className="workspace editor-workspace">
       <Link className="text-link" href={`/projects/${projectId}/clips`}>
         Back to clips
       </Link>

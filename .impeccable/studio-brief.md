@@ -1,7 +1,18 @@
 # Connected studio upgrade
 
+## Latest user authority
+
+The user explicitly rejected violet, then requested an Instagram-inspired look.
+Use white/ink, black primary actions, coral #b83b2f selections, pale coral #fff0ed,
+and charcoal dark mode with #ff9b8f accents across the ENTIRE website. No violet
+or teal remains in active frontend styling. Keep CreatorAI branding, not an
+Instagram logo/account clone. Approved current comp: `mocks/studio-social-1.png`;
+three palette-adapted options were shown; choice delegated and announced. Original
+board comps below are historical structural references only. Native image_gen was
+used; prompts embedded in all three current PNG files and their JSON sidecars.
+
 Mode: Operate. Scope: Projects, overview, script, assets, clips/editor, publish,
-insights and their shared shell. The landing page remains unchanged. The user
+insights and their shared shell. Landing topology remains but its palette changes. The user
 asked for visibly more polished SaaS screens and permits UI libraries/skills;
 hackathon prototype quality, local only. Previously delegated recommended choices.
 

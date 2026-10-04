@@ -13,7 +13,7 @@ import psycopg
 import pytest
 from langgraph.checkpoint.postgres import PostgresSaver
 from langgraph.types import Command
-from sqlalchemy import create_engine, inspect, select
+from sqlalchemy import create_engine, inspect, select, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 from test_script_workflow import FakeProvider, valid_script_payload
@@ -28,6 +28,7 @@ from app.features.script_creation.routing import routing_snapshot
 from app.graphs.repurpose import build_repurpose_graph
 from app.models import Asset, Job, LlmCall, Project, ScriptVersion
 from app.schemas import JobType
+from scripts.upgrade_legacy_database import upgrade_legacy_database
 
 
 @pytest.fixture
@@ -96,6 +97,109 @@ def test_upgrade_preserves_shared_projects_and_has_single_head(postgres_schema):
     command.upgrade(config, "head")
     with Session(engine) as session:
         assert session.get(Project, project_id).name == "Preserve me"
+
+
+@pytest.mark.parametrize("abort_upgrade", [False, True])
+def test_split_histories_reconcile_preserving_scripts_and_media(
+    postgres_schema, monkeypatch, abort_upgrade
+):
+    engine, config, _ = postgres_schema
+    command.upgrade(config, "0006_platform_exports")
+    script_project_id, media_project_id = uuid.uuid4(), uuid.uuid4()
+    script_id, asset_id = uuid.uuid4(), uuid.uuid4()
+    with Session(engine) as session:
+        session.add_all(
+            [
+                Project(id=script_project_id, owner_id="legacy", name="Script project", brief="QA"),
+                Project(id=media_project_id, owner_id="legacy", name="Media project", brief="QA"),
+            ]
+        )
+        session.flush()
+        session.add(
+            ScriptVersion(
+                id=script_id,
+                project_id=script_project_id,
+                version=1,
+                origin="creator_edit",
+                content={"title": "Preserved script"},
+                input_snapshot={"source": "legacy"},
+            )
+        )
+        session.add(
+            Asset(
+                id=asset_id,
+                project_id=media_project_id,
+                owner_id="legacy",
+                kind="video",
+                public_id="qa/legacy-preserved",
+                resource_type="video",
+                processing_status="ready",
+            )
+        )
+        session.commit()
+    with engine.begin() as c:
+        c.execute(text("ALTER TABLE projects RENAME TO ai_script_projects"))
+        c.execute(text("CREATE TABLE projects (LIKE ai_script_projects INCLUDING ALL)"))
+        c.execute(
+            text("INSERT INTO projects SELECT * FROM ai_script_projects WHERE id=:id"),
+            {"id": media_project_id},
+        )
+        c.execute(text("ALTER TABLE assets DROP CONSTRAINT assets_project_id_fkey"))
+        c.execute(
+            text(
+                "ALTER TABLE assets ADD CONSTRAINT assets_project_id_fkey "
+                "FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE"
+            )
+        )
+        c.execute(text("DELETE FROM ai_script_projects WHERE id=:id"), {"id": media_project_id})
+        for column in ("current_script_version_id", "workflow_revision", "workflow_data"):
+            c.execute(text(f"ALTER TABLE projects DROP COLUMN {column}"))
+        c.execute(text("CREATE TABLE alembic_version (version_num varchar(32) PRIMARY KEY)"))
+        c.execute(text("INSERT INTO alembic_version VALUES ('0006_platform_exports')"))
+        c.execute(text("UPDATE ai_script_alembic_version SET version_num='0002_content_workflow'"))
+    if abort_upgrade:
+
+        def fail_upgrade(*args):
+            raise RuntimeError("Simulated migration failure")
+
+        with monkeypatch.context() as patch:
+            patch.setattr(command, "upgrade", fail_upgrade)
+            with pytest.raises(RuntimeError, match="Simulated migration failure"):
+                with engine.begin() as c:
+                    upgrade_legacy_database(c, config)
+        with engine.connect() as c:
+            assert c.execute(text("SELECT count(*) FROM projects")).scalar() == 1
+            assert (
+                c.execute(text("SELECT version_num FROM ai_script_alembic_version")).scalar()
+                == "0002_content_workflow"
+            )
+            assert "workflow_data" not in {
+                column["name"] for column in inspect(c).get_columns("projects")
+            }
+
+    with engine.begin() as c:
+        assert upgrade_legacy_database(c, config) == 1
+    with Session(engine) as session:
+        assert session.get(Project, script_project_id).name == "Script project"
+        assert session.get(Project, media_project_id).name == "Media project"
+        assert session.get(ScriptVersion, script_id).content == {"title": "Preserved script"}
+        assert session.get(Asset, asset_id).project_id == media_project_id
+        # New writes must reference the shared table, without a legacy mirror row.
+        project = Project(owner_id="legacy", name="After upgrade", brief="QA")
+        session.add(project)
+        session.flush()
+        session.add(
+            ScriptVersion(
+                project_id=project.id, version=1, origin="creator_edit", content={"title": "New"}
+            )
+        )
+        session.commit()
+    with engine.connect() as c:
+        assert c.execute(text("SELECT count(*) FROM ai_script_projects")).scalar() == 1
+        assert (
+            c.execute(text("SELECT version_num FROM ai_script_alembic_version")).scalar()
+            == "0007_youtube_analytics"
+        )
 
 
 def test_postgres_claims_and_resume_after_checkpointer_reconnect(postgres_schema):

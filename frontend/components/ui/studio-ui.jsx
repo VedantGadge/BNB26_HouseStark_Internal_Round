@@ -3,7 +3,20 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Moon, Sun, UserCircle, X } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  Moon,
+  Sun,
+  UserCircle,
+  X,
+  FolderSimple,
+  NotePencil,
+  TextT,
+  FilmStrip,
+  Export,
+  Check,
+} from "@phosphor-icons/react";
+import { workflowPosition } from "@/lib/studio.mjs";
 
 export function Brand({ href = "/" }) {
   return (
@@ -138,8 +151,70 @@ export function PageHeader({ title, description, action }) {
 export function Empty({ title, children, action }) {
   return (
     <div className="empty-state">
+      <FolderSimple
+        className="empty-state-icon"
+        size={32}
+        weight="light"
+        aria-hidden="true"
+      />
       <h2>{title}</h2>
       <p>{children}</p>
+      {action}
+    </div>
+  );
+}
+
+export function WorkflowRail({ projectId, stage }) {
+  const items = [
+    ["Brief", "Your idea and audience", "", NotePencil],
+    ["Script", "Find your opening", "/script", TextT],
+    ["Footage", "Sources and edits", "/assets", FilmStrip],
+    ["Publish", "Review and deliver", "/publish", Export],
+  ];
+  const position = stage ? workflowPosition(stage) : -1;
+  return (
+    <ol className="studio-workflow" aria-label="Creation workflow">
+      {items.map(([title, copy, suffix, Icon], index) => {
+        const content = (
+          <>
+            <span className="workflow-node">
+              {position > index ? (
+                <Check size={18} />
+              ) : (
+                <Icon size={19} weight="light" />
+              )}
+            </span>
+            <span>
+              <strong>{title}</strong>
+              <small>{copy}</small>
+            </span>
+          </>
+        );
+        return (
+          <li
+            key={title}
+            data-current={position === index}
+            data-complete={position > index}
+          >
+            {projectId ? (
+              <Link href={`/projects/${projectId}${suffix}`}>{content}</Link>
+            ) : (
+              <div>{content}</div>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+export function PanelHeading({ title, description, action }) {
+  return (
+    <div className="panel-heading">
+      <div>
+        <h2>{title}</h2>
+        {description && <p className="muted">{description}</p>}
+      </div>
       {action}
     </div>
   );

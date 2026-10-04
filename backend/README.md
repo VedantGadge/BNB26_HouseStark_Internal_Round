@@ -47,6 +47,15 @@ The retained migration version table is `ai_script_alembic_version`. Run
 `uv run alembic upgrade head` explicitly before starting the application on an
 existing database; deployment and user-database migrations are not performed by QA.
 
+The original split-history PostgreSQL database (script revision
+`0002_content_workflow`, media revision `0006_platform_exports`) needs one
+reconciliation before ordinary upgrades. Stop API/worker writes, then run
+`rtk proxy .venv/bin/python -m scripts.upgrade_legacy_database`. This copies legacy
+projects into the shared table, redirects project foreign keys, and applies the
+remaining migrations in one transaction. Existing scripts, jobs, media projects,
+and original legacy project rows are preserved. Conflicting IDs or unexpected
+schema versions abort the transaction. Subsequent upgrades use Alembic normally.
+
 ## Backend verification
 
 See [the audit](../docs/backend-verification.md). Dedicated local PostgreSQL tests:
