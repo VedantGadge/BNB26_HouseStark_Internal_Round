@@ -8,6 +8,7 @@ from app.features.footage_analysis import router as footage_analysis
 from app.features.media_workflow.insights import router as insights_router
 from app.features.media_workflow.router import router as media_router
 from app.features.platform_exports import router as platform_exports
+from app.features.risk_radar.router import router as risk_radar_router
 from app.features.script_alignment import router as script_alignment
 from app.features.script_creation import router as script_router
 from app.features.script_creation import style_router
@@ -20,6 +21,11 @@ api_router.include_router(insights_router, tags=["insights"])
 api_router.include_router(youtube_router, tags=["youtube"])
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
 api_router.include_router(workflow_router.router, prefix="/projects", tags=["content-workflow"])
+api_router.include_router(
+    risk_radar_router,
+    prefix="/projects/{project_id}/risk-radar",
+    tags=["risk-radar"],
+)
 api_router.include_router(
     script_router.router,
     prefix="/projects/{project_id}/scripts",

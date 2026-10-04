@@ -8,6 +8,7 @@ from app.config import get_settings
 from app.database import get_session_factory
 from app.features.assets.router import get_storage
 from app.features.media_workflow.service import MediaWorkflowService
+from app.features.risk_radar.service import RiskRadarService
 from app.features.script_creation.jobs import JobRepository
 from app.features.script_creation.provider import OpenRouterProvider
 from app.features.script_creation.service import ScriptCreationService
@@ -57,6 +58,9 @@ async def run_worker() -> None:
                                 MediaWorkflowService(
                                     session, settings, get_storage(settings), saver
                                 ).execute(job)
+                        elif job.type == JobType.RISK_RADAR:
+                            radar = RiskRadarService(session, OpenRouterProvider(settings))
+                            radar.execute_claimed_job(job)
                         else:
                             ScriptCreationService(
                                 session, OpenRouterProvider(settings)

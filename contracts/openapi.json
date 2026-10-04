@@ -1446,6 +1446,133 @@
         }
       }
     },
+    "/v1/projects/{project_id}/risk-radar/scans": {
+      "post": {
+        "tags": [
+          "risk-radar"
+        ],
+        "summary": "Queue Risk Radar Scan",
+        "operationId": "queue_risk_radar_scan_v1_projects__project_id__risk_radar_scans_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RiskRadarScanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/projects/{project_id}/risk-radar/scans/{job_id}": {
+      "get": {
+        "tags": [
+          "risk-radar"
+        ],
+        "summary": "Get Risk Radar Scan",
+        "operationId": "get_risk_radar_scan_v1_projects__project_id__risk_radar_scans__job_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskRadarScanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/projects/{project_id}/scripts/campaign-brief": {
       "get": {
         "tags": [
@@ -4829,6 +4956,14 @@
         ],
         "title": "ExportRequest"
       },
+      "FindingOrigin": {
+        "type": "string",
+        "enum": [
+          "deterministic",
+          "model"
+        ],
+        "title": "FindingOrigin"
+      },
       "GoogleTrendSelection": {
         "properties": {
           "country": {
@@ -5857,6 +5992,14 @@
         ],
         "title": "RequirementStatus"
       },
+      "ReviewReadiness": {
+        "type": "string",
+        "enum": [
+          "no_high_or_medium_risks_found",
+          "creator_review_required"
+        ],
+        "title": "ReviewReadiness"
+      },
       "ReviewRequest": {
         "properties": {
           "edit_version_id": {
@@ -5930,6 +6073,206 @@
           "status"
         ],
         "title": "RevisionProposalSummary"
+      },
+      "RiskCategory": {
+        "type": "string",
+        "enum": [
+          "personal_data",
+          "brand_policy",
+          "disclosure",
+          "content_mismatch",
+          "visual_review",
+          "accessibility"
+        ],
+        "title": "RiskCategory"
+      },
+      "RiskRadarFinding": {
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/RiskCategory"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/RiskSeverity"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Description"
+          },
+          "recommendation": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Recommendation"
+          },
+          "reference_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Reference Ids"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/FindingOrigin"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "category",
+          "severity",
+          "title",
+          "description",
+          "recommendation",
+          "reference_ids",
+          "origin"
+        ],
+        "title": "RiskRadarFinding"
+      },
+      "RiskRadarResult": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Summary"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/RiskRadarFinding"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Findings"
+          },
+          "reviewed_reference_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Reviewed Reference Count"
+          },
+          "review_readiness": {
+            "$ref": "#/components/schemas/ReviewReadiness"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Limitations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "summary",
+          "reviewed_reference_count",
+          "review_readiness",
+          "limitations"
+        ],
+        "title": "RiskRadarResult"
+      },
+      "RiskRadarScanRequest": {
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "script_version_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Script Version Id"
+          },
+          "edit_version_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edit Version Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "asset_id"
+        ],
+        "title": "RiskRadarScanRequest",
+        "description": "Select one ready source asset and the content being reviewed against it."
+      },
+      "RiskRadarScanResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "stage": {
+            "type": "string",
+            "title": "Stage"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskRadarResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "stage"
+        ],
+        "title": "RiskRadarScanResponse"
+      },
+      "RiskSeverity": {
+        "type": "string",
+        "enum": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "title": "RiskSeverity"
       },
       "ScriptAlignmentCreate": {
         "properties": {
