@@ -16,7 +16,7 @@ from langgraph.types import Command
 from sqlalchemy import create_engine, inspect, select
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
-from test_script_workflow import FakeProvider, valid_hook_payload, valid_script_payload
+from test_script_workflow import FakeProvider, valid_script_payload
 
 import app.worker as worker_module
 from alembic import command
@@ -204,7 +204,6 @@ def test_worker_persists_reviewed_script_on_postgres(postgres_schema, monkeypatc
         openrouter_default_model="fixture:free",
     )
     payloads = [
-        valid_hook_payload(),
         valid_script_payload(),
         {
             "approved": not needs_revision,
@@ -270,7 +269,7 @@ def test_worker_persists_reviewed_script_on_postgres(postgres_schema, monkeypatc
         assert saved_project.workflow_stage == "editing"
         assert "approved_package" not in saved_project.workflow_data
         calls = list(session.scalars(select(LlmCall).where(LlmCall.job_id == job_id)))
-        assert len(calls) == provider.calls == (4 if needs_revision else 3)
+        assert len(calls) == provider.calls == (3 if needs_revision else 2)
 
 
 def test_media_review_uses_checkpoint_interrupt_not_stale_result_key(postgres_schema, monkeypatch):

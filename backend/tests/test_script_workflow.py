@@ -110,15 +110,10 @@ def valid_script_payload() -> dict[str, Any]:
     }
 
 
-def valid_hook_payload() -> dict[str, Any]:
-    return {"hooks": valid_script_payload()["hooks"]}
-
-
 def test_generation_workflow_persists_an_immutable_script_version(session: Session) -> None:
     job = create_claimed_generation_job(session)
     provider = FakeProvider(
         [
-            valid_hook_payload(),
             valid_script_payload(),
             {"approved": True, "feedback": []},
         ]
@@ -127,7 +122,7 @@ def test_generation_workflow_persists_an_immutable_script_version(session: Sessi
     ScriptCreationService(session, provider).execute_claimed_job(job)
 
     saved = session.scalar(select(ScriptVersion).where(ScriptVersion.job_id == job.id))
-    assert provider.calls == 3
+    assert provider.calls == 2
     assert job.status == JobStatus.COMPLETED.value
     assert saved is not None
     assert saved.version == 1
@@ -136,8 +131,24 @@ def test_generation_workflow_persists_an_immutable_script_version(session: Sessi
     assert call is not None
     assert call.actual_model == "fake/model:free"
     assert all(request["routing"]["max_calls"] == 1 for request in provider.requests)
-    assert len(list(session.scalars(select(LlmCall).where(LlmCall.job_id == job.id)))) == 3
+    assert len(list(session.scalars(select(LlmCall).where(LlmCall.job_id == job.id)))) == 2
     assert session.get(Project, job.project_id).workflow_stage == "idea"
+
+
+@pytest.mark.parametrize("hook_count", [1, 2, 4])
+def test_combined_writer_requires_exactly_three_hooks(session, hook_count):
+    job = create_claimed_generation_job(session)
+    payload = valid_script_payload()
+    payload["hooks"] = [
+        {"id": f"hook-{index}", "text": f"Alternative {index}"}
+        for index in range(1, hook_count + 1)
+    ]
+    provider = FakeProvider([payload])
+
+    ScriptCreationService(session, provider).execute_claimed_job(job)
+
+    assert job.status == "failed" and provider.calls == 1
+    assert session.scalar(select(ScriptVersion)) is None
 
 
 def test_new_script_requires_fresh_creator_approval(session):
@@ -148,7 +159,6 @@ def test_new_script_requires_fresh_creator_approval(session):
     session.commit()
     provider = FakeProvider(
         [
-            valid_hook_payload(),
             valid_script_payload(),
             {"approved": True, "feedback": []},
         ]
@@ -170,7 +180,6 @@ def test_rejected_draft_is_revised_once_and_only_final_content_is_saved(session)
     feedback = {"approved": False, "feedback": ["Give a concrete planning example."]}
     provider = FakeProvider(
         [
-            valid_hook_payload(),
             valid_script_payload(),
             feedback,
             revised,
@@ -180,30 +189,29 @@ def test_rejected_draft_is_revised_once_and_only_final_content_is_saved(session)
     ScriptCreationService(session, provider).execute_claimed_job(job)
 
     assert job.status == "completed"
-    assert provider.calls == 4
+    assert provider.calls == 3
     versions = list(session.scalars(select(ScriptVersion).where(ScriptVersion.job_id == job.id)))
     assert len(versions) == 1
     assert versions[0].content["sections"][0]["text"] == revised["sections"][0]["text"]
     assert versions[0].input_snapshot == original_snapshot == job.input_snapshot
-    review_request = json.loads(provider.requests[2]["user_prompt"])
-    revision_request = json.loads(provider.requests[3]["user_prompt"])
+    review_request = json.loads(provider.requests[1]["user_prompt"])
+    revision_request = json.loads(provider.requests[2]["user_prompt"])
     assert review_request["snapshot"] == original_snapshot
     assert revision_request["review"] == feedback
     assert [r["schema_name"] for r in provider.requests] == [
-        "creator_hooks",
         "creator_script",
         "creator_script_review",
         "creator_script_revision",
     ]
     calls = list(session.scalars(select(LlmCall).where(LlmCall.job_id == job.id)))
-    assert len(calls) == 4
-    assert sum(c.input_tokens for c in calls) == 44
-    assert sum(c.output_tokens for c in calls) == 88
+    assert len(calls) == 3
+    assert sum(c.input_tokens for c in calls) == 33
+    assert sum(c.output_tokens for c in calls) == 66
     # A completed version is the existing replay boundary: no further model calls.
     job.status = "running"
     session.commit()
     ScriptCreationService(session, provider).execute_claimed_job(job)
-    assert job.status == "completed" and provider.calls == 4
+    assert job.status == "completed" and provider.calls == 3
     assert len(list(session.scalars(select(ScriptVersion)))) == 1
 
 
@@ -239,7 +247,6 @@ def test_deterministic_missing_requirements_override_reviewer_approval(session):
     revised["call_to_action"] += " Keep creating!"
     provider = FakeProvider(
         [
-            valid_hook_payload(),
             valid_script_payload(),
             {"approved": True, "feedback": []},
             revised,
@@ -248,7 +255,7 @@ def test_deterministic_missing_requirements_override_reviewer_approval(session):
 
     ScriptCreationService(session, provider).execute_claimed_job(job)
 
-    assert job.status == "completed" and provider.calls == 4
+    assert job.status == "completed" and provider.calls == 3
     saved = session.scalar(select(ScriptVersion).where(ScriptVersion.job_id == job.id))
     checks = {c["requirement_id"]: c["status"] for c in saved.requirement_checks}
     assert checks == {
@@ -260,7 +267,7 @@ def test_deterministic_missing_requirements_override_reviewer_approval(session):
     assert saved.warning_ids == ["tone", "approved-claims"]
     assert any(
         c["status"] == "missing"
-        for c in json.loads(provider.requests[3]["user_prompt"])["requirement_checks"]
+        for c in json.loads(provider.requests[2]["user_prompt"])["requirement_checks"]
     )
 
 
@@ -310,7 +317,6 @@ def test_invalid_revision_fails_without_saving_or_looping(session, violation):
     session.commit()
     provider = FakeProvider(
         [
-            valid_hook_payload(),
             valid_script_payload(),
             {"approved": False, "feedback": ["Improve the example."]},
             revised,
@@ -319,7 +325,7 @@ def test_invalid_revision_fails_without_saving_or_looping(session, violation):
 
     ScriptCreationService(session, provider).execute_claimed_job(job)
 
-    assert job.status == "failed" and provider.calls == 4
+    assert job.status == "failed" and provider.calls == 3
     assert job.lease_expires_at is None
     assert session.scalar(select(ScriptVersion).where(ScriptVersion.job_id == job.id)) is None
     assert session.get(Project, job.project_id).current_script_version_id is None
@@ -337,11 +343,11 @@ def test_invalid_revision_fails_without_saving_or_looping(session, violation):
 )
 def test_invalid_or_unavailable_reviewer_fails_without_persisting(session, review):
     job = create_claimed_generation_job(session)
-    provider = FakeProvider([valid_hook_payload(), valid_script_payload(), review])
+    provider = FakeProvider([valid_script_payload(), review])
 
     ScriptCreationService(session, provider).execute_claimed_job(job)
 
-    assert job.status == "failed" and provider.calls == 3
+    assert job.status == "failed" and provider.calls == 2
     assert session.scalar(select(ScriptVersion)) is None
 
 
@@ -349,7 +355,6 @@ def test_revision_provider_failure_is_recorded_and_no_draft_is_saved(session):
     job = create_claimed_generation_job(session)
     provider = FakeProvider(
         [
-            valid_hook_payload(),
             valid_script_payload(),
             {"approved": False, "feedback": ["Fix the pacing."]},
             ProviderError("rate_limited", "Try later", retryable=True),
@@ -358,13 +363,13 @@ def test_revision_provider_failure_is_recorded_and_no_draft_is_saved(session):
 
     ScriptCreationService(session, provider).execute_claimed_job(job)
 
-    assert job.status == "failed" and provider.calls == 4
+    assert job.status == "failed" and provider.calls == 3
     assert session.scalar(select(ScriptVersion)) is None
     failed_call = session.scalar(select(LlmCall).where(LlmCall.outcome == "failed"))
     assert failed_call.error_category == "rate_limited"
 
 
-@pytest.mark.parametrize("budget", [2, 3])
+@pytest.mark.parametrize("budget", [1, 2])
 def test_insufficient_script_budget_fails_before_any_provider_call(session, budget):
     job = create_claimed_generation_job(session)
     job.routing_snapshot = {**job.routing_snapshot, "max_calls": budget}
@@ -374,7 +379,7 @@ def test_insufficient_script_budget_fails_before_any_provider_call(session, budg
     ScriptCreationService(session, provider).execute_claimed_job(job)
 
     assert job.status == "failed" and provider.calls == 0
-    assert "MAX_CALLS_PER_OPERATION >= 4" in job.error
+    assert "MAX_CALLS_PER_OPERATION >= 3" in job.error
     assert session.scalar(select(ScriptVersion)) is None
 
 
@@ -550,6 +555,83 @@ def test_provider_bounds_reasoning_and_explains_truncated_output(monkeypatch):
     assert error.value.retryable
     assert len(requests) == 1
     assert requests[0]["reasoning"] == {"effort": "minimal", "exclude": True}
+
+
+@pytest.mark.parametrize("effort", ["minimal", "low", "medium", "high"])
+def test_gemini_38_uses_supported_thinking_and_captures_usage(monkeypatch, effort):
+    import io
+
+    requests = []
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            self.close()
+
+    def reply(request, **kwargs):
+        requests.append(json.loads(request.data))
+        return Response(
+            json.dumps(
+                {
+                    "model": "google/gemini-3.8-flash",
+                    "choices": [
+                        {"finish_reason": "stop", "message": {"content": '{"approved":true}'}}
+                    ],
+                    "usage": {
+                        "prompt_tokens": 20,
+                        "completion_tokens": 12,
+                        "completion_tokens_details": {"reasoning_tokens": 2},
+                        "cost": 0.00006,
+                    },
+                }
+            ).encode()
+        )
+
+    monkeypatch.setattr("app.features.script_creation.provider.urlopen", reply)
+    provider = OpenRouterProvider(Settings(_env_file=None, openrouter_api_key="test-key"))
+    result = provider.generate_json(
+        system_prompt="Review",
+        user_prompt="Synthetic draft",
+        schema_name="review",
+        schema={"type": "object"},
+        routing={
+            **routing_snapshot(),
+            "default_model": "google/gemini-3.8-flash",
+            "free_only": False,
+            "reasoning_effort": effort,
+        },
+    )
+
+    assert requests[0]["reasoning"] == {
+        "effort": "low" if effort == "minimal" else effort,
+        "exclude": True,
+    }
+    assert result.reasoning_tokens == 2
+    assert result.cost == 0.00006
+    assert result.input_tokens == 20 and result.output_tokens == 12
+
+
+def test_explicit_free_only_routing_still_blocks_paid_gemini(monkeypatch):
+    provider = OpenRouterProvider(Settings(_env_file=None, openrouter_api_key="test-key"))
+    requests = []
+    monkeypatch.setattr(provider, "_request_model", lambda **kwargs: requests.append(kwargs))
+
+    with pytest.raises(ProviderError, match="Free-only routing requires"):
+        provider.generate_json(
+            system_prompt="Review",
+            user_prompt="Synthetic draft",
+            schema_name="review",
+            schema={"type": "object"},
+            routing={
+                **routing_snapshot(),
+                "default_model": "google/gemini-3.8-flash",
+                "free_only": True,
+            },
+        )
+
+    assert requests == []
 
 
 def test_structured_output_repair_is_bounded(monkeypatch):

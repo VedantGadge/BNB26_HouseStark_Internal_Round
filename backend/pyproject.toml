@@ -11,6 +11,7 @@ requires-python = ">=3.12"
 dependencies = [
   "alembic==1.16.5",
   "cloudinary==1.44.1",
+  "cryptography==50.0.2",
   "fastapi==0.142.2",
   "httpx==0.28.1",
   "imageio-ffmpeg==0.6.0",

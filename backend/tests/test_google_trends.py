@@ -6,7 +6,7 @@ from xml.etree import ElementTree
 import httpx
 import pytest
 from test_script_queue_api import create_project
-from test_script_workflow import FakeProvider, valid_hook_payload, valid_script_payload
+from test_script_workflow import FakeProvider, valid_script_payload
 
 from app.features.script_creation.jobs import JobRepository
 from app.features.script_creation.service import ScriptCreationService
@@ -146,7 +146,6 @@ def test_selection_is_frozen_in_job_and_script_and_retry_survives_feed_failure(
     assert frozen["topic"]["articles"][0]["url"] == "https://example.test/phone"
     provider = FakeProvider(
         [
-            valid_hook_payload(),
             valid_script_payload(),
             {"approved": True, "feedback": []},
         ]

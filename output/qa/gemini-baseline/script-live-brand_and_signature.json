@@ -1,0 +1,228 @@
+{
+  "timestamp_utc": "2026-10-04T04:10:35.176398+00:00",
+  "case": "brand_and_signature",
+  "requested_model": "google/gemini-3.8-flash",
+  "free_only": false,
+  "job_status": "completed",
+  "error": null,
+  "elapsed_seconds": 13.17,
+  "call_count": 3,
+  "calls": [
+    {
+      "stage": "creator_hooks",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "google/gemini-3.8-flash",
+      "provider": "Google",
+      "input_tokens": 452,
+      "output_tokens": 134,
+      "reasoning_tokens": 0,
+      "cost": 0.0008415,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_step_by_step_1",
+            "text": "Struggling to keep up with your posting schedule? Here are three practical steps to batch your entire week of content using PlanPilot."
+          },
+          {
+            "id": "hook_direct_action_2",
+            "text": "Stop brainstorming every single morning. Let's walk through how to plan your entire week of content in three clear steps with PlanPilot."
+          },
+          {
+            "id": "hook_question_format_3",
+            "text": "Want a simpler routine for your content creation? Here is a straightforward three-step method to batch your weekly planning with PlanPilot."
+          }
+        ]
+      },
+      "elapsed_seconds": 3.573
+    },
+    {
+      "stage": "creator_script",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "google/gemini-3.8-flash",
+      "provider": "Google",
+      "input_tokens": 1163,
+      "output_tokens": 792,
+      "reasoning_tokens": 0,
+      "cost": 0.00384225,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_step_by_step_1",
+            "text": "Struggling to keep up with your posting schedule? Here are three practical steps to batch your entire week of content using PlanPilot."
+          },
+          {
+            "id": "hook_direct_action_2",
+            "text": "Stop brainstorming every single morning. Let's walk through how to plan your entire week of content in three clear steps with PlanPilot."
+          },
+          {
+            "id": "hook_question_format_3",
+            "text": "Want a simpler routine for your content creation? Here is a straightforward three-step method to batch your weekly planning with PlanPilot."
+          }
+        ],
+        "selected_hook_id": "hook_direct_action_2",
+        "sections": [
+          {
+            "id": "sec_hook",
+            "position": 1,
+            "heading": "Hook",
+            "text": "Stop brainstorming every single morning. Let's walk through how to plan your entire week of content in three clear steps with PlanPilot.",
+            "estimated_duration_seconds": 6
+          },
+          {
+            "id": "sec_step_1",
+            "position": 2,
+            "heading": "Step 1: Set Content Themes",
+            "text": "Step one: Pick dedicated themes for your days. Deciding whether Monday is an educational breakdown or Thursday is a behind-the-scenes update removes the guesswork before you even write a word.",
+            "estimated_duration_seconds": 11
+          },
+          {
+            "id": "sec_step_2",
+            "position": 3,
+            "heading": "Step 2: Outline Ideas into the Template",
+            "text": "Step two: Dump all your raw ideas directly into your workspace. PlanPilot provides a weekly content planning template where you can map out hooks and bullet points all in one view.",
+            "estimated_duration_seconds": 12
+          },
+          {
+            "id": "sec_step_3",
+            "position": 4,
+            "heading": "Step 3: Schedule and Lock Your Calendar",
+            "text": "Step three: Slot every concept into your weekly calendar and finalize asset requirements. Once it is on the board, your creative decisions for the week are complete.",
+            "estimated_duration_seconds": 10
+          },
+          {
+            "id": "sec_outro",
+            "position": 5,
+            "heading": "Outro and CTA",
+            "text": "Grab the template to organize your week ahead. Keep creating!",
+            "estimated_duration_seconds": 6
+          }
+        ],
+        "title": "3 Steps to Batch Your Content Planning | PlanPilot",
+        "description": "Learn a practical 3-step routine to batch plan your weekly content. Using organized daily themes and the PlanPilot weekly planning template, you can streamline your workflow and stay consistent.",
+        "call_to_action": "Save this reel and check out the PlanPilot weekly content planning template to set up your schedule. Keep creating!",
+        "production_notes": [
+          "Film in a bright, clean desk environment with natural lighting.",
+          "Show a clean b-roll screen recording of a structured calendar layout during Step 2.",
+          "Add punchy text overlays on screen highlighting each step number and core keyword.",
+          "Deliver lines with a calm, friendly, and practical pacing."
+        ]
+      },
+      "elapsed_seconds": 6.356
+    },
+    {
+      "stage": "creator_script_review",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "google/gemini-3.8-flash",
+      "provider": "Google",
+      "input_tokens": 1175,
+      "output_tokens": 16,
+      "reasoning_tokens": 0,
+      "cost": 0.00094125,
+      "payload": {
+        "approved": true,
+        "feedback": []
+      },
+      "elapsed_seconds": 3.163
+    }
+  ],
+  "input_tokens": 2790,
+  "output_tokens": 942,
+  "reasoning_tokens": 0,
+  "provider_reported_cost": 0.005625,
+  "versions_saved": 1,
+  "project_stage": "editing",
+  "content": {
+    "hooks": [
+      {
+        "id": "hook_step_by_step_1",
+        "text": "Struggling to keep up with your posting schedule? Here are three practical steps to batch your entire week of content using PlanPilot."
+      },
+      {
+        "id": "hook_direct_action_2",
+        "text": "Stop brainstorming every single morning. Let's walk through how to plan your entire week of content in three clear steps with PlanPilot."
+      },
+      {
+        "id": "hook_question_format_3",
+        "text": "Want a simpler routine for your content creation? Here is a straightforward three-step method to batch your weekly planning with PlanPilot."
+      }
+    ],
+    "selected_hook_id": "hook_direct_action_2",
+    "sections": [
+      {
+        "id": "sec_hook",
+        "position": 1,
+        "heading": "Hook",
+        "text": "Stop brainstorming every single morning. Let's walk through how to plan your entire week of content in three clear steps with PlanPilot.",
+        "estimated_duration_seconds": 6
+      },
+      {
+        "id": "sec_step_1",
+        "position": 2,
+        "heading": "Step 1: Set Content Themes",
+        "text": "Step one: Pick dedicated themes for your days. Deciding whether Monday is an educational breakdown or Thursday is a behind-the-scenes update removes the guesswork before you even write a word.",
+        "estimated_duration_seconds": 11
+      },
+      {
+        "id": "sec_step_2",
+        "position": 3,
+        "heading": "Step 2: Outline Ideas into the Template",
+        "text": "Step two: Dump all your raw ideas directly into your workspace. PlanPilot provides a weekly content planning template where you can map out hooks and bullet points all in one view.",
+        "estimated_duration_seconds": 12
+      },
+      {
+        "id": "sec_step_3",
+        "position": 4,
+        "heading": "Step 3: Schedule and Lock Your Calendar",
+        "text": "Step three: Slot every concept into your weekly calendar and finalize asset requirements. Once it is on the board, your creative decisions for the week are complete.",
+        "estimated_duration_seconds": 10
+      },
+      {
+        "id": "sec_outro",
+        "position": 5,
+        "heading": "Outro and CTA",
+        "text": "Grab the template to organize your week ahead. Keep creating!",
+        "estimated_duration_seconds": 6
+      }
+    ],
+    "title": "3 Steps to Batch Your Content Planning | PlanPilot",
+    "description": "Learn a practical 3-step routine to batch plan your weekly content. Using organized daily themes and the PlanPilot weekly planning template, you can streamline your workflow and stay consistent.",
+    "call_to_action": "Save this reel and check out the PlanPilot weekly content planning template to set up your schedule. Keep creating!",
+    "production_notes": [
+      "Film in a bright, clean desk environment with natural lighting.",
+      "Show a clean b-roll screen recording of a structured calendar layout during Step 2.",
+      "Add punchy text overlays on screen highlighting each step number and core keyword.",
+      "Deliver lines with a calm, friendly, and practical pacing."
+    ]
+  },
+  "requirement_checks": [
+    {
+      "requirement_id": "brand-name",
+      "status": "satisfied",
+      "evidence_section_ids": [
+        "sec_hook",
+        "sec_step_2"
+      ],
+      "message": null
+    },
+    {
+      "requirement_id": "approved-claims",
+      "status": "needs_review",
+      "evidence_section_ids": [],
+      "message": "Review factual claims against the approved claims in the brand brief."
+    },
+    {
+      "requirement_id": "signature-closing-line",
+      "status": "satisfied",
+      "evidence_section_ids": [
+        "sec_hook"
+      ],
+      "message": null
+    }
+  ],
+  "warning_ids": [
+    "approved-claims"
+  ]
+}

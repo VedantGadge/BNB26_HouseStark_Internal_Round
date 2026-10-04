@@ -20,7 +20,6 @@ ScriptNode = Callable[[ScriptState], dict]
 
 def build_script_graph(
     *,
-    hooks: ScriptNode,
     writer: ScriptNode,
     reviewer: ScriptNode,
     revise: ScriptNode,
@@ -28,14 +27,12 @@ def build_script_graph(
     persist: ScriptNode,
 ):
     graph = StateGraph(ScriptState)
-    graph.add_node("generate_hooks", hooks)
     graph.add_node("writer", writer)
     graph.add_node("reviewer", reviewer)
     graph.add_node("revise", revise)
     graph.add_node("validate", validate)
     graph.add_node("persist", persist)
-    graph.add_edge(START, "generate_hooks")
-    graph.add_edge("generate_hooks", "writer")
+    graph.add_edge(START, "writer")
     graph.add_edge("writer", "reviewer")
     graph.add_conditional_edges(
         "reviewer",

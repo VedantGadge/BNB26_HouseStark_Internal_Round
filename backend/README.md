@@ -23,6 +23,8 @@ intentional dependency change run `uv lock` and
 
 ## Local Swagger testing
 
+For automatic YouTube performance import, see [YouTube analytics setup](../docs/youtube-analytics.md).
+
 For the judges' demo, set `AUTH_REQUIRED=false` only in the local `backend/.env`. This assigns all
 requests the isolated `demo-creator` identity; it is not suitable for deployment. Keep
 `AUTH_REQUIRED=true` when JWT configuration is ready.
@@ -80,7 +82,7 @@ required signature-line conflict is blocked with a clear `409` response. Browser
 ## Script writer/reviewer graph
 
 Script generation now runs a real LangGraph workflow:
-hooks → writer → independent reviewer → optional single revision → requirement
+writer (three hooks + script) → independent reviewer → optional single revision → requirement
 validation → save the final draft for creator review. The reviewer checks brief,
 brand/style fit, pacing, completeness and unsupported claims. Code checks remain
 authoritative: missing literal/signature requirements trigger revision even if
@@ -88,13 +90,23 @@ the reviewer approves, and unresolved violations prevent a version being saved.
 Semantic checks remain visible for creator review; AI approval never grants
 project approval.
 
-The default `OPENROUTER_MAX_CALLS_PER_OPERATION` is **4**. Update any environment
-override below 4 before queuing generation. Each script stage permits one model
+The default model is `google/gemini-3.8-flash`, with `OPENROUTER_FREE_ONLY=false`
+and `OPENROUTER_REASONING_EFFORT=low`. This is a paid model; configure an OpenRouter
+key with credit. Gemini 3.8 requires at least `low` thinking, so the provider maps
+older `minimal` settings to `low` for this model. Local `.env` is set to these
+values. Set the same variables in deployment environments; restarting the API
+and worker picks up settings changes.
+
+The default `OPENROUTER_MAX_CALLS_PER_OPERATION` is **4**, while script generation
+requires at least **3**. Each script stage permits one model
 request, with no internal fallback or schema-repair retry: approved drafts use
-three calls; revised drafts use four. Review/provider errors fail the durable job
+two calls; revised drafts use three. The writer produces and validates three hook
+alternatives alongside the script, removing one model round trip; revisions must
+preserve those hooks and section IDs. Review/provider errors fail the durable job
 without saving an intermediate draft. Whole-job recovery/retry remains available;
 script graph nodes do not have separate checkpoints. Older queued jobs retain
-their frozen routing budget, so jobs below 4 require a new submission.
+their frozen model and routing budget, so only new jobs automatically use Gemini.
+Jobs with budgets below 3 require a new submission.
 
 Jobs expose stages such as `writing_script`, `reviewing_script` and
 `revising_script`. Server logs record each AI stage's elapsed time; existing
@@ -105,3 +117,11 @@ describe testing and a future comparison with the original two-call flow.
 Real provider smoke tests are available at `tests/test_script_live.py` and run
 only with `CREATORAI_QA_LIVE=1` plus the dedicated local test database. See the
 [live results and reproduction command](../docs/script-live-validation.md).
+The [latency comparison](../docs/script-latency-validation.md) records the Gemini
+benchmark, measured costs and the combined writer optimization.
+
+## Google Trends
+
+Scripts can optionally use recent Google Trends topics. See
+[Google Trends integration](../docs/google-trends.md) for the picker, API,
+relevance matching, source snapshots, and failure behavior. No Trends API key is required.

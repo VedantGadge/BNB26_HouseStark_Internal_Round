@@ -170,12 +170,24 @@ def get_script_trends(
         raise HTTPException(status_code=404, detail="Project not found.")
     campaign = current_campaign_brief(session, project.id)
     brand = campaign.brand_brief if campaign and campaign.content_mode == "brand" else {}
-    context = focus.strip() or " ".join(filter(None, [
-        project.brief, project.audience,
-        *((brand or {}).get(key) for key in (
-            "brand_name", "product_name", "product_description", "campaign_audience",
-        )),
-    ]))
+    context = focus.strip() or " ".join(
+        filter(
+            None,
+            [
+                project.brief,
+                project.audience,
+                *(
+                    (brand or {}).get(key)
+                    for key in (
+                        "brand_name",
+                        "product_name",
+                        "product_description",
+                        "campaign_audience",
+                    )
+                ),
+            ],
+        )
+    )
     try:
         return suggest_topics(source.feed(country), context)
     except TrendsUnavailable as error:
@@ -196,23 +208,27 @@ def generate_script(
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found.")
     require_openrouter_configuration(settings)
-    if settings.openrouter_max_calls_per_operation < 4:
+    if settings.openrouter_max_calls_per_operation < 3:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Script review requires OPENROUTER_MAX_CALLS_PER_OPERATION >= 4.",
+            detail="Script review requires OPENROUTER_MAX_CALLS_PER_OPERATION >= 3.",
         )
     jobs = JobRepository(session)
     # Feed refreshes must not change an already accepted operation's input or break retries.
     submission = (
         {"project_id": str(project.id), "request": request.model_dump(mode="json")}
-        if request.trend else None
+        if request.trend
+        else None
     )
     existing = jobs.find_by_idempotency(creator.id, JobType.SCRIPT_GENERATION, idempotency_key)
     if submission and existing is not None:
         input_snapshot = existing.input_snapshot
     else:
         input_snapshot = resolve_generation_snapshot(
-            session, owner_id=creator.id, project=project, request=request,
+            session,
+            owner_id=creator.id,
+            project=project,
+            request=request,
         )
         if request.trend:
             try:

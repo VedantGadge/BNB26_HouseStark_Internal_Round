@@ -1,0 +1,197 @@
+{
+  "timestamp_utc": "2026-10-04T04:14:51.372661+00:00",
+  "case": "brand_and_signature",
+  "requested_model": "google/gemini-3.8-flash",
+  "free_only": false,
+  "job_status": "completed",
+  "error": null,
+  "elapsed_seconds": 8.789,
+  "call_count": 2,
+  "calls": [
+    {
+      "stage": "creator_script",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "google/gemini-3.8-flash",
+      "provider": "Google",
+      "input_tokens": 1038,
+      "output_tokens": 693,
+      "reasoning_tokens": 0,
+      "cost": 0.00337725,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_1",
+            "text": "Stop waking up every morning wondering what to post."
+          },
+          {
+            "id": "hook_2",
+            "text": "Here is a realistic three-step routine to plan an entire week of content in one sitting."
+          },
+          {
+            "id": "hook_3",
+            "text": "If daily content creation feels overwhelming, batching your plan will change your workflow."
+          }
+        ],
+        "selected_hook_id": "hook_2",
+        "sections": [
+          {
+            "id": "sec_intro",
+            "position": 1,
+            "heading": "The Batching Mindset",
+            "text": "Here is a realistic three-step routine to plan an entire week of content in one sitting. Instead of scrambling every day, give yourself dedicated focus time.",
+            "estimated_duration_seconds": 8
+          },
+          {
+            "id": "sec_step_1",
+            "position": 2,
+            "heading": "Step 1: Choose Core Pillars",
+            "text": "Step one: Pick three core pillars for the week. For example, educational tips, personal stories, and common mistakes. This keeps your ideas focused.",
+            "estimated_duration_seconds": 10
+          },
+          {
+            "id": "sec_step_2",
+            "position": 3,
+            "heading": "Step 2: Outline Without Editing",
+            "text": "Step two: Brainstorm five to seven specific headlines under those pillars. Write quick bullet points for each concept before you record or write anything.",
+            "estimated_duration_seconds": 10
+          },
+          {
+            "id": "sec_step_3",
+            "position": 4,
+            "heading": "Step 3: Organize with PlanPilot",
+            "text": "Step three: Lock them onto your schedule. PlanPilot provides a weekly content planning template to make organizing your drafts straightforward.",
+            "estimated_duration_seconds": 10
+          },
+          {
+            "id": "sec_outro",
+            "position": 5,
+            "heading": "Closing & Call to Action",
+            "text": "Grab the template at the link in bio to plan your upcoming week. Keep creating!",
+            "estimated_duration_seconds": 7
+          }
+        ],
+        "title": "3 Steps to Batch Weekly Content Planning",
+        "description": "Tired of daily scrambling? Learn three practical steps to plan your entire content week in advance using the weekly content planning template from PlanPilot.",
+        "call_to_action": "Check the link in bio to grab your weekly content planning template from PlanPilot.",
+        "production_notes": [
+          "Speak directly to camera with punchy text overlays for each of the three steps.",
+          "Show a clean screen recording of a weekly planning layout during Step 3.",
+          "Ensure total delivery stays concise around 45 seconds."
+        ]
+      },
+      "elapsed_seconds": 6.451
+    },
+    {
+      "stage": "creator_script_review",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "google/gemini-3.8-flash",
+      "provider": "Google",
+      "input_tokens": 1073,
+      "output_tokens": 10,
+      "reasoning_tokens": 0,
+      "cost": 0.00084225,
+      "payload": {
+        "approved": true,
+        "feedback": []
+      },
+      "elapsed_seconds": 2.275
+    }
+  ],
+  "input_tokens": 2111,
+  "output_tokens": 703,
+  "reasoning_tokens": 0,
+  "provider_reported_cost": 0.0042195,
+  "versions_saved": 1,
+  "project_stage": "editing",
+  "content": {
+    "hooks": [
+      {
+        "id": "hook_1",
+        "text": "Stop waking up every morning wondering what to post."
+      },
+      {
+        "id": "hook_2",
+        "text": "Here is a realistic three-step routine to plan an entire week of content in one sitting."
+      },
+      {
+        "id": "hook_3",
+        "text": "If daily content creation feels overwhelming, batching your plan will change your workflow."
+      }
+    ],
+    "selected_hook_id": "hook_2",
+    "sections": [
+      {
+        "id": "sec_intro",
+        "position": 1,
+        "heading": "The Batching Mindset",
+        "text": "Here is a realistic three-step routine to plan an entire week of content in one sitting. Instead of scrambling every day, give yourself dedicated focus time.",
+        "estimated_duration_seconds": 8
+      },
+      {
+        "id": "sec_step_1",
+        "position": 2,
+        "heading": "Step 1: Choose Core Pillars",
+        "text": "Step one: Pick three core pillars for the week. For example, educational tips, personal stories, and common mistakes. This keeps your ideas focused.",
+        "estimated_duration_seconds": 10
+      },
+      {
+        "id": "sec_step_2",
+        "position": 3,
+        "heading": "Step 2: Outline Without Editing",
+        "text": "Step two: Brainstorm five to seven specific headlines under those pillars. Write quick bullet points for each concept before you record or write anything.",
+        "estimated_duration_seconds": 10
+      },
+      {
+        "id": "sec_step_3",
+        "position": 4,
+        "heading": "Step 3: Organize with PlanPilot",
+        "text": "Step three: Lock them onto your schedule. PlanPilot provides a weekly content planning template to make organizing your drafts straightforward.",
+        "estimated_duration_seconds": 10
+      },
+      {
+        "id": "sec_outro",
+        "position": 5,
+        "heading": "Closing & Call to Action",
+        "text": "Grab the template at the link in bio to plan your upcoming week. Keep creating!",
+        "estimated_duration_seconds": 7
+      }
+    ],
+    "title": "3 Steps to Batch Weekly Content Planning",
+    "description": "Tired of daily scrambling? Learn three practical steps to plan your entire content week in advance using the weekly content planning template from PlanPilot.",
+    "call_to_action": "Check the link in bio to grab your weekly content planning template from PlanPilot.",
+    "production_notes": [
+      "Speak directly to camera with punchy text overlays for each of the three steps.",
+      "Show a clean screen recording of a weekly planning layout during Step 3.",
+      "Ensure total delivery stays concise around 45 seconds."
+    ]
+  },
+  "requirement_checks": [
+    {
+      "requirement_id": "brand-name",
+      "status": "satisfied",
+      "evidence_section_ids": [
+        "sec_step_3"
+      ],
+      "message": null
+    },
+    {
+      "requirement_id": "approved-claims",
+      "status": "needs_review",
+      "evidence_section_ids": [],
+      "message": "Review factual claims against the approved claims in the brand brief."
+    },
+    {
+      "requirement_id": "signature-closing-line",
+      "status": "satisfied",
+      "evidence_section_ids": [
+        "sec_intro"
+      ],
+      "message": null
+    }
+  ],
+  "warning_ids": [
+    "approved-claims"
+  ]
+}

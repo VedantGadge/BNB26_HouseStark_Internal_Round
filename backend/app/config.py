@@ -44,15 +44,20 @@ class Settings(BaseSettings):
     auth_issuer: str | None = None
     auth_required: bool = True
 
+    youtube_client_id: str | None = None
+    youtube_client_secret: SecretStr | None = None
+    youtube_redirect_uri: str = "http://localhost:3000/youtube/callback"
+    youtube_token_encryption_key: SecretStr | None = None
+
     openrouter_api_key: SecretStr | None = None
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    openrouter_default_model: str | None = None
+    openrouter_default_model: str | None = "google/gemini-3.8-flash"
     openrouter_fallback_models: str = ""
-    openrouter_free_only: bool = True
+    openrouter_free_only: bool = False
     openrouter_require_structured_output: bool = True
     openrouter_timeout_seconds: float = Field(default=30, gt=0, le=120)
     openrouter_max_output_tokens: int = Field(default=8_192, ge=64, le=16_384)
-    openrouter_reasoning_effort: Literal["minimal", "low", "medium", "high"] = "minimal"
+    openrouter_reasoning_effort: Literal["minimal", "low", "medium", "high"] = "low"
     openrouter_max_calls_per_operation: int = Field(default=4, ge=2, le=5)
     openrouter_max_fallback_models: int = Field(default=2, ge=0, le=3)
 

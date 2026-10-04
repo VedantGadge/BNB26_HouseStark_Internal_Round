@@ -703,6 +703,191 @@
         }
       }
     },
+    "/v1/me/youtube": {
+      "get": {
+        "tags": [
+          "youtube"
+        ],
+        "summary": "Connection Status",
+        "operationId": "connection_status_v1_me_youtube_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "youtube"
+        ],
+        "summary": "Disconnect",
+        "operationId": "disconnect_v1_me_youtube_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/me/youtube/authorize": {
+      "post": {
+        "tags": [
+          "youtube"
+        ],
+        "summary": "Authorize",
+        "operationId": "authorize_v1_me_youtube_authorize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/me/youtube/callback": {
+      "post": {
+        "tags": [
+          "youtube"
+        ],
+        "summary": "Callback",
+        "operationId": "callback_v1_me_youtube_callback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CallbackInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/publications/{publication_id}/performance/youtube": {
+      "post": {
+        "tags": [
+          "youtube"
+        ],
+        "summary": "Sync Performance",
+        "operationId": "sync_performance_v1_publications__publication_id__performance_youtube_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "publication_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Publication Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/projects/{project_id}": {
       "patch": {
         "tags": [
@@ -1531,6 +1716,76 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ScriptVersionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/projects/{project_id}/scripts/trends": {
+      "get": {
+        "tags": [
+          "scripts"
+        ],
+        "summary": "Get Script Trends",
+        "operationId": "get_script_trends_v1_projects__project_id__scripts_trends_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$",
+              "default": "IN",
+              "title": "Country"
+            }
+          },
+          {
+            "name": "focus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "default": "",
+              "title": "Focus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendSuggestions"
                 }
               }
             }
@@ -3708,6 +3963,28 @@
         ],
         "title": "BrandRequirementKind"
       },
+      "CallbackInput": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 20,
+            "title": "State"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "code"
+        ],
+        "title": "CallbackInput"
+      },
       "CampaignBriefResponse": {
         "properties": {
           "revision": {
@@ -3949,6 +4226,20 @@
           "asset_id"
         ],
         "title": "ClipRequest"
+      },
+      "ConnectInput": {
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Project Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "project_id"
+        ],
+        "title": "ConnectInput"
       },
       "ContentLanguage": {
         "type": "string",
@@ -4537,6 +4828,27 @@
           "caption"
         ],
         "title": "ExportRequest"
+      },
+      "GoogleTrendSelection": {
+        "properties": {
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "title": "Country"
+          },
+          "topic_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{24}$",
+            "title": "Topic Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "country",
+          "topic_id"
+        ],
+        "title": "GoogleTrendSelection"
       },
       "HTTPValidationError": {
         "properties": {
@@ -5897,6 +6209,16 @@
             "type": "array",
             "maxItems": 10,
             "title": "Optional Signature Line Ids"
+          },
+          "trend": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GoogleTrendSelection"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -6162,6 +6484,19 @@
         ],
         "title": "StyleProfileSuggestionResponse"
       },
+      "SyncInput": {
+        "properties": {
+          "reporting_window_days": {
+            "type": "integer",
+            "maximum": 365.0,
+            "minimum": 1.0,
+            "title": "Reporting Window Days",
+            "default": 7
+          }
+        },
+        "type": "object",
+        "title": "SyncInput"
+      },
       "TitleOverlay": {
         "properties": {
           "text": {
@@ -6265,6 +6600,135 @@
           "stage"
         ],
         "title": "TransitionRequest"
+      },
+      "TrendArticle": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "publisher": {
+            "type": "string",
+            "title": "Publisher"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "url",
+          "publisher"
+        ],
+        "title": "TrendArticle"
+      },
+      "TrendSuggestions": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "Google Trends RSS"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/TrendTopic"
+            },
+            "type": "array",
+            "title": "Topics"
+          },
+          "match_method": {
+            "type": "string",
+            "title": "Match Method",
+            "default": "shared_terms"
+          },
+          "lookback_hours": {
+            "type": "integer",
+            "title": "Lookback Hours",
+            "default": 48
+          }
+        },
+        "type": "object",
+        "required": [
+          "country",
+          "fetched_at",
+          "source_url",
+          "topics"
+        ],
+        "title": "TrendSuggestions"
+      },
+      "TrendTopic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Published At"
+          },
+          "approximate_traffic": {
+            "type": "string",
+            "title": "Approximate Traffic"
+          },
+          "source_url": {
+            "type": "string",
+            "title": "Source Url"
+          },
+          "articles": {
+            "items": {
+              "$ref": "#/components/schemas/TrendArticle"
+            },
+            "type": "array",
+            "title": "Articles"
+          },
+          "matched_terms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched Terms"
+          },
+          "relevance_reason": {
+            "type": "string",
+            "title": "Relevance Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "country",
+          "published_at",
+          "approximate_traffic",
+          "source_url",
+          "articles"
+        ],
+        "title": "TrendTopic"
       },
       "ValidationError": {
         "properties": {

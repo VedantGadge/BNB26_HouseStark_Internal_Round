@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
-from test_script_workflow import FakeProvider, valid_hook_payload, valid_script_payload
+from test_script_workflow import FakeProvider, valid_script_payload
 
 from app.auth import AuthenticatedCreator, get_current_creator
 from app.config import Settings, get_settings
@@ -93,7 +93,6 @@ def test_queued_generation_runs_review_graph_and_returns_final_version(client_se
     final["title"] = "The reviewed creator workflow"
     provider = FakeProvider(
         [
-            valid_hook_payload(),
             valid_script_payload(),
             {"approved": False, "feedback": ["Make the title more specific."]},
             final,
@@ -110,7 +109,7 @@ def test_queued_generation_runs_review_graph_and_returns_final_version(client_se
     assert versions.json()[0]["content"]["title"] == final["title"]
     assert versions.json()[0]["generation_job_id"] == accepted.json()["id"]
     assert versions.json()[0]["input_snapshot"] == job.input_snapshot
-    assert provider.calls == 4
+    assert provider.calls == 3
 
 
 def test_script_queue_rejects_insufficient_review_budget(client_session):
@@ -120,7 +119,7 @@ def test_script_queue_rejects_insufficient_review_budget(client_session):
         _env_file=None,
         openrouter_api_key="test-key",
         openrouter_default_model="free/model",
-        openrouter_max_calls_per_operation=3,
+        openrouter_max_calls_per_operation=2,
     )
     client.app.dependency_overrides[get_settings] = lambda: settings
 

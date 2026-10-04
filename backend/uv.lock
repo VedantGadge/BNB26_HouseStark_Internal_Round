@@ -320,6 +320,7 @@ source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "cloudinary" },
+    { name = "cryptography" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "imageio-ffmpeg" },
@@ -343,6 +344,7 @@ dev = [
 requires-dist = [
     { name = "alembic", specifier = "==1.16.5" },
     { name = "cloudinary", specifier = "==1.44.1" },
+    { name = "cryptography", specifier = "==50.0.2" },
     { name = "fastapi", specifier = "==0.142.2" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "imageio-ffmpeg", specifier = "==0.6.0" },

@@ -4,6 +4,7 @@ import { post } from "@/lib/api";
 import { Field, Job, Status, useAction, useApi } from "./common";
 import { Empty, PageHeader } from "@/components/ui/studio-ui";
 import { humanize } from "@/lib/creator.mjs";
+import { YouTubeMetrics } from "./youtube";
 
 export function Insights({ projectId }) {
   const [scope, setScope] = useState("project"),
@@ -82,7 +83,11 @@ export function Insights({ projectId }) {
                     <tr key={row.snapshot_id}>
                       <td>{row.title || row.publication_id.slice(0, 8)}</td>
                       <td>{row.platform}</td>
-                      <td>{row.reporting_window_days} days</td>
+                      <td>
+                        {row.reporting_window_days} days
+                        {row.reporting_basis === "youtube_calendar_days" &&
+                          " · YouTube calendar"}
+                      </td>
                       <td>{row.views}</td>
                       <td>
                         {row.engagement_rate === null
@@ -100,11 +105,14 @@ export function Insights({ projectId }) {
             <h2>Recommendations with evidence</h2>
           )}
           {data.data.recommendations.map((r) => (
-            <div key={r.platform + r.reporting_window_days}>
+            <div key={r.platform + r.reporting_window_days + r.reporting_basis}>
               <p>{r.message}</p>
               <p className="muted">
                 {r.platform} · {r.reporting_window_days}-day window ·{" "}
-                {r.sample_size} posts. {r.limitation}
+                {r.sample_size} posts.
+                {r.reporting_basis === "youtube_calendar_days" &&
+                  " YouTube calendar days."}{" "}
+                {r.limitation}
               </p>
               <details>
                 <summary>Evidence records</summary>
@@ -172,6 +180,14 @@ export function Insights({ projectId }) {
             </div>
           )}
         </section>
+      )}
+      {scope === "project" && (
+        <YouTubeMetrics
+          projectId={projectId}
+          publications={confirmed.filter(
+            (publication) => publication.platform === "youtube",
+          )}
+        />
       )}
       <h2>Enter real performance</h2>
       {confirmed.length ? (

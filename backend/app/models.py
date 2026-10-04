@@ -91,6 +91,7 @@ class PerformanceSnapshot(Base):
     shares: Mapped[int | None] = mapped_column(Integer, nullable=True)
     retention: Mapped[float | None] = mapped_column(nullable=True)
     source: Mapped[str] = mapped_column(String(200))
+    reporting_basis: Mapped[str] = mapped_column(String(32), default="manual")
 
 
 class CampaignBriefRevision(TimestampedModel, Base):
@@ -235,6 +236,7 @@ from app.features.editing.models import EditRender, EditVersion  # noqa: E402
 from app.features.footage_analysis.models import TranscriptSegment, VisualObservation  # noqa: E402
 from app.features.platform_exports.models import PlatformExport  # noqa: E402
 from app.features.script_alignment.models import ScriptAlignment  # noqa: E402
+from app.features.youtube.models import YouTubeConnection, YouTubeOAuthAttempt  # noqa: E402
 
 __all__ = [
     "Asset",
@@ -258,4 +260,6 @@ __all__ = [
     "StyleProfileSuggestion",
     "TranscriptSegment",
     "VisualObservation",
+    "YouTubeConnection",
+    "YouTubeOAuthAttempt",
 ]

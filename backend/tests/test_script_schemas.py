@@ -147,9 +147,12 @@ def test_full_script_proposals_use_a_complete_replacement() -> None:
 
 def test_openrouter_configuration_deduplicates_and_bounds_fallbacks() -> None:
     settings = Settings(
+        _env_file=None,
         openrouter_fallback_models="model-a, model-b, model-a, model-c",
         openrouter_max_fallback_models=2,
     )
 
-    assert settings.openrouter_free_only is True
+    assert settings.openrouter_free_only is False
+    assert settings.openrouter_default_model == "google/gemini-3.8-flash"
+    assert settings.openrouter_reasoning_effort == "low"
     assert settings.configured_openrouter_models == ("model-a", "model-b")

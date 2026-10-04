@@ -70,7 +70,7 @@ def test_real_llm_script_workflow(postgres_schema, tmp_path, case):  # noqa: F81
     settings = Settings()
     assert settings.openrouter_api_key is not None, "Configure OPENROUTER_API_KEY"
     assert settings.openrouter_default_model, "Configure OPENROUTER_DEFAULT_MODEL"
-    assert settings.openrouter_max_calls_per_operation >= 4
+    assert settings.openrouter_max_calls_per_operation >= 3
     command.upgrade(config, "head")
     provider = RecordingProvider(settings)
     snapshot = {
@@ -150,7 +150,11 @@ def test_real_llm_script_workflow(postgres_schema, tmp_path, case):  # noqa: F81
             "calls": provider.calls,
             "input_tokens": sum(c.input_tokens or 0 for c in calls),
             "output_tokens": sum(c.output_tokens or 0 for c in calls),
-            "reasoning_tokens": sum(c.get("reasoning_tokens") or 0 for c in provider.calls),
+            "reasoning_tokens": (
+                sum(c["reasoning_tokens"] for c in provider.calls)
+                if all(c.get("reasoning_tokens") is not None for c in provider.calls)
+                else None
+            ),
             "provider_reported_cost": (
                 sum(c["cost"] for c in provider.calls)
                 if all(c.get("cost") is not None for c in provider.calls)
@@ -174,7 +178,7 @@ def test_real_llm_script_workflow(postgres_schema, tmp_path, case):  # noqa: F81
 
         assert claimed.status == "completed", claimed.error
         assert len(versions) == 1
-        assert 3 <= len(provider.calls) <= 4
+        assert 2 <= len(provider.calls) <= 3
         assert all(c["max_calls"] == 1 for c in provider.calls)
         assert all(c["outcome"] == "success" for c in provider.calls)
         assert versions[0].input_snapshot == snapshot

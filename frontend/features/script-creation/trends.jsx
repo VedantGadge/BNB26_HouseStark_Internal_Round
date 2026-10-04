@@ -15,6 +15,10 @@ export function TrendPicker({ root, selected, onSelect }) {
     enabled: false,
     retry: false,
   });
+  const findTrends = () => {
+    onSelect(null);
+    query.refetch();
+  };
 
   return (
     <details className="trend-picker">
@@ -51,6 +55,12 @@ export function TrendPicker({ root, selected, onSelect }) {
           maxLength={200}
           placeholder="e.g. smartphones, cooking, cricket"
           disabled={query.isFetching}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              findTrends();
+            }
+          }}
           onChange={(event) => {
             setFocus(event.target.value);
             onSelect(null);
@@ -61,10 +71,7 @@ export function TrendPicker({ root, selected, onSelect }) {
         type="button"
         className="secondary"
         disabled={query.isFetching}
-        onClick={() => {
-          onSelect(null);
-          query.refetch();
-        }}
+        onClick={findTrends}
       >
         {query.isFetching ? "Finding trends…" : "Find relevant trends"}
       </button>

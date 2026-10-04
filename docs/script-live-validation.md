@@ -1,5 +1,8 @@
 # Real LLM validation — 2026-10-04
 
+This records the initial Liquid baseline. The current default and graph were
+subsequently optimized; see [the Gemini latency comparison](script-latency-validation.md).
+
 Tested the actual ScriptCreationService LangGraph workflow with OpenRouter using
 the configured `liquid/lfm-2.5-2.6b:free` model. No fake provider responses were
 used. Both cases used synthetic briefs and dedicated local PostgreSQL schemas,

@@ -132,11 +132,16 @@ def compute_insights(session, owner_id, project_id=None):
             .order_by(PerformanceSnapshot.observed_at.desc())
         )
     )
-    # Cumulative observations are never added: use latest per publication and window.
+    # Cumulative observations are never added: use latest per publication, window and basis.
     latest = {}
     for observation in observations:
         latest.setdefault(
-            (observation.publication_id, observation.reporting_window_days), observation
+            (
+                observation.publication_id,
+                observation.reporting_window_days,
+                observation.reporting_basis,
+            ),
+            observation,
         )
     comparisons = []
     groups = defaultdict(list)
@@ -156,6 +161,7 @@ def compute_insights(session, owner_id, project_id=None):
             "snapshot_id": str(observation.id),
             "platform": pub.platform,
             "reporting_window_days": observation.reporting_window_days,
+            "reporting_basis": observation.reporting_basis,
             "observed_at": utc(observation.observed_at).isoformat(),
             "source": observation.source,
             "views": observation.views,
@@ -163,15 +169,17 @@ def compute_insights(session, owner_id, project_id=None):
             "title": pub.supporting_copy.get("title"),
         }
         comparisons.append(row)
-        groups[(pub.platform, observation.reporting_window_days)].append(row)
+        group = (pub.platform, observation.reporting_window_days, observation.reporting_basis)
+        groups[group].append(row)
     recommendations = []
-    for (platform, window), rows in groups.items():
+    for (platform, window, basis), rows in groups.items():
         rated = [r for r in rows if r["engagement_rate"] is not None]
         best = max(rated, key=lambda r: r["engagement_rate"]) if rated else None
         recommendations.append(
             {
                 "platform": platform,
                 "reporting_window_days": window,
+                "reporting_basis": basis,
                 "sample_size": len(rows),
                 "evidence_snapshot_ids": [r["snapshot_id"] for r in rows],
                 "message": (

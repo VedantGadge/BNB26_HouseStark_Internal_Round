@@ -118,6 +118,9 @@ class OpenRouterProvider:
         require_structured_output: bool,
         reasoning_effort: str = "minimal",
     ) -> ProviderResult:
+        # Gemini 3.8 has mandatory thinking and rejects our generic minimal setting.
+        if model == "google/gemini-3.8-flash" and reasoning_effort == "minimal":
+            reasoning_effort = "low"
         payload: dict[str, Any] = {
             "model": model,
             "max_tokens": max_output_tokens,
