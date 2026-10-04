@@ -6,10 +6,112 @@ import { Empty, PageHeader } from "@/components/ui/studio-ui";
 import { humanize } from "@/lib/creator.mjs";
 import { YouTubeMetrics } from "./youtube";
 
+const demoPerformance = [
+  {
+    publication_id: "demo-keep-it-quick",
+    project_id: "demo-project",
+    snapshot_id: "demo-snapshot-keep-it-quick",
+    platform: "instagram",
+    reporting_window_days: 7,
+    reporting_basis: "creator_demo",
+    observed_at: "2026-10-04T12:00:00.000Z",
+    source: "Illustrative demo metrics",
+    views: 24800,
+    likes: 2040,
+    comments: 164,
+    shares: 322,
+    title: "Keep It Quick: Attention Spans Are Gone",
+  },
+  {
+    publication_id: "demo-speak-to-the-scroller",
+    project_id: "demo-project",
+    snapshot_id: "demo-snapshot-speak-to-the-scroller",
+    platform: "instagram",
+    reporting_window_days: 7,
+    reporting_basis: "creator_demo",
+    observed_at: "2026-10-03T12:00:00.000Z",
+    source: "Illustrative demo metrics",
+    views: 18420,
+    likes: 1292,
+    comments: 96,
+    shares: 214,
+    title: "Speak to the Person Scrolling",
+  },
+  {
+    publication_id: "demo-ted-in-one-minute",
+    project_id: "demo-project",
+    snapshot_id: "demo-snapshot-ted-in-one-minute",
+    platform: "instagram",
+    reporting_window_days: 7,
+    reporting_basis: "creator_demo",
+    observed_at: "2026-10-02T12:00:00.000Z",
+    source: "Illustrative demo metrics",
+    views: 12960,
+    likes: 706,
+    comments: 51,
+    shares: 122,
+    title: "A TED Talk in Under a Minute",
+  },
+].map((record) => ({
+  ...record,
+  engagement_rate:
+    (record.likes + record.comments + record.shares) / record.views,
+}));
+
+const demoInsights = {
+  project_id: "demo-project",
+  scope: "project",
+  production: {
+    projects_completed: 1,
+    source_minutes_processed: 1.35,
+    clips_produced: 3,
+    exports_completed: 3,
+    clips_per_source: 3,
+    revision_count: 2,
+    median_upload_to_export_seconds: 318,
+  },
+  performance: demoPerformance,
+  recommendations: [
+    {
+      platform: "instagram",
+      reporting_window_days: 7,
+      reporting_basis: "creator_demo",
+      sample_size: demoPerformance.length,
+      evidence_snapshot_ids: demoPerformance.map(
+        (record) => record.snapshot_id,
+      ),
+      message:
+        "Review the direct opening and humour in 'Keep It Quick: Attention Spans Are Gone', which has the highest illustrative engagement rate in this sample.",
+      limitation:
+        "Illustrative demo data only; it does not represent real audience performance or establish causation.",
+    },
+  ],
+  missing_data: [],
+};
+
+function demoReportFrom(metrics) {
+  const best = metrics.reduce((current, record) =>
+    record.engagement_rate > current.engagement_rate ? record : current,
+  );
+  const averageRate =
+    metrics.reduce((sum, record) => sum + record.engagement_rate, 0) /
+    metrics.length;
+  const totalViews = metrics.reduce((sum, record) => sum + record.views, 0);
+  return {
+    summary: `Across ${metrics.length} illustrative Instagram posts measured over seven days, '${best.title}' has the highest engagement rate at ${(best.engagement_rate * 100).toFixed(1)}%. The sample totals ${totalViews.toLocaleString()} views, with an average engagement rate of ${(averageRate * 100).toFixed(1)}%. Reuse its direct opening and humour as a testable creative direction.`,
+    limitations: [
+      "This report is generated from illustrative demo metrics, not real platform analytics.",
+      "Three posts are too small a sample to establish cause and effect.",
+    ],
+    evidence_snapshot_ids: metrics.map((record) => record.snapshot_id),
+  };
+}
+
 export function Insights({ projectId }) {
   const [scope, setScope] = useState("project"),
     [job, setJob] = useState(null),
-    [explanation, setExplanation] = useState(null);
+    [explanation, setExplanation] = useState(null),
+    [demoReport, setDemoReport] = useState(null);
   const data = useApi(
     scope === "project" ? `/projects/${projectId}/insights` : "/me/insights",
   );
@@ -22,12 +124,14 @@ export function Insights({ projectId }) {
     job ||
     workflow.data?.jobs.find((item) => item.type === "insight_summary")?.id;
   const summary = useApi(activeJob ? `/jobs/${activeJob}` : null, true);
-  const result = explanation || summary.data?.result;
+  const useDemo = scope === "project" && !data.data?.performance?.length;
+  const insights = useDemo ? demoInsights : data.data;
+  const result = useDemo ? demoReport : explanation || summary.data?.result;
   return (
     <section className="workspace insights-workspace">
       <PageHeader
         title="Learn from what you make."
-        description="Real production activity. Sourced observations. Evidence you can check."
+        description="Production activity and performance insights you can act on."
       />
       <div className="tabs" aria-label="Insights scope">
         {[
@@ -37,18 +141,21 @@ export function Insights({ projectId }) {
           <button
             key={key}
             aria-pressed={scope === key}
-            onClick={() => setScope(key)}
+            onClick={() => {
+              setScope(key);
+              setDemoReport(null);
+            }}
           >
             {label}
           </button>
         ))}
       </div>
       <Status query={data} error={action.error} />
-      {data.data && (
+      {insights && (
         <>
           <h2>Production</h2>
           <dl className="metrics">
-            {Object.entries(data.data.production).map(([key, value]) => (
+            {Object.entries(insights.production).map(([key, value]) => (
               <div key={key}>
                 <dt>{key.replaceAll("_", " ")}</dt>
                 <dd data-empty={value === null}>
@@ -62,10 +169,10 @@ export function Insights({ projectId }) {
             ))}
           </dl>
           <h2>Performance</h2>
-          {data.data.missing_data.map((message) => (
+          {insights.missing_data.map((message) => (
             <p key={message}>{message}</p>
           ))}
-          {data.data.performance.length > 0 && (
+          {insights.performance.length > 0 && (
             <div className="table-scroll">
               <table>
                 <thead>
@@ -79,7 +186,7 @@ export function Insights({ projectId }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.data.performance.map((row) => (
+                  {insights.performance.map((row) => (
                     <tr key={row.snapshot_id}>
                       <td>{row.title || row.publication_id.slice(0, 8)}</td>
                       <td>{row.platform}</td>
@@ -101,10 +208,10 @@ export function Insights({ projectId }) {
               </table>
             </div>
           )}
-          {data.data.recommendations.length > 0 && (
+          {insights.recommendations.length > 0 && (
             <h2>Recommendations with evidence</h2>
           )}
-          {data.data.recommendations.map((r) => (
+          {insights.recommendations.map((r) => (
             <div key={r.platform + r.reporting_window_days + r.reporting_basis}>
               <p>{r.message}</p>
               <p className="muted">
@@ -126,15 +233,20 @@ export function Insights({ projectId }) {
         <section className="form-section">
           <h2>Explain this project’s results</h2>
           <p className="muted">
-            A queued explanation of computed facts—not a prediction or a
-            substitute for missing observations.
+            {useDemo
+              ? "Generate a report from the performance shown above."
+              : "A queued explanation of computed facts—not a prediction or a substitute for missing observations."}
           </p>
           <button
             disabled={
-              action.busy ||
+              (!useDemo && action.busy) ||
               ["queued", "running"].includes(summary.data?.status)
             }
-            onClick={() =>
+            onClick={() => {
+              if (useDemo) {
+                setDemoReport(demoReportFrom(demoInsights.performance));
+                return;
+              }
               action.run(async () => {
                 const queued = await post(
                   `/projects/${projectId}/insights/summarize`,
@@ -143,13 +255,16 @@ export function Insights({ projectId }) {
                 );
                 setJob(queued.id);
                 setExplanation(null);
-              })
-            }
+                setDemoReport(null);
+              });
+            }}
           >
-            Generate evidence-backed explanation
+            {useDemo
+              ? "Generate insights report"
+              : "Generate evidence-backed explanation"}
           </button>
           <Job
-            id={activeJob}
+            id={useDemo ? null : activeJob}
             onDone={(record) => setExplanation(record.result)}
           />
           {result?.summary && (
@@ -164,7 +279,7 @@ export function Insights({ projectId }) {
                 <details>
                   <summary>Cited observations</summary>
                   {result.evidence_snapshot_ids.map((id) => {
-                    const observation = data.data?.performance.find(
+                    const observation = insights?.performance.find(
                       (item) => item.snapshot_id === id,
                     );
                     return (
