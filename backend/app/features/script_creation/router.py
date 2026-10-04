@@ -3,7 +3,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -26,6 +26,13 @@ from app.features.script_creation.routing import require_openrouter_configuratio
 from app.features.script_creation.snapshots import (
     parse_conversation_id,
     resolve_generation_snapshot,
+)
+from app.features.script_creation.trends import (
+    GoogleTrendsSource,
+    TrendSuggestions,
+    TrendsUnavailable,
+    get_trends_source,
+    suggest_topics,
 )
 from app.models import AssistantConversation, AssistantMessage, RevisionProposal, ScriptVersion
 from app.repositories import ProjectRepository
@@ -149,6 +156,32 @@ def create_creator_edit(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
 
 
+@router.get("/trends", response_model=TrendSuggestions)
+def get_script_trends(
+    project_id: uuid.UUID,
+    country: Annotated[str, Query(pattern=r"^[A-Z]{2}$")] = "IN",
+    focus: Annotated[str, Query(max_length=200)] = "",
+    creator: AuthenticatedCreator = Depends(get_current_creator),
+    session: Session = Depends(get_session),
+    source: GoogleTrendsSource = Depends(get_trends_source),
+) -> TrendSuggestions:
+    project = ProjectRepository(session).get_owned(creator.id, project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    campaign = current_campaign_brief(session, project.id)
+    brand = campaign.brand_brief if campaign and campaign.content_mode == "brand" else {}
+    context = focus.strip() or " ".join(filter(None, [
+        project.brief, project.audience,
+        *((brand or {}).get(key) for key in (
+            "brand_name", "product_name", "product_description", "campaign_audience",
+        )),
+    ]))
+    try:
+        return suggest_topics(source.feed(country), context)
+    except TrendsUnavailable as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+
+
 @router.post("/generate", response_model=JobResponse, status_code=status.HTTP_202_ACCEPTED)
 def generate_script(
     project_id: uuid.UUID,
@@ -157,25 +190,46 @@ def generate_script(
     creator: AuthenticatedCreator = Depends(get_current_creator),
     settings: Settings = Depends(get_settings),
     session: Session = Depends(get_session),
+    source: GoogleTrendsSource = Depends(get_trends_source),
 ) -> JobResponse:
     project = ProjectRepository(session).get_owned(creator.id, project_id)
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found.")
     require_openrouter_configuration(settings)
-    input_snapshot = resolve_generation_snapshot(
-        session,
-        owner_id=creator.id,
-        project=project,
-        request=request,
+    if settings.openrouter_max_calls_per_operation < 4:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Script review requires OPENROUTER_MAX_CALLS_PER_OPERATION >= 4.",
+        )
+    jobs = JobRepository(session)
+    # Feed refreshes must not change an already accepted operation's input or break retries.
+    submission = (
+        {"project_id": str(project.id), "request": request.model_dump(mode="json")}
+        if request.trend else None
     )
+    existing = jobs.find_by_idempotency(creator.id, JobType.SCRIPT_GENERATION, idempotency_key)
+    if submission and existing is not None:
+        input_snapshot = existing.input_snapshot
+    else:
+        input_snapshot = resolve_generation_snapshot(
+            session, owner_id=creator.id, project=project, request=request,
+        )
+        if request.trend:
+            try:
+                input_snapshot["selected_trend"] = source.selected_snapshot(request.trend)
+            except TrendsUnavailable as error:
+                raise HTTPException(status_code=503, detail=str(error)) from error
+            except ValueError as error:
+                raise HTTPException(status_code=409, detail=str(error)) from error
     try:
-        job = JobRepository(session).enqueue(
+        job = jobs.enqueue(
             owner_id=creator.id,
             project_id=project.id,
             job_type=JobType.SCRIPT_GENERATION,
             idempotency_key=idempotency_key,
             input_snapshot=input_snapshot,
             routing_snapshot=routing_snapshot(settings),
+            idempotency_payload=submission,
         )
     except IdempotencyConflictError as error:
         raise HTTPException(

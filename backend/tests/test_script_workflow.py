@@ -1,3 +1,5 @@
+import copy
+import json
 from typing import Any
 
 import pytest
@@ -12,6 +14,7 @@ from app.models import (
     AssistantConversation,
     Base,
     LlmCall,
+    Project,
     RevisionProposal,
     ScriptVersion,
     StyleProfileSuggestion,
@@ -21,13 +24,17 @@ from app.schemas import JobStatus, JobType, Platform, ProjectCreate
 
 
 class FakeProvider:
-    def __init__(self, payloads: list[dict[str, Any]]) -> None:
+    def __init__(self, payloads: list[dict[str, Any] | ProviderError]) -> None:
         self.payloads = payloads
         self.calls = 0
+        self.requests = []
 
-    def generate_json(self, **_kwargs: Any) -> ProviderResult:
+    def generate_json(self, **kwargs: Any) -> ProviderResult:
         payload = self.payloads[self.calls]
         self.calls += 1
+        self.requests.append(kwargs)
+        if isinstance(payload, ProviderError):
+            raise payload
         return ProviderResult(
             payload=payload,
             actual_model="fake/model:free",
@@ -61,7 +68,7 @@ def create_claimed_generation_job(session: Session):
         job_type=JobType.SCRIPT_GENERATION,
         idempotency_key="workflow-1",
         input_snapshot={"project": {"brief": project.brief}, "request": {}},
-        routing_snapshot=routing_snapshot(),
+        routing_snapshot={**routing_snapshot(), "max_calls": 4},
     )
     claimed = JobRepository(session).claim_next(lease_seconds=30)
     assert claimed is not None and claimed.id == job.id
@@ -109,12 +116,18 @@ def valid_hook_payload() -> dict[str, Any]:
 
 def test_generation_workflow_persists_an_immutable_script_version(session: Session) -> None:
     job = create_claimed_generation_job(session)
-    provider = FakeProvider([valid_hook_payload(), valid_script_payload()])
+    provider = FakeProvider(
+        [
+            valid_hook_payload(),
+            valid_script_payload(),
+            {"approved": True, "feedback": []},
+        ]
+    )
 
     ScriptCreationService(session, provider).execute_claimed_job(job)
 
     saved = session.scalar(select(ScriptVersion).where(ScriptVersion.job_id == job.id))
-    assert provider.calls == 2
+    assert provider.calls == 3
     assert job.status == JobStatus.COMPLETED.value
     assert saved is not None
     assert saved.version == 1
@@ -122,6 +135,247 @@ def test_generation_workflow_persists_an_immutable_script_version(session: Sessi
     call = session.scalar(select(LlmCall).where(LlmCall.job_id == job.id))
     assert call is not None
     assert call.actual_model == "fake/model:free"
+    assert all(request["routing"]["max_calls"] == 1 for request in provider.requests)
+    assert len(list(session.scalars(select(LlmCall).where(LlmCall.job_id == job.id)))) == 3
+    assert session.get(Project, job.project_id).workflow_stage == "idea"
+
+
+def test_new_script_requires_fresh_creator_approval(session):
+    job = create_claimed_generation_job(session)
+    project = session.get(Project, job.project_id)
+    project.workflow_stage = "approved"
+    project.workflow_data = {"approved_package": {"title": "Old draft"}}
+    session.commit()
+    provider = FakeProvider(
+        [
+            valid_hook_payload(),
+            valid_script_payload(),
+            {"approved": True, "feedback": []},
+        ]
+    )
+
+    ScriptCreationService(session, provider).execute_claimed_job(job)
+
+    assert job.status == "completed"
+    assert project.workflow_stage == "editing"
+    assert project.workflow_data["review_status"] == "changes_requested"
+    assert "approved_package" not in project.workflow_data
+
+
+def test_rejected_draft_is_revised_once_and_only_final_content_is_saved(session):
+    job = create_claimed_generation_job(session)
+    original_snapshot = copy.deepcopy(job.input_snapshot)
+    revised = valid_script_payload()
+    revised["sections"][0]["text"] = "Batch your planning to save time every week."
+    feedback = {"approved": False, "feedback": ["Give a concrete planning example."]}
+    provider = FakeProvider(
+        [
+            valid_hook_payload(),
+            valid_script_payload(),
+            feedback,
+            revised,
+        ]
+    )
+
+    ScriptCreationService(session, provider).execute_claimed_job(job)
+
+    assert job.status == "completed"
+    assert provider.calls == 4
+    versions = list(session.scalars(select(ScriptVersion).where(ScriptVersion.job_id == job.id)))
+    assert len(versions) == 1
+    assert versions[0].content["sections"][0]["text"] == revised["sections"][0]["text"]
+    assert versions[0].input_snapshot == original_snapshot == job.input_snapshot
+    review_request = json.loads(provider.requests[2]["user_prompt"])
+    revision_request = json.loads(provider.requests[3]["user_prompt"])
+    assert review_request["snapshot"] == original_snapshot
+    assert revision_request["review"] == feedback
+    assert [r["schema_name"] for r in provider.requests] == [
+        "creator_hooks",
+        "creator_script",
+        "creator_script_review",
+        "creator_script_revision",
+    ]
+    calls = list(session.scalars(select(LlmCall).where(LlmCall.job_id == job.id)))
+    assert len(calls) == 4
+    assert sum(c.input_tokens for c in calls) == 44
+    assert sum(c.output_tokens for c in calls) == 88
+    # A completed version is the existing replay boundary: no further model calls.
+    job.status = "running"
+    session.commit()
+    ScriptCreationService(session, provider).execute_claimed_job(job)
+    assert job.status == "completed" and provider.calls == 4
+    assert len(list(session.scalars(select(ScriptVersion)))) == 1
+
+
+def test_deterministic_missing_requirements_override_reviewer_approval(session):
+    job = create_claimed_generation_job(session)
+    job.input_snapshot = {
+        **job.input_snapshot,
+        "campaign_brief": {
+            "brand_brief": {
+                "requirements": [
+                    {"id": "brand-name", "kind": "literal", "literal_text": "Acme"},
+                    {"id": "tone", "kind": "semantic", "description": "Sound approachable"},
+                ],
+                "approved_claims": ["Helps organize planning"],
+            }
+        },
+        "style_profile": {
+            "profile": {
+                "signature_lines": [
+                    {
+                        "id": "signoff",
+                        "text": "Keep creating!",
+                        "inclusion_policy": "always",
+                        "placement": "closing",
+                    }
+                ]
+            }
+        },
+    }
+    session.commit()
+    revised = valid_script_payload()
+    revised["sections"][0]["text"] += " Plan with Acme."
+    revised["call_to_action"] += " Keep creating!"
+    provider = FakeProvider(
+        [
+            valid_hook_payload(),
+            valid_script_payload(),
+            {"approved": True, "feedback": []},
+            revised,
+        ]
+    )
+
+    ScriptCreationService(session, provider).execute_claimed_job(job)
+
+    assert job.status == "completed" and provider.calls == 4
+    saved = session.scalar(select(ScriptVersion).where(ScriptVersion.job_id == job.id))
+    checks = {c["requirement_id"]: c["status"] for c in saved.requirement_checks}
+    assert checks == {
+        "brand-name": "satisfied",
+        "tone": "needs_review",
+        "approved-claims": "needs_review",
+        "signature-signoff": "satisfied",
+    }
+    assert saved.warning_ids == ["tone", "approved-claims"]
+    assert any(
+        c["status"] == "missing"
+        for c in json.loads(provider.requests[3]["user_prompt"])["requirement_checks"]
+    )
+
+
+@pytest.mark.parametrize("violation", ["literal", "signature", "forbidden", "hooks", "sections"])
+def test_invalid_revision_fails_without_saving_or_looping(session, violation):
+    job = create_claimed_generation_job(session)
+    revised = valid_script_payload()
+    if violation == "literal":
+        job.input_snapshot = {
+            **job.input_snapshot,
+            "campaign_brief": {
+                "brand_brief": {
+                    "requirements": [{"id": "brand", "kind": "literal", "literal_text": "Acme"}],
+                }
+            },
+        }
+    elif violation == "signature":
+        job.input_snapshot = {
+            **job.input_snapshot,
+            "style_profile": {
+                "profile": {
+                    "signature_lines": [
+                        {
+                            "id": "end",
+                            "text": "Keep creating!",
+                            "inclusion_policy": "always",
+                            "placement": "closing",
+                        }
+                    ],
+                }
+            },
+        }
+    elif violation == "forbidden":
+        job.input_snapshot = {
+            **job.input_snapshot,
+            "campaign_brief": {
+                "brand_brief": {
+                    "forbidden_phrases": ["guaranteed results"],
+                }
+            },
+        }
+        revised["sections"][0]["text"] = "Get guaranteed results."
+    elif violation == "hooks":
+        revised["hooks"][0]["text"] = "An unauthorized hook change."
+    else:
+        revised["sections"][0]["id"] = "invented-section"
+    session.commit()
+    provider = FakeProvider(
+        [
+            valid_hook_payload(),
+            valid_script_payload(),
+            {"approved": False, "feedback": ["Improve the example."]},
+            revised,
+        ]
+    )
+
+    ScriptCreationService(session, provider).execute_claimed_job(job)
+
+    assert job.status == "failed" and provider.calls == 4
+    assert job.lease_expires_at is None
+    assert session.scalar(select(ScriptVersion).where(ScriptVersion.job_id == job.id)) is None
+    assert session.get(Project, job.project_id).current_script_version_id is None
+
+
+@pytest.mark.parametrize(
+    "review",
+    [
+        {"approved": False, "feedback": []},
+        {"approved": True},
+        {"approved": "false", "feedback": ["Fix the pacing."]},
+        {"approved": False, "feedback": [" "]},
+        ProviderError("unavailable", "Reviewer timed out", retryable=True),
+    ],
+)
+def test_invalid_or_unavailable_reviewer_fails_without_persisting(session, review):
+    job = create_claimed_generation_job(session)
+    provider = FakeProvider([valid_hook_payload(), valid_script_payload(), review])
+
+    ScriptCreationService(session, provider).execute_claimed_job(job)
+
+    assert job.status == "failed" and provider.calls == 3
+    assert session.scalar(select(ScriptVersion)) is None
+
+
+def test_revision_provider_failure_is_recorded_and_no_draft_is_saved(session):
+    job = create_claimed_generation_job(session)
+    provider = FakeProvider(
+        [
+            valid_hook_payload(),
+            valid_script_payload(),
+            {"approved": False, "feedback": ["Fix the pacing."]},
+            ProviderError("rate_limited", "Try later", retryable=True),
+        ]
+    )
+
+    ScriptCreationService(session, provider).execute_claimed_job(job)
+
+    assert job.status == "failed" and provider.calls == 4
+    assert session.scalar(select(ScriptVersion)) is None
+    failed_call = session.scalar(select(LlmCall).where(LlmCall.outcome == "failed"))
+    assert failed_call.error_category == "rate_limited"
+
+
+@pytest.mark.parametrize("budget", [2, 3])
+def test_insufficient_script_budget_fails_before_any_provider_call(session, budget):
+    job = create_claimed_generation_job(session)
+    job.routing_snapshot = {**job.routing_snapshot, "max_calls": budget}
+    session.commit()
+    provider = FakeProvider([])
+
+    ScriptCreationService(session, provider).execute_claimed_job(job)
+
+    assert job.status == "failed" and provider.calls == 0
+    assert "MAX_CALLS_PER_OPERATION >= 4" in job.error
+    assert session.scalar(select(ScriptVersion)) is None
 
 
 def test_invalid_provider_output_fails_the_job_without_saving_a_version(session: Session) -> None:

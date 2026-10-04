@@ -27,6 +27,8 @@ class ProviderResult:
     provider: str | None
     input_tokens: int | None
     output_tokens: int | None
+    reasoning_tokens: int | None = None
+    cost: float | None = None
 
 
 class StructuredTextProvider(Protocol):
@@ -180,4 +182,6 @@ class OpenRouterProvider:
             provider=(body.get("provider") or None),
             input_tokens=usage.get("prompt_tokens"),
             output_tokens=usage.get("completion_tokens"),
+            reasoning_tokens=(usage.get("completion_tokens_details") or {}).get("reasoning_tokens"),
+            cost=usage.get("cost"),
         )

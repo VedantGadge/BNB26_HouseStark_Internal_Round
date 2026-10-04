@@ -13,9 +13,10 @@ import psycopg
 import pytest
 from langgraph.checkpoint.postgres import PostgresSaver
 from langgraph.types import Command
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, select
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
+from test_script_workflow import FakeProvider, valid_hook_payload, valid_script_payload
 
 import app.worker as worker_module
 from alembic import command
@@ -23,8 +24,9 @@ from alembic.config import Config
 from alembic.script import ScriptDirectory
 from app.config import Settings, get_settings
 from app.features.script_creation.jobs import JobRepository
+from app.features.script_creation.routing import routing_snapshot
 from app.graphs.repurpose import build_repurpose_graph
-from app.models import Asset, Job, Project
+from app.models import Asset, Job, LlmCall, Project, ScriptVersion
 from app.schemas import JobType
 
 
@@ -189,6 +191,86 @@ def test_worker_checkpoint_setup_does_not_block_its_claim(postgres_schema, monke
     with Session(engine) as session:
         saved = session.get(Job, job_id)
         assert saved.status == "completed", saved.error
+
+
+@pytest.mark.parametrize("needs_revision", [False, True])
+def test_worker_persists_reviewed_script_on_postgres(postgres_schema, monkeypatch, needs_revision):
+    engine, config, conninfo = postgres_schema
+    command.upgrade(config, "head")
+    settings = Settings(
+        _env_file=None,
+        database_url=conninfo,
+        openrouter_api_key="fixture-only",
+        openrouter_default_model="fixture:free",
+    )
+    payloads = [
+        valid_hook_payload(),
+        valid_script_payload(),
+        {
+            "approved": not needs_revision,
+            "feedback": ["Improve the title."] if needs_revision else [],
+        },
+    ]
+    expected_title = valid_script_payload()["title"]
+    if needs_revision:
+        revised = valid_script_payload()
+        revised["title"] = expected_title = "Reviewed on PostgreSQL"
+        payloads.append(revised)
+    provider = FakeProvider(payloads)
+    snapshot = {"project": {"brief": "A practical workflow"}, "request": {}}
+    with Session(engine, expire_on_commit=False) as session:
+        project = Project(
+            owner_id="script-worker",
+            name="Reviewed script",
+            brief="A practical workflow",
+            workflow_stage="approved",
+            workflow_data={"approved_package": {"title": "Old"}},
+        )
+        session.add(project)
+        session.commit()
+        job = JobRepository(session).enqueue(
+            owner_id=project.owner_id,
+            project_id=project.id,
+            job_type=JobType.SCRIPT_GENERATION,
+            idempotency_key="reviewed-script",
+            input_snapshot=snapshot,
+            routing_snapshot=routing_snapshot(settings),
+        )
+        job_id, project_id = job.id, project.id
+
+    class StopWorkerForTest(Exception):
+        pass
+
+    async def stop(_delay):
+        raise StopWorkerForTest()
+
+    monkeypatch.setattr(worker_module, "get_settings", lambda: settings)
+    monkeypatch.setattr(
+        worker_module,
+        "get_session_factory",
+        lambda _settings: lambda: Session(engine, expire_on_commit=False),
+    )
+    monkeypatch.setattr(worker_module, "OpenRouterProvider", lambda _settings: provider)
+    monkeypatch.setattr(worker_module.asyncio, "sleep", stop)
+    with pytest.raises(StopWorkerForTest):
+        asyncio.run(worker_module.run_worker())
+
+    # A fresh database connection must see only the final draft and updated review state.
+    with Session(engine) as session:
+        saved_job = session.get(Job, job_id)
+        assert saved_job.status == "completed", saved_job.error
+        versions = list(
+            session.scalars(select(ScriptVersion).where(ScriptVersion.job_id == job_id))
+        )
+        assert len(versions) == 1
+        assert versions[0].content["title"] == expected_title
+        assert versions[0].input_snapshot == snapshot
+        saved_project = session.get(Project, project_id)
+        assert saved_project.current_script_version_id == versions[0].id
+        assert saved_project.workflow_stage == "editing"
+        assert "approved_package" not in saved_project.workflow_data
+        calls = list(session.scalars(select(LlmCall).where(LlmCall.job_id == job_id)))
+        assert len(calls) == provider.calls == (4 if needs_revision else 3)
 
 
 def test_media_review_uses_checkpoint_interrupt_not_stale_result_key(postgres_schema, monkeypatch):

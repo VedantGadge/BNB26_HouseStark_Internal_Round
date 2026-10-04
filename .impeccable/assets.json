@@ -43,10 +43,60 @@
       ],
       "qa_status": "accepted",
       "qa_notes": "Opened native source and optimized WebP; compared to approved mock. Full-bleed crisp natural image; no text, UI, borders, rounded clipping, watermark or logos. Center portrait crop retains head, handheld camera and shoulders. Use upper-right zoom for an ocean/detail-only square if required."
+    },
+    {
+      "id": "creator-preview",
+      "source_crop": ".impeccable/mocks/saas-3.png (central creator selfie; reference only, no pixels extracted)",
+      "approved_reference": ".impeccable/mocks/saas-3.png",
+      "approval_authority": "Parent chose comp 3 under the user's explicit recommended-choice delegation.",
+      "output_path": "frontend/public/media/creator-preview.webp",
+      "public_url": "/media/creator-preview.webp",
+      "source_path": ".impeccable/sources/creator-preview.png",
+      "source_native_path": "/Users/vedantgadge1512/.codex/generated_images/01a103ee-4ba9-7d80-98ac-47e96585048a/exec-9c1c76c6-4812-4804-99dd-d348075c6081.png",
+      "strategy": "Independent photographic generation through native image_gen; source copied non-destructively; cwebp quality82 method6 resize1024.",
+      "prompt_used": "Use case: photorealistic-natural\nAsset type: clean photographic source for an illustrative creator video editing preview.\nPrimary request: Independently generate a natural landscape selfie photograph of an adult woman filming herself on a rocky coastal overlook at golden hour.\nScene/backdrop: Rugged warm rocky coastal cliffs and a green overlook on the left, ocean and sculptural offshore sea stacks behind her on the right, gentle breaking waves, pale warm evening sky.\nSubject: One adult woman with brown wavy hair, a beige ribbed knit beanie, an olive outdoor jacket and plain dark backpack straps. She smiles naturally and looks directly into the lens, holding the filming camera herself at arm's length; her extended jacket sleeve enters from the lower left. No visible camera is necessary because this is its selfie viewpoint.\nStyle/medium: Believable editorial travel photography, natural skin and knit textures, detailed rocks and ocean, crisp subject and softly atmospheric distant coast.\nComposition/framing: Landscape 1536x1024, 3:2. Eye-level wide selfie camera angle, woman's face just left of center and in the upper-middle, head and beanie fully visible with breathing room, chest and extended arm in the lower foreground; enough coastline and sea stacks behind her for landscape and centered portrait preview crops.\nLighting/mood: Warm natural late-afternoon golden-hour sunlight from the right, softly lit face, warm rim light on hair, realistic cool ocean shadows, welcoming candid expression.\nColor palette: Warm beige knit, muted olive jacket, brown hair, honey rocks, blue-gray ocean, soft cream evening sky.\nConstraints: Raw full-bleed photographic scene only. Generate original scene pixels independently; do not crop a UI mockup. No text, captions, logos, watermark, interface, video controls, borders, rounded clipping, card shadows or dark overlay wash. CSS will own all presentation.\nAvoid: additional people, invented props, artificial beauty retouching, excessive HDR, illustration, harsh flash, purple lighting, letterboxing, cut-off beanie.",
+      "prompt_path": ".impeccable/sources/creator-preview.prompt.txt",
+      "prompt_embedding": {
+        "source": "PNG tEXt impeccable:prompt",
+        "production": "frontend/public/media/creator-preview.webp.json (embed-prompt.mjs WebP fallback)",
+        "readback_verified": true
+      },
+      "dimensions": {
+        "width": 1024,
+        "height": 683
+      },
+      "source_dimensions": {
+        "width": 1536,
+        "height": 1024
+      },
+      "file_size_bytes": 87650,
+      "format": "webp",
+      "transparency": false,
+      "alt_text": "Illustrative AI-generated selfie of a creator in a beige beanie and olive jacket on a rocky coastal overlook at golden hour.",
+      "provenance": {
+        "type": "AI-generated",
+        "generator": "native image_gen",
+        "illustrative_only": true,
+        "derived_from_mock_pixels": false,
+        "original_preserved": true
+      },
+      "deviations": [
+        "Smile is closed-mouth rather than the reference's open-mouth speaking expression.",
+        "Face is slightly left of center; portrait preview should use approximately 40% horizontal crop position."
+      ],
+      "qa_status": "accepted",
+      "qa_notes": "Native source and optimized WebP opened and compared against approved mock. Natural adult subject, fully visible beige beanie, brown hair, olive jacket and selfie arm; warm rocky coast, ocean and sea stacks preserved. No UI, captions, text, logos, overlays, borders or letterboxing."
     }
   ],
   "direct": [],
+  "latest_approved_reference": ".impeccable/mocks/saas-3.png",
   "semantic": [
+    {
+      "id": "saas-creator-demo",
+      "implementation": "Compose /media/creator-preview.webp inside native HTML/Remotion source, edit and export demonstrations. CSS owns near-black field, silver bezel, rounded clipping and a subtle radial edge wash inside imagery. Native accessible controls own play/seek, captions, trim and crop. Use object-position approximately 40% center for portrait crops; responsive mobile places the main preview ahead of secondary controls.",
+      "notes": "Keep an explicit illustrative workflow label. This generated still does not prove an exported video; retain authoritative FFmpeg output state. Caption text and all interface layers remain semantic, never rasterized.",
+      "qa_status": "accepted"
+    },
     {
       "id": "multiview-tray",
       "implementation": "Compose /media/coastline.webp with synchronized Remotion previews inside semantic portrait, landscape and square media regions. CSS owns 14–16px rounded clipping, cool silver inset tray, border and diffused shadow; use object-fit cover and crop positions per format.",
@@ -72,7 +122,11 @@
     "resize and compress 1024px WebP",
     "embed source prompt and production sidecar through embed-prompt.mjs",
     "read both prompts",
-    "write manifest and semantic handoff"
+    "write manifest and semantic handoff",
+    "generate independent creator selfie against saas-3",
+    "inspect selfie source and optimized WebP",
+    "embed and read creator-preview prompts",
+    "append creator-preview manifest while preserving coastline"
   ],
   "blockers": [],
   "assumptions": [

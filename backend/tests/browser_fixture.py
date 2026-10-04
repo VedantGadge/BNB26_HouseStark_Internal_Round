@@ -49,7 +49,12 @@ class ScriptProvider:
             {"id": "hook-2", "text": "Make your audio clear"},
             {"id": "hook-3", "text": "Show the product, not just the pitch"},
         ]
-        payload = {"hooks": script["hooks"]} if schema_name == "creator_hooks" else script
+        if schema_name == "creator_hooks":
+            payload = {"hooks": script["hooks"]}
+        elif schema_name == "creator_script_review":
+            payload = {"approved": True, "feedback": []}
+        else:
+            payload = script
         return ProviderResult(payload, "labelled-qa-fixture", "fixture", 100, 100)
 
 

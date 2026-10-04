@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     openrouter_timeout_seconds: float = Field(default=30, gt=0, le=120)
     openrouter_max_output_tokens: int = Field(default=8_192, ge=64, le=16_384)
     openrouter_reasoning_effort: Literal["minimal", "low", "medium", "high"] = "minimal"
-    openrouter_max_calls_per_operation: int = Field(default=3, ge=2, le=5)
+    openrouter_max_calls_per_operation: int = Field(default=4, ge=2, le=5)
     openrouter_max_fallback_models: int = Field(default=2, ge=0, le=3)
 
     @property

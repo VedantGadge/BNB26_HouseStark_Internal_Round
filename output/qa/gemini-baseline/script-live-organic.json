@@ -1,0 +1,200 @@
+{
+  "timestamp_utc": "2026-10-04T04:10:21.821665+00:00",
+  "case": "organic",
+  "requested_model": "google/gemini-3.8-flash",
+  "free_only": false,
+  "job_status": "completed",
+  "error": null,
+  "elapsed_seconds": 13.62,
+  "call_count": 3,
+  "calls": [
+    {
+      "stage": "creator_hooks",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "google/gemini-3.8-flash",
+      "provider": "Google",
+      "input_tokens": 312,
+      "output_tokens": 132,
+      "reasoning_tokens": 0,
+      "cost": 0.000729,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_step_framework_01",
+            "text": "If you are tired of deciding what to post every single morning, here is a practical three-step system to batch your entire week in one sitting."
+          },
+          {
+            "id": "hook_direct_question_02",
+            "text": "Struggling to plan your weekly content without burning out? Try setting up your workflow with these three concrete steps."
+          },
+          {
+            "id": "hook_process_breakdown_03",
+            "text": "Stop brainstorming daily. Here is a clear, repeatable routine you can use to organize and batch your weekly content plan."
+          }
+        ]
+      },
+      "elapsed_seconds": 3.696
+    },
+    {
+      "stage": "creator_script",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "google/gemini-3.8-flash",
+      "provider": "Google",
+      "input_tokens": 1021,
+      "output_tokens": 573,
+      "reasoning_tokens": 0,
+      "cost": 0.0029145,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_step_framework_01",
+            "text": "If you are tired of deciding what to post every single morning, here is a practical three-step system to batch your entire week in one sitting."
+          },
+          {
+            "id": "hook_direct_question_02",
+            "text": "Struggling to plan your weekly content without burning out? Try setting up your workflow with these three concrete steps."
+          },
+          {
+            "id": "hook_process_breakdown_03",
+            "text": "Stop brainstorming daily. Here is a clear, repeatable routine you can use to organize and batch your weekly content plan."
+          }
+        ],
+        "selected_hook_id": "hook_step_framework_01",
+        "sections": [
+          {
+            "id": "section_intro",
+            "position": 1,
+            "heading": "The Batching Routine",
+            "text": "If you are tired of deciding what to post every single morning, here is a practical three-step system to batch your entire week in one sitting.",
+            "estimated_duration_seconds": 7
+          },
+          {
+            "id": "section_step_one",
+            "position": 2,
+            "heading": "Step 1: Pick Fixed Content Pillars",
+            "text": "First, choose three recurring themes for your week, such as a tactical tip, a behind-the-scenes update, and an audience Q&A. Locking in your categories beforehand eliminates decision fatigue before you start writing.",
+            "estimated_duration_seconds": 12
+          },
+          {
+            "id": "section_step_two",
+            "position": 3,
+            "heading": "Step 2: Bullet-Point Before Scripting",
+            "text": "Second, spend ten minutes outlining bullet points for each concept before drafting full captions or dialogue. Getting the core idea on paper first keeps your message focused and speeds up drafting.",
+            "estimated_duration_seconds": 12
+          },
+          {
+            "id": "section_step_three",
+            "position": 4,
+            "heading": "Step 3: Schedule Calendar Production Blocks",
+            "text": "Third, map each post directly onto your production calendar with designated filming and drafting windows. Separating planning time from creation time prevents daily context switching.",
+            "estimated_duration_seconds": 10
+          },
+          {
+            "id": "section_outro",
+            "position": 5,
+            "heading": "Wrap Up and Action",
+            "text": "Block out your next planning session on your calendar today, and follow for more straightforward creator workflows.",
+            "estimated_duration_seconds": 4
+          }
+        ],
+        "title": "3 Practical Steps to Batch Your Weekly Content",
+        "description": "A simple, 45-second framework for independent creators looking to streamline weekly content planning and eliminate daily brainstorming.",
+        "call_to_action": "Save this reel to test during your next planning session, and drop your primary content pillar in the comments.",
+        "production_notes": [
+          "Use direct-to-camera framing with natural daylight or a diffused key light.",
+          "Overlay clear on-screen text labels for each of the three steps.",
+          "Maintain a clean background and steady, energetic pacing throughout."
+        ]
+      },
+      "elapsed_seconds": 7.759
+    },
+    {
+      "stage": "creator_script_review",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "google/gemini-3.8-flash",
+      "provider": "Google",
+      "input_tokens": 903,
+      "output_tokens": 10,
+      "reasoning_tokens": 0,
+      "cost": 0.00071475,
+      "payload": {
+        "approved": true,
+        "feedback": []
+      },
+      "elapsed_seconds": 2.045
+    }
+  ],
+  "input_tokens": 2236,
+  "output_tokens": 715,
+  "reasoning_tokens": 0,
+  "provider_reported_cost": 0.00435825,
+  "versions_saved": 1,
+  "project_stage": "editing",
+  "content": {
+    "hooks": [
+      {
+        "id": "hook_step_framework_01",
+        "text": "If you are tired of deciding what to post every single morning, here is a practical three-step system to batch your entire week in one sitting."
+      },
+      {
+        "id": "hook_direct_question_02",
+        "text": "Struggling to plan your weekly content without burning out? Try setting up your workflow with these three concrete steps."
+      },
+      {
+        "id": "hook_process_breakdown_03",
+        "text": "Stop brainstorming daily. Here is a clear, repeatable routine you can use to organize and batch your weekly content plan."
+      }
+    ],
+    "selected_hook_id": "hook_step_framework_01",
+    "sections": [
+      {
+        "id": "section_intro",
+        "position": 1,
+        "heading": "The Batching Routine",
+        "text": "If you are tired of deciding what to post every single morning, here is a practical three-step system to batch your entire week in one sitting.",
+        "estimated_duration_seconds": 7
+      },
+      {
+        "id": "section_step_one",
+        "position": 2,
+        "heading": "Step 1: Pick Fixed Content Pillars",
+        "text": "First, choose three recurring themes for your week, such as a tactical tip, a behind-the-scenes update, and an audience Q&A. Locking in your categories beforehand eliminates decision fatigue before you start writing.",
+        "estimated_duration_seconds": 12
+      },
+      {
+        "id": "section_step_two",
+        "position": 3,
+        "heading": "Step 2: Bullet-Point Before Scripting",
+        "text": "Second, spend ten minutes outlining bullet points for each concept before drafting full captions or dialogue. Getting the core idea on paper first keeps your message focused and speeds up drafting.",
+        "estimated_duration_seconds": 12
+      },
+      {
+        "id": "section_step_three",
+        "position": 4,
+        "heading": "Step 3: Schedule Calendar Production Blocks",
+        "text": "Third, map each post directly onto your production calendar with designated filming and drafting windows. Separating planning time from creation time prevents daily context switching.",
+        "estimated_duration_seconds": 10
+      },
+      {
+        "id": "section_outro",
+        "position": 5,
+        "heading": "Wrap Up and Action",
+        "text": "Block out your next planning session on your calendar today, and follow for more straightforward creator workflows.",
+        "estimated_duration_seconds": 4
+      }
+    ],
+    "title": "3 Practical Steps to Batch Your Weekly Content",
+    "description": "A simple, 45-second framework for independent creators looking to streamline weekly content planning and eliminate daily brainstorming.",
+    "call_to_action": "Save this reel to test during your next planning session, and drop your primary content pillar in the comments.",
+    "production_notes": [
+      "Use direct-to-camera framing with natural daylight or a diffused key light.",
+      "Overlay clear on-screen text labels for each of the three steps.",
+      "Maintain a clean background and steady, energetic pacing throughout."
+    ]
+  },
+  "requirement_checks": [],
+  "warning_ids": []
+}

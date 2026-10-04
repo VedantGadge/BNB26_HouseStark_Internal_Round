@@ -1,5 +1,31 @@
 # CreatorAI frontend rebuild
 
+## Latest authority: gpt-taste SaaS redesign
+
+The user's latest explicit request replaces the landing composition with a SaaS
+world. Approved comp is `mocks/saas-3.png`, selected under the user's delegation.
+Seed 66 selects Cinematic Center, Outfit, Inline Typography Images, Horizontal
+Accordions, Feedback Carousel, GSAP Scrubbing Text Reveals and Image Scale/Fade.
+Outfit is user-skill-pinned, overriding the earlier Geist display decision.
+Keep the quiet split navigation, centered two-line headline and exactly two hero
+actions. A dark actual coded editor demonstrates the mechanism beneath the copy.
+Interest uses a dense 3-column/2-row bento: 2x2 editor + two 1x1 tools, no holes.
+Desire and Action have cinematic chapter spacing, but operating screens remain
+compact and task-first. Carousel material is explicitly illustrative before/after
+editing examples, never invented testimonials. Generated production photography
+is context-specific and self-hosted instead of arbitrary Picsum subjects.
+
+Comp truth corrections: six real preset names, no X/custom/4K claims, no colour
+grading or fake upload button. Illustrated source names are labelled demo views,
+not actual uploaded files. The JSON design contract is the first body child;
+React strips opening markup comments, so this production-surviving script carries
+the same five auditable contract sections and seed. Old comps below are history,
+not current authority. Source files remain untouched by illustrative interactions.
+
+Accessibility adaptation: the scrubbing words begin at opacity .65 rather than
+.1. The requested .1 made meaningful visible text fail measured contrast. Text
+still scrubs sequentially to full opacity, while remaining readable throughout.
+
 Local-only replacement of the minimal integration UI. The user delegated all
 recommended design choices. Product capabilities remain governed by PRODUCT.md
 and the build plan; no fake customers, prices, analytics or social posting.

@@ -5,6 +5,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.features.script_creation.trends import GoogleTrendSelection
+
 
 class SchemaModel(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -257,6 +259,7 @@ class ScriptGenerationRequest(SchemaModel):
     style_profile_revision: int | None = Field(default=None, ge=1)
     campaign_brief_revision: int | None = Field(default=None, ge=1)
     optional_signature_line_ids: list[str] = Field(default_factory=list, max_length=10)
+    trend: GoogleTrendSelection | None = None
 
     @model_validator(mode="after")
     def validates_profile_choice(self) -> ScriptGenerationRequest:

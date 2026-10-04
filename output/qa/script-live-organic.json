@@ -1,0 +1,201 @@
+{
+  "timestamp_utc": "2026-10-04T04:04:01.078265+00:00",
+  "case": "organic",
+  "requested_model": "liquid/lfm-2.5-2.6b:free",
+  "free_only": true,
+  "job_status": "completed",
+  "error": null,
+  "elapsed_seconds": 34.767,
+  "call_count": 3,
+  "calls": [
+    {
+      "stage": "creator_hooks",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "provider": "Liquid",
+      "input_tokens": 134,
+      "output_tokens": 362,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_1",
+            "text": "Stop scrambling all week long. Here's how independent creators batch their weekly content planning so you actually have time to create instead of plan."
+          },
+          {
+            "id": "hook_2",
+            "text": "One session, seven posts done. Learn the three-step system that lets you build your entire weekly feed before the week even starts."
+          },
+          {
+            "id": "hook_3",
+            "text": "If you're drowning in content ideas but running out of time, skip the guesswork. Watch how to batch your weekly planning in under five minutes."
+          }
+        ]
+      },
+      "elapsed_seconds": 4.662
+    },
+    {
+      "stage": "creator_script",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "provider": "Liquid",
+      "input_tokens": 282,
+      "output_tokens": 1346,
+      "payload": {
+        "hooks": [
+          {
+            "id": "hook_1",
+            "text": "Stop scrambling all week long. Here's how independent creators batch their weekly content planning so you actually have time to create instead of plan."
+          },
+          {
+            "id": "hook_2",
+            "text": "One session, seven posts done. Learn the three-step system that lets you build your entire weekly feed before the week even starts."
+          },
+          {
+            "id": "hook_3",
+            "text": "If you're drowning in content ideas but running out of time, skip the guesswork. Watch how to batch your weekly planning in under five minutes."
+          }
+        ],
+        "selected_hook_id": "hook_2",
+        "sections": [
+          {
+            "id": "intro",
+            "position": 1,
+            "heading": "Intro / Hook",
+            "text": "One session, seven posts done. Learn the three-step system that lets you build your entire weekly feed before the week even starts."
+          },
+          {
+            "id": "step_1",
+            "position": 2,
+            "heading": "Step 1 — Capture & Cluster Ideas",
+            "text": "First, spend 15 minutes gathering everything that sparks your creativity this week—notes, photos, voice memos. Then group them by theme. This simple clustering turns scattered thoughts into a manageable list."
+          },
+          {
+            "id": "step_2",
+            "position": 3,
+            "heading": "Step 2 — Map the Grid",
+            "text": "Next, map your grid. Decide which platform formats fit best—Reels, carousels, static posts—and assign each idea to a specific slot. Seeing the whole week laid out prevents last-minute scrambling."
+          },
+          {
+            "id": "step_3",
+            "position": 4,
+            "heading": "Step 3 — Batch Produce",
+            "text": "Finally, create in batches. Shoot all your videos together, take all your photos, then design your captions. Doing each task once saves hours of context-switching."
+          },
+          {
+            "id": "outro",
+            "position": 5,
+            "heading": "Outro / CTA",
+            "text": "Try this system this week and watch your creative energy return. Follow for more practical creator hacks."
+          }
+        ],
+        "title": "Batch Your Weekly Content in One Session",
+        "description": "A practical Instagram Reel showing independent creators how to batch their weekly content planning in a single focused session. Three actionable steps to build your entire feed before the week starts.",
+        "call_to_action": "Start your first batch today and reclaim your creative time. Follow for more practical creator hacks like this one.",
+        "production_notes": [
+          "Total runtime: ~45 seconds (approx. 120-130 words)",
+          "Camera: Vertical phone shot, close-up on planner/notes during intro; medium shot of creator working during steps",
+          "Lighting: Natural light near window, consistent brightness throughout",
+          "Pacing: Quick cuts between steps, 2-3 second holds on key visuals",
+          "Music: Upbeat but unobtrusive lo-fi track (10-15 sec loop)",
+          "Text overlays: Bold on screen for each step number and key phrase",
+          "End screen: Subscribe button + 'Save this for later' graphic"
+        ]
+      },
+      "elapsed_seconds": 11.912
+    },
+    {
+      "stage": "creator_script_review",
+      "max_calls": 1,
+      "outcome": "success",
+      "model": "liquid/lfm-2.5-2.6b:free",
+      "provider": "Liquid",
+      "input_tokens": 926,
+      "output_tokens": 1696,
+      "payload": {
+        "approved": true,
+        "feedback": [
+          "The script fully meets the brief: three concrete steps (Capture & Cluster, Map the Grid, Batch Produce), no invented performance statistics, and maintains a friendly, direct, practical tone suitable for independent creators.",
+          "The selected hook (hook_2) effectively introduces the core value proposition ('One session, seven posts done') while staying grounded in the actual method rather than overpromising.",
+          "All three steps are actionable and distinct, providing clear guidance without fabricated metrics.",
+          "The structure (Intro → Step 1 → Step 2 → Step 3 → Outro) aligns well with the 45-second target, and the production notes support a tight pacing approach.",
+          "No substantive corrections are needed—the script is ready for production."
+        ]
+      },
+      "elapsed_seconds": 18.105
+    }
+  ],
+  "input_tokens": 1342,
+  "output_tokens": 3404,
+  "versions_saved": 1,
+  "project_stage": "editing",
+  "content": {
+    "hooks": [
+      {
+        "id": "hook_1",
+        "text": "Stop scrambling all week long. Here's how independent creators batch their weekly content planning so you actually have time to create instead of plan."
+      },
+      {
+        "id": "hook_2",
+        "text": "One session, seven posts done. Learn the three-step system that lets you build your entire weekly feed before the week even starts."
+      },
+      {
+        "id": "hook_3",
+        "text": "If you're drowning in content ideas but running out of time, skip the guesswork. Watch how to batch your weekly planning in under five minutes."
+      }
+    ],
+    "selected_hook_id": "hook_2",
+    "sections": [
+      {
+        "id": "intro",
+        "position": 1,
+        "heading": "Intro / Hook",
+        "text": "One session, seven posts done. Learn the three-step system that lets you build your entire weekly feed before the week even starts.",
+        "estimated_duration_seconds": null
+      },
+      {
+        "id": "step_1",
+        "position": 2,
+        "heading": "Step 1 — Capture & Cluster Ideas",
+        "text": "First, spend 15 minutes gathering everything that sparks your creativity this week—notes, photos, voice memos. Then group them by theme. This simple clustering turns scattered thoughts into a manageable list.",
+        "estimated_duration_seconds": null
+      },
+      {
+        "id": "step_2",
+        "position": 3,
+        "heading": "Step 2 — Map the Grid",
+        "text": "Next, map your grid. Decide which platform formats fit best—Reels, carousels, static posts—and assign each idea to a specific slot. Seeing the whole week laid out prevents last-minute scrambling.",
+        "estimated_duration_seconds": null
+      },
+      {
+        "id": "step_3",
+        "position": 4,
+        "heading": "Step 3 — Batch Produce",
+        "text": "Finally, create in batches. Shoot all your videos together, take all your photos, then design your captions. Doing each task once saves hours of context-switching.",
+        "estimated_duration_seconds": null
+      },
+      {
+        "id": "outro",
+        "position": 5,
+        "heading": "Outro / CTA",
+        "text": "Try this system this week and watch your creative energy return. Follow for more practical creator hacks.",
+        "estimated_duration_seconds": null
+      }
+    ],
+    "title": "Batch Your Weekly Content in One Session",
+    "description": "A practical Instagram Reel showing independent creators how to batch their weekly content planning in a single focused session. Three actionable steps to build your entire feed before the week starts.",
+    "call_to_action": "Start your first batch today and reclaim your creative time. Follow for more practical creator hacks like this one.",
+    "production_notes": [
+      "Total runtime: ~45 seconds (approx. 120-130 words)",
+      "Camera: Vertical phone shot, close-up on planner/notes during intro; medium shot of creator working during steps",
+      "Lighting: Natural light near window, consistent brightness throughout",
+      "Pacing: Quick cuts between steps, 2-3 second holds on key visuals",
+      "Music: Upbeat but unobtrusive lo-fi track (10-15 sec loop)",
+      "Text overlays: Bold on screen for each step number and key phrase",
+      "End screen: Subscribe button + 'Save this for later' graphic"
+    ]
+  },
+  "requirement_checks": [],
+  "warning_ids": []
+}

@@ -5,12 +5,15 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
+from test_script_workflow import FakeProvider, valid_hook_payload, valid_script_payload
 
 from app.auth import AuthenticatedCreator, get_current_creator
 from app.config import Settings, get_settings
 from app.database import get_session
+from app.features.script_creation.jobs import JobRepository
+from app.features.script_creation.service import ScriptCreationService
 from app.main import create_app
-from app.models import Base, ScriptVersion
+from app.models import Base, Job, ScriptVersion
 from app.repositories import ProjectRepository
 from app.schemas import Platform, ProjectCreate
 
@@ -25,7 +28,9 @@ def client_session() -> Generator[tuple[TestClient, Session], None, None]:
     Base.metadata.create_all(engine)
     session = Session(engine)
     app = create_app()
-    settings = Settings(openrouter_api_key="test-key", openrouter_default_model="free/model")
+    settings = Settings(
+        _env_file=None, openrouter_api_key="test-key", openrouter_default_model="free/model"
+    )
 
     def override_session() -> Generator[Session, None, None]:
         yield session
@@ -71,6 +76,63 @@ def test_generation_queue_polls_and_enforces_idempotency(
     polled = client.get(f"/v1/jobs/{accepted.json()['id']}")
     assert polled.status_code == 200
     assert polled.json()["status"] == "queued"
+
+
+def test_queued_generation_runs_review_graph_and_returns_final_version(client_session):
+    client, session = client_session
+    project = create_project(session)
+    accepted = client.post(
+        f"/v1/projects/{project.id}/scripts/generate",
+        headers={"Idempotency-Key": "reviewed-generation"},
+        json={},
+    )
+    assert accepted.status_code == 202
+    job = JobRepository(session).claim_next(900)
+    assert job is not None
+    final = valid_script_payload()
+    final["title"] = "The reviewed creator workflow"
+    provider = FakeProvider(
+        [
+            valid_hook_payload(),
+            valid_script_payload(),
+            {"approved": False, "feedback": ["Make the title more specific."]},
+            final,
+        ]
+    )
+
+    ScriptCreationService(session, provider).execute_claimed_job(job)
+
+    polled = client.get(f"/v1/jobs/{accepted.json()['id']}")
+    assert polled.json()["status"] == "completed"
+    versions = client.get(f"/v1/projects/{project.id}/scripts/versions")
+    assert versions.status_code == 200
+    assert len(versions.json()) == 1
+    assert versions.json()[0]["content"]["title"] == final["title"]
+    assert versions.json()[0]["generation_job_id"] == accepted.json()["id"]
+    assert versions.json()[0]["input_snapshot"] == job.input_snapshot
+    assert provider.calls == 4
+
+
+def test_script_queue_rejects_insufficient_review_budget(client_session):
+    client, session = client_session
+    project = create_project(session)
+    settings = Settings(
+        _env_file=None,
+        openrouter_api_key="test-key",
+        openrouter_default_model="free/model",
+        openrouter_max_calls_per_operation=3,
+    )
+    client.app.dependency_overrides[get_settings] = lambda: settings
+
+    response = client.post(
+        f"/v1/projects/{project.id}/scripts/generate",
+        headers={"Idempotency-Key": "insufficient-budget"},
+        json={},
+    )
+
+    assert response.status_code == 503
+    assert "MAX_CALLS_PER_OPERATION" in response.json()["detail"]
+    assert session.query(Job).count() == 0
 
 
 def test_style_suggestion_queue_is_retrievable_by_job_id(
