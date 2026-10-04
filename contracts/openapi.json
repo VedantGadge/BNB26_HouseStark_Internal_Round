@@ -3435,6 +3435,52 @@
         }
       }
     },
+    "/v1/jobs/{job_id}/insight-report.pdf": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Download Insight Report",
+        "operationId": "download_insight_report_v1_jobs__job_id__insight_report_pdf_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/jobs/{job_id}/retry": {
       "post": {
         "tags": [

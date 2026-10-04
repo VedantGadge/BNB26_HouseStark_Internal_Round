@@ -6,6 +6,7 @@ import { Field, Media, Status, useAction, useApi } from "./common";
 import { PageHeader } from "@/components/ui/studio-ui";
 import { humanize, localDate } from "@/lib/creator.mjs";
 import { workflowNextAction } from "@/lib/studio.mjs";
+import { RiskRadarPanel } from "./risk-radar";
 
 function Publication({ record, root, revision, action }) {
   function fields(e) {
@@ -191,6 +192,10 @@ export function Publish({ projectId }) {
                 </button>
               </div>
             ))}
+            <RiskRadarPanel
+              completedExports={completedExports}
+              disabled={action.busy || state.stage === "published"}
+            />
             <Field label="Package title">
               <input
                 name="title"

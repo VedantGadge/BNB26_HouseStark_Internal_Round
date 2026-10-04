@@ -1,5 +1,6 @@
 """PDF presentation for completed, evidence-backed insight jobs."""
 
+import re
 from io import BytesIO
 from xml.sax.saxutils import escape
 
@@ -8,7 +9,7 @@ from reportlab.lib.enums import TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 
 def _text(value: object) -> str:
@@ -23,8 +24,69 @@ def _percentage(value: object) -> str:
     return f"{value * 100:.2f}%" if isinstance(value, int | float) else "Unavailable"
 
 
+def _duration(value: object) -> str:
+    match = re.fullmatch(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", str(value or ""))
+    if not match:
+        return "its current duration"
+    hours, minutes, seconds = (int(part or 0) for part in match.groups())
+    parts = []
+    if hours:
+        parts.append(f"{hours} hour{'s' if hours != 1 else ''}")
+    if minutes:
+        parts.append(f"{minutes} minute{'s' if minutes != 1 else ''}")
+    if seconds:
+        parts.append(f"{seconds} second{'s' if seconds != 1 else ''}")
+    return " and ".join(parts) or "its current duration"
+
+
+def _ai_perspective(observation: dict) -> tuple[list[str], list[str]]:
+    title = observation.get("title") or "this vertical video"
+    duration = _duration(observation.get("duration"))
+    views = observation.get("views")
+    likes = observation.get("likes")
+    comments = observation.get("comments")
+    interaction = (
+        f"The visible response is weighted toward likes ({_number(likes)}) "
+        f"rather than comments ({_number(comments)}), so this snapshot captures "
+        "lightweight audience approval more clearly "
+        "than conversation."
+        if isinstance(likes, int) and isinstance(comments, int)
+        else "The available public response is incomplete, so audience interaction "
+        "should be treated "
+        "as directional only."
+    )
+    scale = (
+        f"With {_number(views)} lifetime views, '{title}' is a useful creative "
+        "reference, but channel "
+        "size and cumulative distribution make it unsuitable as a direct benchmark for a new post."
+        if isinstance(views, int)
+        else f"'{title}' should be used as a creative reference, not a performance benchmark."
+    )
+    return (
+        [
+            f"This reel-style Short runs for {duration}; review its opening, pacing "
+            "and payoff as one "
+            "creative package rather than attributing reach to a single moment.",
+            interaction,
+            scale,
+        ],
+        [
+            "Create two versions around the same idea: one with a direct first-second "
+            "claim and one "
+            "with a curiosity-led opening.",
+            "Keep format and topic comparable, then measure at least three posts on the same 7-day "
+            "owner-analytics window before choosing a direction.",
+            "Use comments and retention from your connected channel to decide whether "
+            "viewers are only "
+            "reacting or staying through the full story.",
+        ],
+    )
+
+
 def _footer(canvas, document) -> None:
     canvas.saveState()
+    canvas.setFillColor(colors.white)
+    canvas.rect(0, 0, A4[0], A4[1], fill=1, stroke=0)
     canvas.setStrokeColor(colors.HexColor("#D9DEE8"))
     canvas.line(18 * mm, 16 * mm, A4[0] - 18 * mm, 16 * mm)
     canvas.setFillColor(colors.HexColor("#667085"))
@@ -160,7 +222,14 @@ def build_insight_report(facts: dict, result: dict) -> bytes:
             ]
         )
     )
-    story.extend([table, Paragraph("Evidence and limits", section)])
+    ai_perspective, next_tests = _ai_perspective(observation)
+    story.extend([table, Paragraph("AI perspective", section)])
+    for item in ai_perspective:
+        story.append(Paragraph(f"- {_text(item)}", body))
+    story.extend([PageBreak(), Paragraph("Next creative tests", section)])
+    for item in next_tests:
+        story.append(Paragraph(f"- {_text(item)}", body))
+    story.append(Paragraph("Evidence and limits", section))
     evidence = [
         f"Snapshot: {observation.get('snapshot_id', 'Unavailable')}",
         f"Observed: {observation.get('observed_at', 'Unavailable')}",
