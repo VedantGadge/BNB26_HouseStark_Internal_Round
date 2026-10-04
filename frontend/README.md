@@ -39,3 +39,33 @@ preview was also played and sought against the live isolated backend.
 This is a hackathon prototype, not a production-readiness certification. No
 production performance audit, hosted deployment, billing or identity-provider
 integration is included. Secrets remain in backend environment configuration.
+
+## Android APK (Ionic Capacitor)
+
+The Android shell uses Ionic Capacitor to open the existing Next.js app. The
+project is dynamic (project routes and a theme cookie), so the APK connects to
+the running Next.js server rather than embedding a static export.
+
+For an Android emulator, start the frontend and backend, then build:
+
+```sh
+rtk npm run dev
+rtk npm run mobile:apk
+```
+
+The debug APK is written to `android/app/build/outputs/apk/debug/app-debug.apk`.
+By default it connects to `http://10.0.2.2:3000`, which is the Android emulator
+address for the host computer. The command uses JDK 21 from `JAVA_HOME` or the
+JDK bundled with Android Studio on macOS. Set `JAVA_HOME` to a JDK 21 install on
+other systems.
+
+For a release candidate pointed at a deployed frontend, set the URL before
+building:
+
+```sh
+CAPACITOR_SERVER_URL=https://creator.example.com rtk npm run mobile:apk
+```
+
+Ensure `NEXT_PUBLIC_API_BASE_URL` is configured in the deployed Next.js app and
+that the backend allows the deployed frontend origin through CORS. `mobile:apk`
+creates an installable debug APK; a Play Store build must be signed separately.
