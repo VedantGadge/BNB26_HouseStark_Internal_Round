@@ -30,6 +30,7 @@ class JobStatus(StrEnum):
 
 class JobType(StrEnum):
     INSIGHT_SUMMARY = "insight_summary"
+    RISK_RADAR = "risk_radar"
     ASSET_INGESTION = "asset_ingestion"
     CLIP_GENERATION = "clip_generation"
     MEDIA_EXPORT = "media_export"
