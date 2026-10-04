@@ -48,3 +48,13 @@ export function nextProjectPath(projectId, stage) {
   ];
   return `/projects/${projectId}${stage === "editing" ? "/clips" : suffix}`;
 }
+
+export function workflowNextAction(state) {
+  if (state.stage !== "idea" || !state.checklist?.script_saved)
+    return state.next_action;
+  if (!state.checklist.assets_ready)
+    return "Your script is saved. Add and review your source footage in Assets.";
+  if (!state.checklist.editing_complete)
+    return "Your script is saved. Shape your clips and finish the edit.";
+  return "Your script is saved. Review your project and continue the workflow.";
+}

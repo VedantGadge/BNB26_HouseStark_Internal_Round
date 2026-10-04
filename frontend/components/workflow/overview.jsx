@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/studio-ui";
 import { ArrowUpRight, CheckCircle, Clock } from "@phosphor-icons/react";
 import { humanize } from "@/lib/creator.mjs";
+import { workflowNextAction } from "@/lib/studio.mjs";
 
 export function Overview({ projectId }) {
   const root = "/projects/" + projectId,
@@ -36,7 +37,7 @@ export function Overview({ projectId }) {
                 title="Your next step"
                 description="Keep the story moving."
               />
-              <p className="next-action-copy">{state.next_action}</p>
+              <p className="next-action-copy">{workflowNextAction(state)}</p>
               <ArrowLink
                 href={
                   root +

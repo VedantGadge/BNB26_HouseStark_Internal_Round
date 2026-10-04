@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { apiFetch, patch, post } from "@/lib/api";
 import { Field, Media, Status, useAction, useApi } from "./common";
 import { PageHeader } from "@/components/ui/studio-ui";
 import { humanize, localDate } from "@/lib/creator.mjs";
+import { workflowNextAction } from "@/lib/studio.mjs";
 
 function Publication({ record, root, revision, action }) {
   function fields(e) {
@@ -103,6 +105,10 @@ export function Publish({ projectId }) {
     action = useAction();
   const [preview, setPreview] = useState(null);
   const state = workflow.data;
+  const completedExports =
+    renders.data?.filter(
+      (render) => render.processing_status === "completed" && render.platform,
+    ) || [];
   return (
     <section className="workspace publish-workspace">
       <PageHeader
@@ -118,7 +124,7 @@ export function Publish({ projectId }) {
       {state && (
         <>
           <div className="notice">
-            <p>{state.next_action}</p>
+            <p>{workflowNextAction(state)}</p>
             {state.blocking_reasons.map((reason) => (
               <p key={reason}>{reason}</p>
             ))}
@@ -157,28 +163,34 @@ export function Publish({ projectId }) {
             }}
           >
             <h2>Select completed exports</h2>
-            {renders.data
-              ?.filter((r) => r.processing_status === "completed" && r.platform)
-              .map((r) => (
-                <div key={r.id} className="row">
-                  <label className="check">
-                    <input
-                      type="checkbox"
-                      name="render"
-                      value={r.id}
-                      defaultChecked={state.package?.render_ids.includes(r.id)}
-                    />
-                    {r.platform} · {r.preset_name} · {r.supporting_copy.title}
-                  </label>
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={() => setPreview(r.id)}
-                  >
-                    Play export
-                  </button>
-                </div>
-              ))}
+            <Status query={renders} />
+            {renders.data && completedExports.length === 0 && (
+              <p className="muted">
+                No completed platform exports yet. Finish your clip and create a
+                platform export in <Link href={root + "/clips"}>Clips</Link>,
+                then select it here. You can prepare the package copy below.
+              </p>
+            )}
+            {completedExports.map((r) => (
+              <div key={r.id} className="row">
+                <label className="check">
+                  <input
+                    type="checkbox"
+                    name="render"
+                    value={r.id}
+                    defaultChecked={state.package?.render_ids.includes(r.id)}
+                  />
+                  {r.platform} · {r.preset_name} · {r.supporting_copy.title}
+                </label>
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => setPreview(r.id)}
+                >
+                  Play export
+                </button>
+              </div>
+            ))}
             <Field label="Package title">
               <input
                 name="title"

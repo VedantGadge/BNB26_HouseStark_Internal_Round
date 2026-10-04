@@ -5,6 +5,7 @@ import {
   stageGroup,
   workflowPosition,
   nextProjectPath,
+  workflowNextAction,
 } from "../lib/studio.mjs";
 
 test("every backend workflow stage has an honest project lane", () => {
@@ -14,6 +15,22 @@ test("every backend workflow stage has an honest project lane", () => {
   for (const stage of ["review", "approved", "exported", "published"])
     assert.equal(stageGroup(stage), "delivery");
   assert.equal(stageGroup("future-stage"), "creating");
+});
+
+test("saved-script guidance matches the current production checklist", () => {
+  const state = {
+    stage: "idea",
+    next_action: "Save your script, then move to Assets.",
+    checklist: { script_saved: false },
+  };
+  assert.equal(workflowNextAction(state), state.next_action);
+  state.checklist.script_saved = true;
+  assert.match(workflowNextAction(state), /script is saved.*Assets/);
+  state.checklist.assets_ready = true;
+  assert.match(workflowNextAction(state), /finish the edit/);
+  state.stage = "review";
+  state.next_action = "Review the final edit.";
+  assert.equal(workflowNextAction(state), state.next_action);
 });
 
 test("workflow navigation preserves the established project routes", () => {
